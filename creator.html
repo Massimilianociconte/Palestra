@@ -117,30 +117,160 @@
                     <button class="btn btn-outline" onclick="window.history.back()">Annulla</button>
                 </div>
 
-            </div>
-        </div>
-    </section>
+                <!DOCTYPE html>
+                <html lang="it">
 
-    <script src="js/api.js"></script>
-    <script src="js/main.js"></script>
-    <script>
-        // Creator Logic with Edit Mode & Sync
-        const exercisesList = document.getElementById('exercisesList');
-        const addBtn = document.getElementById('addExerciseBtn');
-        const saveBtn = document.getElementById('saveWorkoutBtn');
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Creator | IRONFLOW</title>
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                    <link
+                        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
+                        rel="stylesheet">
+                    <link rel="stylesheet" href="css/style.css">
+                    <style>
+                        .exercise-item {
+                            background: var(--color-surface);
+                            border: 1px solid var(--color-border);
+                            padding: var(--spacing-sm);
+                            margin-bottom: var(--spacing-sm);
+                            border-radius: var(--radius-sm);
+                            position: relative;
+                        }
 
-        // Check for Edit Mode
-        const urlParams = new URLSearchParams(window.location.search);
-        const editId = urlParams.get('id');
-        let isEditing = false;
+                        .remove-btn {
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            color: #ff4444;
+                            cursor: pointer;
+                            font-size: 1.2rem;
+                        }
 
-        // Initialize API Service (assuming api.js is loaded)
-        const storageService = new StorageService();
+                        .form-group {
+                            margin-bottom: 1rem;
+                        }
 
-        function addExerciseUI(data = null) {
-            const div = document.createElement('div');
-            div.className = 'exercise-item';
-            div.innerHTML = `
+                        label {
+                            display: block;
+                            margin-bottom: 0.5rem;
+                            color: var(--color-text-muted);
+                            font-size: 0.9rem;
+                        }
+
+                        input,
+                        textarea,
+                        select {
+                            width: 100%;
+                            background: var(--color-bg);
+                            border: 1px solid var(--color-border);
+                            color: var(--color-text-main);
+                            padding: 0.8rem;
+                            border-radius: var(--radius-sm);
+                            font-family: var(--font-body);
+                        }
+
+                        input:focus,
+                        textarea:focus,
+                        select:focus {
+                            outline: none;
+                            border-color: var(--color-primary);
+                        }
+
+                        .row-inputs {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr 1fr;
+                            gap: 10px;
+                        }
+                    </style>
+                </head>
+
+                <body>
+
+                    <header class="header">
+                        <div class="container">
+                            <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
+                            <nav>
+                                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                                <ul class="nav-links" id="navLinks">
+                                    <li><a href="creator.html" class="text-primary">Creator</a></li>
+                                    <li><a href="diary.html">Diario</a></li>
+                                    <li><a href="analysis.html">Analisi</a></li>
+                                    <li><a href="body.html">Corpo</a></li>
+                                    <li><a href="user.html">Profilo</a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </header>
+
+                    <section class="section" style="padding-top: 120px;">
+                        <div class="container">
+                            <h1 style="margin-bottom: var(--spacing-md);">Crea Nuova <span
+                                    class="text-primary">Scheda</span></h1>
+
+                            <div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
+
+                                <!-- Workout Details -->
+                                <div class="card">
+                                    <div class="form-group">
+                                        <label>Nome Scheda</label>
+                                        <input type="text" id="workoutName" placeholder="es. Push Day A">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Descrizione / Obiettivo</label>
+                                        <textarea id="workoutDesc" rows="3"
+                                            placeholder="es. Focus petto alto e tricipiti"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Exercises List -->
+                                <div id="exercisesList">
+                                    <!-- Dynamic exercises will appear here -->
+                                </div>
+
+                                <button id="addExerciseBtn" class="btn btn-outline"
+                                    style="width: 100%; border-style: dashed;">
+                                    + Aggiungi Esercizio
+                                </button>
+
+                                <div style="margin-top: var(--spacing-md); display: flex; gap: 1rem;">
+                                    <button id="saveWorkoutBtn" class="btn btn-primary" style="flex: 1;">Salva
+                                        Scheda</button>
+                                    <button class="btn btn-outline" onclick="window.history.back()">Annulla</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </section>
+
+                    <script src="js/api.js"></script>
+                    <script src="js/main.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            // Creator Logic with Edit Mode & Sync
+                            const exercisesList = document.getElementById('exercisesList');
+                            const addBtn = document.getElementById('addExerciseBtn');
+                            const saveBtn = document.getElementById('saveWorkoutBtn');
+
+                            // Check for Edit Mode
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const editId = urlParams.get('id');
+                            let isEditing = false;
+
+                            // Initialize API Service safely
+                            let storageService;
+                            try {
+                                storageService = window.storageService || new StorageService();
+                            } catch (e) {
+                                console.error('StorageService not available:', e);
+                            }
+
+                            function addExerciseUI(data = null) {
+                                const div = document.createElement('div');
+                                div.className = 'exercise-item';
+                                div.innerHTML = `
 <span class="remove-btn" onclick="this.parentElement.remove()">×</span>
 <div class="form-group">
     <label>Esercizio</label>
@@ -165,86 +295,98 @@
     <input type="text" class="ex-notes" placeholder="Fermo 1s al petto" value="${data ? data.notes : ''}">
 </div>
 `;
-            exercisesList.appendChild(div);
-        }
+                                exercisesList.appendChild(div);
+                            }
 
-        addBtn.addEventListener('click', () => addExerciseUI());
+                            if (addBtn) {
+                                addBtn.addEventListener('click', () => addExerciseUI());
+                            }
 
-        // Load Data if Editing
-        if (editId) {
-            isEditing = true;
-            document.querySelector('h1').innerHTML = 'Modifica <span class="text-primary">Scheda</span>';
-            const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-            const workout = workouts.find(w => w.id == editId);
+                            // Load Data if Editing
+                            if (editId) {
+                                isEditing = true;
+                                const title = document.querySelector('h1');
+                                if (title) title.innerHTML = 'Modifica <span class="text-primary">Scheda</span>';
 
-            if (workout) {
-                document.getElementById('workoutName').value = workout.name;
-                document.getElementById('workoutDesc').value = workout.description || '';
+                                const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                                const workout = workouts.find(w => w.id == editId);
 
-                if (workout.exercises && workout.exercises.length > 0) {
-                    workout.exercises.forEach(ex => addExerciseUI(ex));
-                } else {
-                    addExerciseUI();
-                }
-            } else {
-                alert('Scheda non trovata!');
-                window.location.href = 'user.html';
-            }
-        } else {
-            // Default empty exercise
-            addExerciseUI();
-        }
+                                if (workout) {
+                                    const nameInput = document.getElementById('workoutName');
+                                    const descInput = document.getElementById('workoutDesc');
+                                    if (nameInput) nameInput.value = workout.name;
+                                    if (descInput) descInput.value = workout.description || '';
 
-        saveBtn.addEventListener('click', async () => {
-            const name = document.getElementById('workoutName').value;
-            if (!name) { alert('Inserisci un nome per la scheda'); return; }
+                                    if (workout.exercises && workout.exercises.length > 0) {
+                                        workout.exercises.forEach(ex => addExerciseUI(ex));
+                                    } else {
+                                        addExerciseUI();
+                                    }
+                                } else {
+                                    alert('Scheda non trovata!');
+                                    window.location.href = 'user.html';
+                                }
+                            } else {
+                                // Default empty exercise
+                                addExerciseUI();
+                            }
 
-            const exercises = [];
-            document.querySelectorAll('.exercise-item').forEach(item => {
-                exercises.push({
-                    name: item.querySelector('.ex-name').value,
-                    sets: item.querySelector('.ex-sets').value,
-                    reps: item.querySelector('.ex-reps').value,
-                    rpe: item.querySelector('.ex-rpe').value,
-                    notes: item.querySelector('.ex-notes').value
-                });
-            });
+                            if (saveBtn) {
+                                saveBtn.addEventListener('click', async () => {
+                                    const nameInput = document.getElementById('workoutName');
+                                    const descInput = document.getElementById('workoutDesc');
 
-            const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                                    const name = nameInput ? nameInput.value : '';
+                                    if (!name) { alert('Inserisci un nome per la scheda'); return; }
 
-            if (isEditing) {
-                const index = workouts.findIndex(w => w.id == editId);
-                if (index !== -1) {
-                    workouts[index].name = name;
-                    workouts[index].description = document.getElementById('workoutDesc').value;
-                    workouts[index].exercises = exercises;
-                    workouts[index].lastModified = new Date().toISOString();
-                }
-            } else {
-                const workout = {
-                    id: Date.now(),
-                    name: name,
-                    description: document.getElementById('workoutDesc').value,
-                    exercises: exercises,
-                    dateCreated: new Date().toISOString()
-                };
-                workouts.push(workout);
-            }
+                                    const exercises = [];
+                                    document.querySelectorAll('.exercise-item').forEach(item => {
+                                        exercises.push({
+                                            name: item.querySelector('.ex-name').value,
+                                            sets: item.querySelector('.ex-sets').value,
+                                            reps: item.querySelector('.ex-reps').value,
+                                            rpe: item.querySelector('.ex-rpe').value,
+                                            notes: item.querySelector('.ex-notes').value
+                                        });
+                                    });
 
-            localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
+                                    const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
 
-            // Auto-Sync
-            saveBtn.textContent = 'Salvataggio Cloud...';
-            saveBtn.disabled = true;
+                                    if (isEditing) {
+                                        const index = workouts.findIndex(w => w.id == editId);
+                                        if (index !== -1) {
+                                            workouts[index].name = name;
+                                            workouts[index].description = descInput ? descInput.value : '';
+                                            workouts[index].exercises = exercises;
+                                            workouts[index].lastModified = new Date().toISOString();
+                                        }
+                                    } else {
+                                        const workout = {
+                                            id: Date.now(),
+                                            name: name,
+                                            description: descInput ? descInput.value : '',
+                                            exercises: exercises,
+                                            dateCreated: new Date().toISOString()
+                                        };
+                                        workouts.push(workout);
+                                    }
 
-            if (storageService.hasCredentials()) {
-                await storageService.syncData();
-            }
+                                    localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
 
-            alert('Scheda salvata con successo!');
-            window.location.href = 'user.html';
-        });
-    </script>
-</body>
+                                    // Auto-Sync
+                                    saveBtn.textContent = 'Salvataggio Cloud...';
+                                    saveBtn.disabled = true;
 
-</html>
+                                    if (storageService && storageService.hasCredentials()) {
+                                        await storageService.syncData();
+                                    }
+
+                                    alert('Scheda salvata con successo!');
+                                    window.location.href = 'user.html';
+                                });
+                            }
+                        });
+                    </script>
+                </body>
+
+                </html>
