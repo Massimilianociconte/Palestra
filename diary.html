@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diario | IRONFLOW</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .log-entry {
+            background: var(--color-surface);
+            border-left: 4px solid var(--color-primary);
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .log-date {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .log-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .log-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .stat-pill {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
+            <nav>
+                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="creator.html">Creator</a></li>
+                    <li><a href="diary.html" class="text-primary">Diario</a></li>
+                    <li><a href="analysis.html">Analisi</a></li>
+                    <li><a href="body.html">Corpo</a></li>
+                    <li><a href="user.html">Profilo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section" style="padding-top: 120px;">
+        <div class="container">
+            <div class="flex"
+                style="justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <h1>Diario <span class="text-primary">Allenamento</span></h1>
+                <button id="startWorkoutBtn" class="btn btn-primary">Nuovo Workout</button>
+            </div>
+
+            <!-- Quick Start Modal / Area (Hidden by default, simplified for this view) -->
+            <div id="workoutSelector" class="card"
+                style="display: none; margin-bottom: var(--spacing-md); border-color: var(--color-primary);">
+                <h3>Seleziona Scheda</h3>
+                <select id="savedWorkoutsSelect" style="margin: 1rem 0;">
+                    <option value="">-- Scegli una routine --</option>
+                </select>
+                <button id="confirmStartBtn" class="btn btn-primary" style="width: 100%;">INIZIA</button>
+            </div>
+
+            <!-- History List -->
+            <div id="historyList">
+                <!-- Logs will be injected here -->
+                <p class="text-center" style="color: var(--color-text-muted); margin-top: 2rem;">Nessun allenamento
+                    registrato.</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Diary Logic
+        const startBtn = document.getElementById('startWorkoutBtn');
+        const selectorArea = document.getElementById('workoutSelector');
+        const select = document.getElementById('savedWorkoutsSelect');
+        const confirmBtn = document.getElementById('confirmStartBtn');
+        const historyList = document.getElementById('historyList');
+
+        // Load Saved Workouts into Select
+        const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+        workouts.forEach(w => {
+            const opt = document.createElement('option');
+            opt.value = w.id;
+            opt.textContent = w.name;
+            select.appendChild(opt);
+        });
+
+        // Toggle Selector
+        startBtn.addEventListener('click', () => {
+            selectorArea.style.display = selectorArea.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Start Workout (Mock functionality - just logs it for now to show flow)
+        confirmBtn.addEventListener('click', () => {
+            const workoutId = select.value;
+            if (!workoutId) return;
+
+            const workout = workouts.find(w => w.id == workoutId);
+
+            // In a real app, this would go to a "Live Session" page.
+            // Here we simulate completing it immediately for the demo.
+            const log = {
+                id: Date.now(),
+                workoutName: workout.name,
+                date: new Date().toISOString(),
+                duration: '60 min', // Mock
+                tonnage: Math.floor(Math.random() * 5000) + 5000 + ' kg' // Mock
+            };
+
+            const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+            logs.unshift(log); // Add to top
+            localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+
+            renderLogs();
+            selectorArea.style.display = 'none';
+        });
+
+        // Render Logs
+        function renderLogs() {
+            const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+            if (logs.length === 0) return;
+
+            historyList.innerHTML = '';
+            logs.forEach(log => {
+                const date = new Date(log.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.innerHTML = `
+                    <div class="log-date">${date}</div>
+                    <div class="log-title">${log.workoutName}</div>
+                    <div class="log-stats">
+                        <span class="stat-pill">⏱ ${log.duration}</span>
+                        <span class="stat-pill">⚖️ ${log.tonnage}</span>
+                    </div>
+                `;
+                historyList.appendChild(div);
+            });
+        }
+
+        renderLogs();
+    </script>
+</body>
+
+</html>

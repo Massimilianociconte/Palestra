@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corpo | IRONFLOW</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .measure-card {
+            background: var(--color-surface);
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .measure-val {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--color-primary);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+
+        .photo-slot {
+            aspect-ratio: 3/4;
+            background: var(--color-surface);
+            border: 2px dashed var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .photo-slot:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .photo-slot span {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
+            <nav>
+                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="creator.html">Creator</a></li>
+                    <li><a href="diary.html">Diario</a></li>
+                    <li><a href="analysis.html">Analisi</a></li>
+                    <li><a href="body.html" class="text-primary">Corpo</a></li>
+                    <li><a href="user.html">Profilo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section" style="padding-top: 120px;">
+        <div class="container">
+            <h1 style="margin-bottom: var(--spacing-md);">Misure & <span class="text-primary">Progressi</span></h1>
+
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+
+                <!-- Measurements -->
+                <div>
+                    <h3 style="margin-bottom: 1rem;">Misure Corporee</h3>
+                    <div class="grid" style="gap: 1rem;">
+                        <div class="measure-card">
+                            <span>Peso Corporeo</span>
+                            <span class="measure-val">82.5 <span
+                                    style="font-size: 0.8rem; color: var(--color-text-muted);">kg</span></span>
+                        </div>
+                        <div class="measure-card">
+                            <span>% Grasso (Stima)</span>
+                            <span class="measure-val">12 <span
+                                    style="font-size: 0.8rem; color: var(--color-text-muted);">%</span></span>
+                        </div>
+                        <div class="measure-card">
+                            <span>Torace</span>
+                            <span class="measure-val">108 <span
+                                    style="font-size: 0.8rem; color: var(--color-text-muted);">cm</span></span>
+                        </div>
+                        <div class="measure-card">
+                            <span>Braccio</span>
+                            <span class="measure-val">42 <span
+                                    style="font-size: 0.8rem; color: var(--color-text-muted);">cm</span></span>
+                        </div>
+                        <div class="measure-card">
+                            <span>Vita</span>
+                            <span class="measure-val">80 <span
+                                    style="font-size: 0.8rem; color: var(--color-text-muted);">cm</span></span>
+                        </div>
+                        <div class="measure-card">
+                            <span>Gambe</span>
+                            <span class="measure-val">62 <span
+                                    style="font-size: 0.8rem; color: var(--color-text-muted);">cm</span></span>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;">Aggiorna Misure</button>
+                </div>
+
+                <!-- Photos -->
+                <div>
+                    <h3 style="margin-bottom: 1rem;">Foto Progressi</h3>
+                    <p style="font-size: 0.9rem; margin-bottom: 1rem;">Confronta la tua condizione attuale con quella
+                        precedente.</p>
+
+                    <div class="photo-grid">
+                        <div class="photo-slot">
+                            <span>📷</span>
+                            <small>Fronte</small>
+                        </div>
+                        <div class="photo-slot">
+                            <span>📷</span>
+                            <small>Retro</small>
+                        </div>
+                        <div class="photo-slot">
+                            <span>📷</span>
+                            <small>Lato Sx</small>
+                        </div>
+                        <div class="photo-slot">
+                            <span>📷</span>
+                            <small>Lato Dx</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Carica Nuove Foto</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>
