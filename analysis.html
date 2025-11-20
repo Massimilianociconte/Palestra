@@ -149,141 +149,337 @@
                     <tbody id="prTableBody">
                         <!-- Dynamic PRs -->
                     </tbody>
-                </table>
-            </div>
+                    <!DOCTYPE html>
+                    <html lang="it">
 
-        </div>
-    </section>
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Analisi | IRONFLOW</title>
+                        <link rel="preconnect" href="https://fonts.googleapis.com">
+                        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                        <link
+                            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
+                            rel="stylesheet">
+                        <link rel="stylesheet" href="css/style.css">
+                        <style>
+                            .chart-container {
+                                background: var(--color-surface);
+                                padding: var(--spacing-md);
+                                border: 1px solid var(--color-border);
+                                border-radius: var(--radius-md);
+                                margin-bottom: var(--spacing-md);
+                            }
 
-    <script src="js/main.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                            .bar-chart {
+                                display: flex;
+                                align-items: flex-end;
+                                justify-content: space-between;
+                                height: 200px;
+                                padding-top: 20px;
+                                gap: 10px;
+                            }
 
-            // 1. Calculate Key Stats
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
+                            .bar {
+                                flex: 1;
+                                background: var(--color-border);
+                                border-radius: 4px 4px 0 0;
+                                position: relative;
+                                transition: height 0.5s ease;
+                            }
 
-            const monthlyCount = logs.filter(log => {
-                const d = new Date(log.date);
-                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-            }).length;
+                            .bar:hover {
+                                background: var(--color-primary);
+                            }
 
-            document.getElementById('monthlyWorkouts').textContent = monthlyCount;
+                            .bar-label {
+                                position: absolute;
+                                bottom: -25px;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                font-size: 0.8rem;
+                                color: var(--color-text-muted);
+                            }
 
-            let totalVol = 0;
-            logs.forEach(log => totalVol += (log.totalVolume || 0));
+                            .bar-value {
+                                position: absolute;
+                                top: -25px;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                font-size: 0.8rem;
+                                font-weight: bold;
+                                color: var(--color-accent);
+                            }
 
-            let volDisplay = totalVol + ' kg';
-            if (totalVol > 1000000) volDisplay = (totalVol / 1000000).toFixed(1) + 'M kg';
-            else if (totalVol > 1000) volDisplay = (totalVol / 1000).toFixed(0) + 'k kg';
+                            .stat-grid {
+                                display: grid;
+                                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                                gap: var(--spacing-sm);
+                            }
 
-            document.getElementById('totalVolume').textContent = volDisplay;
+                            .stat-card {
+                                background: var(--color-surface);
+                                padding: var(--spacing-sm);
+                                border: 1px solid var(--color-border);
+                                text-align: center;
+                            }
 
-            // 2. Volume Chart (Last 7 Days)
-            const volumeChart = document.getElementById('volumeChart');
-            const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
-            const last7Days = [];
+                            .stat-val {
+                                font-family: var(--font-display);
+                                font-size: 2rem;
+                                color: var(--color-primary);
+                            }
 
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                last7Days.push({
-                    date: d.toISOString().split('T')[0],
-                    dayName: days[d.getDay()],
-                    volume: 0
-                });
-            }
+                            .stat-label {
+                                font-size: 0.9rem;
+                                color: var(--color-text-muted);
+                            }
+                        </style>
+                    </head>
 
-            logs.forEach(log => {
-                const logDate = log.date.split('T')[0];
-                const dayStat = last7Days.find(d => d.date === logDate);
-                if (dayStat) {
-                    dayStat.volume += (log.totalVolume || 0);
-                }
-            });
+                    <body>
 
-            const maxVol = Math.max(...last7Days.map(d => d.volume), 1000); // Min scale 1000
+                        <header class="header">
+                            <div class="container">
+                                <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
+                                <nav>
+                                    <div class="mobile-toggle" id="mobileToggle">☰</div>
+                                    <ul class="nav-links" id="navLinks">
+                                        <li><a href="creator.html">Creator</a></li>
+                                        <li><a href="diary.html">Diario</a></li>
+                                        <li><a href="analysis.html" class="text-primary">Analisi</a></li>
+                                        <li><a href="body.html">Corpo</a></li>
+                                        <li><a href="user.html">Profilo</a></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </header>
 
-            volumeChart.innerHTML = '';
-            last7Days.forEach(day => {
-                const height = (day.volume / maxVol) * 100;
-                const valDisplay = day.volume > 0 ? (day.volume > 1000 ? (day.volume / 1000).toFixed(1) + 'k' : day.volume) : '';
+                        <section class="section" style="padding-top: 120px;">
+                            <div class="container">
+                                <h1 style="margin-bottom: var(--spacing-md);">Analisi <span
+                                        class="text-primary">Performance</span></h1>
 
-                const bar = document.createElement('div');
-                bar.className = 'bar';
-                bar.style.height = height + '%';
-                if (day.volume > 0) bar.style.background = 'var(--color-primary)';
+                                <!-- Key Stats -->
+                                <div class="stat-grid" style="margin-bottom: var(--spacing-md);">
+                                    <div class="stat-card">
+                                        <div class="stat-val" id="monthlyWorkouts">0</div>
+                                        <div class="stat-label">Workout Mensili</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-val" id="totalVolume">0</div>
+                                        <div class="stat-label">Volume Totale</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-val" id="bestBench">0</div>
+                                        <div class="stat-label">Best Bench (1RM)</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-val" id="bestSquat">0</div>
+                                        <div class="stat-label">Best Squat (1RM)</div>
+                                    </div>
+                                </div>
 
-                bar.innerHTML = `
+                                <!-- Volume Chart -->
+                                <div class="chart-container">
+                                    <h3 style="margin-bottom: 1rem;">Volume Settimanale (Ultimi 7 giorni)</h3>
+                                    <div class="bar-chart" id="volumeChart">
+                                        <!-- Dynamic Bars -->
+                                    </div>
+                                </div>
+
+                                <!-- PR Table -->
+                                <div class="card">
+                                    <h3 style="margin-bottom: 1rem;">Record Personali (Stima 1RM)</h3>
+                                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                                        <thead>
+                                            <tr
+                                                style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
+                                                <th style="padding: 10px;">Esercizio</th>
+                                                <th style="padding: 10px;">1RM (Stima)</th>
+                                                <th style="padding: 10px;">Data</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="prTableBody">
+                                            <!-- Dynamic PRs -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </section>
+
+                        <script src="js/api.js"></script>
+                        <script src="js/main.js"></script>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', () => {
+                                // Initialize Services
+                                let unitService;
+                                try {
+                                    unitService = window.unitService || new UnitService();
+                                } catch (e) {
+                                    console.error('UnitService not available:', e);
+                                }
+
+                                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+
+                                // 1. Calculate Key Stats
+                                const now = new Date();
+                                const currentMonth = now.getMonth();
+                                const currentYear = now.getFullYear();
+
+                                const monthlyCount = logs.filter(log => {
+                                    const d = new Date(log.date);
+                                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                                }).length;
+
+                                document.getElementById('monthlyWorkouts').textContent = monthlyCount;
+
+                                let totalVol = 0;
+                                logs.forEach(log => totalVol += (log.totalVolume || 0));
+
+                                // Display Total Volume
+                                let volDisplay = '';
+                                if (unitService) {
+                                    // Convert total volume to preferred unit
+                                    const val = unitService.convertWeight(totalVol);
+                                    const unit = unitService.getSystem() === 'imperial' ? 'lbs' : 'kg';
+
+                                    if (val > 1000000) volDisplay = (val / 1000000).toFixed(1) + 'M ' + unit;
+                                    else if (val > 1000) volDisplay = (val / 1000).toFixed(0) + 'k ' + unit;
+                                    else volDisplay = Math.round(val) + ' ' + unit;
+                                } else {
+                                    volDisplay = totalVol + ' kg';
+                                }
+
+                                document.getElementById('totalVolume').textContent = volDisplay;
+
+                                // 2. Volume Chart (Last 7 Days)
+                                const volumeChart = document.getElementById('volumeChart');
+                                const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+                                const last7Days = [];
+
+                                for (let i = 6; i >= 0; i--) {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() - i);
+                                    last7Days.push({
+                                        date: d.toISOString().split('T')[0],
+                                        dayName: days[d.getDay()],
+                                        volume: 0
+                                    });
+                                }
+
+                                logs.forEach(log => {
+                                    const logDate = log.date.split('T')[0];
+                                    const dayStat = last7Days.find(d => d.date === logDate);
+                                    if (dayStat) {
+                                        dayStat.volume += (log.totalVolume || 0);
+                                    }
+                                });
+
+                                // Convert volumes for chart if needed
+                                if (unitService && unitService.getSystem() === 'imperial') {
+                                    last7Days.forEach(d => {
+                                        d.volume = d.volume * 2.20462; // Manual conversion for raw numbers
+                                    });
+                                }
+
+                                const maxVol = Math.max(...last7Days.map(d => d.volume), 1000); // Min scale 1000
+
+                                volumeChart.innerHTML = '';
+                                last7Days.forEach(day => {
+                                    const height = (day.volume / maxVol) * 100;
+
+                                    let valDisplay = '';
+                                    if (day.volume > 0) {
+                                        if (day.volume > 1000) valDisplay = (day.volume / 1000).toFixed(1) + 'k';
+                                        else valDisplay = Math.round(day.volume);
+                                    }
+
+                                    const bar = document.createElement('div');
+                                    bar.className = 'bar';
+                                    bar.style.height = height + '%';
+                                    if (day.volume > 0) bar.style.background = 'var(--color-primary)';
+
+                                    bar.innerHTML = `
                     <span class="bar-value">${valDisplay}</span>
                     <span class="bar-label">${day.dayName}</span>
                 `;
-                volumeChart.appendChild(bar);
-            });
+                                    volumeChart.appendChild(bar);
+                                });
 
-            // 3. Calculate PRs (Estimated 1RM)
-            // Formula: Weight * (1 + Reps/30)
-            const prs = {};
+                                // 3. Calculate PRs (Estimated 1RM)
+                                // Formula: Weight * (1 + Reps/30)
+                                const prs = {};
 
-            logs.forEach(log => {
-                if (!log.exercises) return;
-                log.exercises.forEach(ex => {
-                    const name = ex.name.toLowerCase();
-                    ex.sets.forEach(set => {
-                        const w = parseFloat(set.weight);
-                        const r = parseFloat(set.reps);
-                        if (w > 0 && r > 0) {
-                            const oneRM = w * (1 + r / 30);
-                            if (!prs[name] || oneRM > prs[name].value) {
-                                prs[name] = {
-                                    value: oneRM,
-                                    date: log.date,
-                                    display: name // Keep original casing if needed, simplified here
-                                };
-                            }
-                        }
-                    });
-                });
-            });
+                                logs.forEach(log => {
+                                    if (!log.exercises) return;
+                                    log.exercises.forEach(ex => {
+                                        const name = ex.name.toLowerCase();
+                                        ex.sets.forEach(set => {
+                                            const w = parseFloat(set.weight);
+                                            const r = parseFloat(set.reps);
+                                            if (w > 0 && r > 0) {
+                                                const oneRM = w * (1 + r / 30);
+                                                if (!prs[name] || oneRM > prs[name].value) {
+                                                    prs[name] = {
+                                                        value: oneRM,
+                                                        date: log.date,
+                                                        display: name // Keep original casing if needed, simplified here
+                                                    };
+                                                }
+                                            }
+                                        });
+                                    });
+                                });
 
-            // Update Stats Cards for specific lifts
-            function updateStatCard(id, key) {
-                const el = document.getElementById(id);
-                let max = 0;
-                // Simple fuzzy match
-                for (const [name, data] of Object.entries(prs)) {
-                    if (name.includes(key)) {
-                        if (data.value > max) max = data.value;
-                    }
-                }
-                el.textContent = Math.round(max);
-            }
+                                // Update Stats Cards for specific lifts
+                                function updateStatCard(id, key) {
+                                    const el = document.getElementById(id);
+                                    let max = 0;
+                                    // Simple fuzzy match
+                                    for (const [name, data] of Object.entries(prs)) {
+                                        if (name.includes(key)) {
+                                            if (data.value > max) max = data.value;
+                                        }
+                                    }
 
-            updateStatCard('bestBench', 'panca');
-            updateStatCard('bestSquat', 'squat');
+                                    if (unitService) {
+                                        el.textContent = unitService.formatWeight(max);
+                                    } else {
+                                        el.textContent = Math.round(max) + ' kg';
+                                    }
+                                }
 
-            // Update Table
-            const prTableBody = document.getElementById('prTableBody');
-            prTableBody.innerHTML = '';
+                                updateStatCard('bestBench', 'panca');
+                                updateStatCard('bestSquat', 'squat');
 
-            // Sort by highest 1RM
-            const sortedPRs = Object.entries(prs).sort((a, b) => b[1].value - a[1].value).slice(0, 5); // Top 5
+                                // Update Table
+                                const prTableBody = document.getElementById('prTableBody');
+                                prTableBody.innerHTML = '';
 
-            sortedPRs.forEach(([name, data]) => {
-                const date = new Date(data.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
-                const tr = document.createElement('tr');
-                tr.style.borderBottom = '1px solid var(--color-border)';
-                tr.innerHTML = `
+                                // Sort by highest 1RM
+                                const sortedPRs = Object.entries(prs).sort((a, b) => b[1].value - a[1].value).slice(0, 5); // Top 5
+
+                                sortedPRs.forEach(([name, data]) => {
+                                    const date = new Date(data.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+
+                                    let weightDisplay = Math.round(data.value) + ' kg';
+                                    if (unitService) {
+                                        weightDisplay = unitService.formatWeight(data.value);
+                                    }
+
+                                    const tr = document.createElement('tr');
+                                    tr.style.borderBottom = '1px solid var(--color-border)';
+                                    tr.innerHTML = `
                     <td style="padding: 10px; text-transform: capitalize;">${name}</td>
-                    <td style="padding: 10px; color: var(--color-primary);">${Math.round(data.value)} kg</td>
+                    <td style="padding: 10px; color: var(--color-primary);">${weightDisplay}</td>
                     <td style="padding: 10px; font-size: 0.8rem;">${date}</td>
                 `;
-                prTableBody.appendChild(tr);
-            });
-        });
-    </script>
-</body>
+                                    prTableBody.appendChild(tr);
+                                });
+                            });
+                        </script>
+                    </body>
 
-</html>
+                    </html>

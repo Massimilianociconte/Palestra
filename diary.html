@@ -176,221 +176,471 @@
             <!-- History List -->
             <div id="historyList">
                 <!-- Logs will be injected here -->
-            </div>
-        </div>
-    </section>
+                <!DOCTYPE html>
+                <html lang="it">
 
-    <script src="js/api.js"></script>
-    <script src="js/main.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // DOM Elements
-            const startBtn = document.getElementById('startWorkoutBtn');
-            const workoutSelector = document.getElementById('workoutSelector');
-            const savedWorkoutsSelect = document.getElementById('savedWorkoutsSelect');
-            const loadWorkoutBtn = document.getElementById('loadWorkoutBtn');
-            const cancelSelectBtn = document.getElementById('cancelSelectBtn');
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Diario | IRONFLOW</title>
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                    <link
+                        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
+                        rel="stylesheet">
+                    <link rel="stylesheet" href="css/style.css">
+                    <style>
+                        .log-entry {
+                            background: var(--color-surface);
+                            border-left: 4px solid var(--color-primary);
+                            padding: var(--spacing-sm);
+                            margin-bottom: var(--spacing-sm);
+                            position: relative;
+                        }
 
-            const loggingArea = document.getElementById('loggingArea');
-            const loggingTitle = document.getElementById('loggingTitle');
-            const logDate = document.getElementById('logDate');
-            const logDuration = document.getElementById('logDuration');
-            const exercisesLogContainer = document.getElementById('exercisesLogContainer');
-            const finishWorkoutBtn = document.getElementById('finishWorkoutBtn');
-            const cancelLogBtn = document.getElementById('cancelLogBtn');
+                        .log-date {
+                            font-size: 0.8rem;
+                            color: var(--color-text-muted);
+                            margin-bottom: 0.2rem;
+                        }
 
-            const historyList = document.getElementById('historyList');
+                        .log-title {
+                            font-family: var(--font-display);
+                            font-size: 1.2rem;
+                            margin-bottom: 0.5rem;
+                        }
 
-            // State
-            let currentWorkout = null;
+                        .log-stats {
+                            display: flex;
+                            gap: 1rem;
+                            font-size: 0.9rem;
+                        }
 
-            // Initialize API Service safely
-            let storageService;
-            try {
-                storageService = window.storageService || new StorageService();
-            } catch (e) {
-                console.error('StorageService not available:', e);
-            }
+                        .stat-pill {
+                            background: rgba(255, 255, 255, 0.05);
+                            padding: 2px 8px;
+                            border-radius: 4px;
+                        }
 
-            // 1. Load Saved Workouts into Select
-            const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-            workouts.forEach(w => {
-                const opt = document.createElement('option');
-                opt.value = w.id;
-                opt.textContent = w.name;
-                savedWorkoutsSelect.appendChild(opt);
-            });
+                        .delete-log-btn {
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            color: #ff4444;
+                            cursor: pointer;
+                            font-size: 1.2rem;
+                            background: none;
+                            border: none;
+                            padding: 0;
+                        }
 
-            // 2. Event Listeners for Navigation
-            startBtn.addEventListener('click', () => {
-                startBtn.style.display = 'none';
-                workoutSelector.style.display = 'block';
-                historyList.style.display = 'none';
-            });
+                        /* Logging Form Styles */
+                        .logging-section {
+                            background: var(--color-surface);
+                            padding: var(--spacing-md);
+                            border-radius: var(--radius-sm);
+                            margin-bottom: var(--spacing-md);
+                            border: 1px solid var(--color-primary);
+                        }
 
-            cancelSelectBtn.addEventListener('click', () => {
-                workoutSelector.style.display = 'none';
-                startBtn.style.display = 'block';
-                historyList.style.display = 'block';
-            });
+                        .exercise-log-item {
+                            margin-bottom: 1.5rem;
+                            padding-bottom: 1rem;
+                            border-bottom: 1px solid var(--color-border);
+                        }
 
-            cancelLogBtn.addEventListener('click', () => {
-                if (confirm('Sei sicuro di voler annullare? I dati inseriti andranno persi.')) {
-                    loggingArea.style.display = 'none';
-                    startBtn.style.display = 'block';
-                    historyList.style.display = 'block';
-                    currentWorkout = null;
-                }
-            });
+                        .exercise-log-item:last-child {
+                            border-bottom: none;
+                        }
 
-            // 3. Load Workout for Logging
-            loadWorkoutBtn.addEventListener('click', () => {
-                const workoutId = savedWorkoutsSelect.value;
-                if (!workoutId) {
-                    alert('Seleziona una scheda per continuare.');
-                    return;
-                }
+                        .set-row {
+                            display: grid;
+                            grid-template-columns: 0.5fr 1fr 1fr 1fr;
+                            gap: 10px;
+                            align-items: center;
+                            margin-bottom: 0.5rem;
+                        }
 
-                currentWorkout = workouts.find(w => w.id == workoutId);
-                if (!currentWorkout) return;
+                        .set-label {
+                            font-size: 0.8rem;
+                            color: var(--color-text-muted);
+                            text-align: center;
+                        }
 
-                // Setup UI
-                workoutSelector.style.display = 'none';
-                loggingArea.style.display = 'block';
-                loggingTitle.textContent = currentWorkout.name;
-                logDate.valueAsDate = new Date();
-                logDuration.value = '';
+                        .set-input {
+                            width: 100%;
+                            padding: 0.5rem;
+                            background: var(--color-bg);
+                            border: 1px solid var(--color-border);
+                            color: var(--color-text-main);
+                            border-radius: 4px;
+                            text-align: center;
+                        }
 
-                renderLoggingForm(currentWorkout);
-            });
+                        .set-header {
+                            display: grid;
+                            grid-template-columns: 0.5fr 1fr 1fr 1fr;
+                            gap: 10px;
+                            margin-bottom: 0.5rem;
+                            font-size: 0.8rem;
+                            color: var(--color-text-muted);
+                            text-align: center;
+                        }
+                    </style>
+                </head>
 
-            // 4. Render Logging Form
-            function renderLoggingForm(workout) {
-                exercisesLogContainer.innerHTML = '';
+                <body>
 
-                workout.exercises.forEach((ex, exIndex) => {
-                    const exDiv = document.createElement('div');
-                    exDiv.className = 'exercise-log-item';
+                    <header class="header">
+                        <div class="container">
+                            <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
+                            <nav>
+                                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                                <ul class="nav-links" id="navLinks">
+                                    <li><a href="creator.html">Creator</a></li>
+                                    <li><a href="diary.html" class="text-primary">Diario</a></li>
+                                    <li><a href="analysis.html">Analisi</a></li>
+                                    <li><a href="body.html">Corpo</a></li>
+                                    <li><a href="user.html">Profilo</a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </header>
 
-                    let setsHtml = `
+                    <section class="section" style="padding-top: 120px;">
+                        <div class="container">
+                            <div class="flex"
+                                style="justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                                <h1>Diario <span class="text-primary">Allenamento</span></h1>
+                                <button id="startWorkoutBtn" class="btn btn-primary">Registra Allenamento</button>
+                            </div>
+
+                            <!-- Workout Selector (Hidden by default) -->
+                            <div id="workoutSelector" class="card"
+                                style="display: none; margin-bottom: var(--spacing-md);">
+                                <h3>Seleziona Scheda</h3>
+                                <select id="savedWorkoutsSelect" style="margin: 1rem 0; width: 100%; padding: 0.8rem;">
+                                    <option value="">-- Scegli una routine --</option>
+                                </select>
+                                <div style="display: flex; gap: 1rem;">
+                                    <button id="loadWorkoutBtn" class="btn btn-primary" style="flex: 1;">Carica
+                                        Scheda</button>
+                                    <button id="cancelSelectBtn" class="btn btn-outline">Annulla</button>
+                                </div>
+                            </div>
+
+                            <!-- Active Logging Area (Hidden by default) -->
+                            <div id="loggingArea" class="logging-section" style="display: none;">
+                                <h2 id="loggingTitle" style="margin-bottom: 1rem;">Log Workout</h2>
+
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                                    <div>
+                                        <label style="font-size: 0.9rem; color: var(--color-text-muted);">Data</label>
+                                        <input type="date" id="logDate" class="set-input" style="text-align: left;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.9rem; color: var(--color-text-muted);">Durata
+                                            (min)</label>
+                                        <input type="number" id="logDuration" class="set-input" placeholder="es. 60">
+                                    </div>
+                                </div>
+
+                                <div id="exercisesLogContainer">
+                                    <!-- Dynamic Exercises will go here -->
+                                </div>
+
+                                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                                    <button id="finishWorkoutBtn" class="btn btn-primary" style="flex: 1;">Salva
+                                        Allenamento</button>
+                                    <button id="cancelLogBtn" class="btn btn-outline">Annulla</button>
+                                </div>
+                            </div>
+
+                            <!-- History List -->
+                            <div id="historyList">
+                                <!-- Logs will be injected here -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <script src="js/api.js"></script>
+                    <script src="js/main.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            // DOM Elements
+                            const startBtn = document.getElementById('startWorkoutBtn');
+                            const workoutSelector = document.getElementById('workoutSelector');
+                            const savedWorkoutsSelect = document.getElementById('savedWorkoutsSelect');
+                            const loadWorkoutBtn = document.getElementById('loadWorkoutBtn');
+                            const cancelSelectBtn = document.getElementById('cancelSelectBtn');
+
+                            const loggingArea = document.getElementById('loggingArea');
+                            const loggingTitle = document.getElementById('loggingTitle');
+                            const logDate = document.getElementById('logDate');
+                            const logDuration = document.getElementById('logDuration');
+                            const exercisesLogContainer = document.getElementById('exercisesLogContainer');
+                            const finishWorkoutBtn = document.getElementById('finishWorkoutBtn');
+                            const cancelLogBtn = document.getElementById('cancelLogBtn');
+
+                            const historyList = document.getElementById('historyList');
+
+                            // State
+                            let currentWorkout = null;
+                            let editingLogIndex = -1; // -1 means creating new
+
+                            // Initialize Services
+                            let storageService;
+                            let unitService;
+                            try {
+                                storageService = window.storageService || new StorageService();
+                                unitService = window.unitService || new UnitService();
+                            } catch (e) {
+                                console.error('Services not available:', e);
+                            }
+
+                            // 1. Load Saved Workouts into Select
+                            const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                            workouts.forEach(w => {
+                                const opt = document.createElement('option');
+                                opt.value = w.id;
+                                opt.textContent = w.name;
+                                savedWorkoutsSelect.appendChild(opt);
+                            });
+
+                            // 2. Event Listeners for Navigation
+                            startBtn.addEventListener('click', () => {
+                                editingLogIndex = -1;
+                                finishWorkoutBtn.textContent = 'Salva Allenamento';
+                                startBtn.style.display = 'none';
+                                workoutSelector.style.display = 'block';
+                                historyList.style.display = 'none';
+                            });
+
+                            cancelSelectBtn.addEventListener('click', () => {
+                                workoutSelector.style.display = 'none';
+                                startBtn.style.display = 'block';
+                                historyList.style.display = 'block';
+                            });
+
+                            cancelLogBtn.addEventListener('click', () => {
+                                if (confirm('Sei sicuro di voler annullare? I dati inseriti andranno persi.')) {
+                                    closeLogging();
+                                }
+                            });
+
+                            function closeLogging() {
+                                loggingArea.style.display = 'none';
+                                startBtn.style.display = 'block';
+                                historyList.style.display = 'block';
+                                currentWorkout = null;
+                                editingLogIndex = -1;
+                            }
+
+                            // 3. Load Workout for Logging
+                            loadWorkoutBtn.addEventListener('click', () => {
+                                const workoutId = savedWorkoutsSelect.value;
+                                if (!workoutId) {
+                                    alert('Seleziona una scheda per continuare.');
+                                    return;
+                                }
+
+                                currentWorkout = workouts.find(w => w.id == workoutId);
+                                if (!currentWorkout) return;
+
+                                // Setup UI
+                                workoutSelector.style.display = 'none';
+                                loggingArea.style.display = 'block';
+                                loggingTitle.textContent = currentWorkout.name;
+                                logDate.valueAsDate = new Date();
+                                logDuration.value = '';
+
+                                renderLoggingForm(currentWorkout);
+                            });
+
+                            // 4. Render Logging Form
+                            function renderLoggingForm(workout, existingExercises = null) {
+                                exercisesLogContainer.innerHTML = '';
+
+                                // If editing, we might have different exercises than the base workout
+                                // But for simplicity, we stick to the workout structure or the existing log structure
+                                const exercisesToRender = existingExercises || workout.exercises;
+
+                                exercisesToRender.forEach((ex, exIndex) => {
+                                    const exDiv = document.createElement('div');
+                                    exDiv.className = 'exercise-log-item';
+
+                                    const unitLabel = unitService && unitService.getSystem() === 'imperial' ? 'Lbs' : 'Kg';
+
+                                    let setsHtml = `
                         <h4 style="margin-bottom: 0.5rem;">${ex.name}</h4>
                         <div class="set-header">
                             <span>Set</span>
-                            <span>Kg</span>
+                            <span>${unitLabel}</span>
                             <span>Reps</span>
                             <span>RPE</span>
                         </div>
                     `;
 
-                    const numSets = parseInt(ex.sets) || 3; // Default to 3 if missing
+                                    const setsToRender = ex.sets || (Array.isArray(ex.sets) ? ex.sets : []);
+                                    // If it's a fresh workout, ex.sets might be a number (string) from creator
+                                    // If it's an existing log, ex.sets is an array of objects
 
-                    for (let i = 1; i <= numSets; i++) {
-                        setsHtml += `
+                                    let numSets = 3;
+                                    if (Array.isArray(setsToRender) && setsToRender.length > 0) {
+                                        numSets = setsToRender.length;
+                                    } else if (workout.exercises[exIndex]) {
+                                        numSets = parseInt(workout.exercises[exIndex].sets) || 3;
+                                    }
+
+                                    for (let i = 0; i < numSets; i++) {
+                                        let weight = '';
+                                        let reps = '';
+                                        let rpe = '';
+
+                                        if (Array.isArray(setsToRender) && setsToRender[i]) {
+                                            // If editing, convert stored KG to display unit
+                                            let storedWeight = setsToRender[i].weight;
+                                            if (unitService) {
+                                                weight = unitService.convertWeight(storedWeight);
+                                            } else {
+                                                weight = storedWeight;
+                                            }
+                                            reps = setsToRender[i].reps;
+                                            rpe = setsToRender[i].rpe || '';
+                                        } else {
+                                            // Pre-fill reps from plan if available
+                                            if (workout.exercises[exIndex]) {
+                                                reps = workout.exercises[exIndex].reps || '';
+                                            }
+                                        }
+
+                                        setsHtml += `
                             <div class="set-row" data-exercise="${ex.name}">
-                                <span class="set-label">${i}</span>
-                                <input type="number" class="set-input input-weight" placeholder="Kg">
-                                <input type="number" class="set-input input-reps" placeholder="${ex.reps || ''}" value="${ex.reps || ''}">
-                                <input type="number" class="set-input input-rpe" placeholder="${ex.rpe || ''}">
+                                <span class="set-label">${i + 1}</span>
+                                <input type="number" class="set-input input-weight" placeholder="${unitLabel}" value="${weight}">
+                                <input type="number" class="set-input input-reps" placeholder="Reps" value="${reps}">
+                                <input type="number" class="set-input input-rpe" placeholder="RPE" value="${rpe}">
                             </div>
                         `;
-                    }
+                                    }
 
-                    exDiv.innerHTML = setsHtml;
-                    exercisesLogContainer.appendChild(exDiv);
-                });
-            }
+                                    exDiv.innerHTML = setsHtml;
+                                    exercisesLogContainer.appendChild(exDiv);
+                                });
+                            }
 
-            // 5. Save Workout Log
-            finishWorkoutBtn.addEventListener('click', async () => {
-                if (!logDuration.value) {
-                    alert('Inserisci la durata dell\'allenamento.');
-                    return;
-                }
+                            // 5. Save Workout Log
+                            finishWorkoutBtn.addEventListener('click', async () => {
+                                if (!logDuration.value) {
+                                    alert('Inserisci la durata dell\'allenamento.');
+                                    return;
+                                }
 
-                const logData = {
-                    id: Date.now(),
-                    workoutId: currentWorkout.id,
-                    workoutName: currentWorkout.name,
-                    date: logDate.value || new Date().toISOString(),
-                    duration: logDuration.value + ' min',
-                    exercises: [],
-                    totalVolume: 0
-                };
+                                const logData = {
+                                    id: editingLogIndex >= 0 ? null : Date.now(), // Keep ID if editing? No, usually we update the object
+                                    workoutId: currentWorkout.id,
+                                    workoutName: currentWorkout.name,
+                                    date: logDate.value || new Date().toISOString(),
+                                    duration: logDuration.value + ' min', // Keep format consistent
+                                    exercises: [],
+                                    totalVolume: 0
+                                };
 
-                // Collect Data
-                const exerciseItems = document.querySelectorAll('.exercise-log-item');
+                                // Collect Data
+                                const exerciseItems = document.querySelectorAll('.exercise-log-item');
 
-                exerciseItems.forEach(item => {
-                    const exName = item.querySelector('h4').textContent;
-                    const setRows = item.querySelectorAll('.set-row');
-                    const setsData = [];
+                                exerciseItems.forEach(item => {
+                                    const exName = item.querySelector('h4').textContent;
+                                    const setRows = item.querySelectorAll('.set-row');
+                                    const setsData = [];
 
-                    setRows.forEach(row => {
-                        const weight = parseFloat(row.querySelector('.input-weight').value) || 0;
-                        const reps = parseFloat(row.querySelector('.input-reps').value) || 0;
-                        const rpe = parseFloat(row.querySelector('.input-rpe').value) || 0;
+                                    setRows.forEach(row => {
+                                        let weightVal = parseFloat(row.querySelector('.input-weight').value) || 0;
+                                        const reps = parseFloat(row.querySelector('.input-reps').value) || 0;
+                                        const rpe = parseFloat(row.querySelector('.input-rpe').value) || 0;
 
-                        if (weight > 0 && reps > 0) {
-                            setsData.push({ weight, reps, rpe });
-                            logData.totalVolume += (weight * reps);
-                        }
-                    });
+                                        if (weightVal > 0 && reps > 0) {
+                                            // Convert Input to Metric for Storage
+                                            let metricWeight = weightVal;
+                                            if (unitService) {
+                                                metricWeight = unitService.toMetricWeight(weightVal);
+                                            }
 
-                    if (setsData.length > 0) {
-                        logData.exercises.push({
-                            name: exName,
-                            sets: setsData
-                        });
-                    }
-                });
+                                            setsData.push({ weight: metricWeight, reps, rpe });
+                                            logData.totalVolume += (metricWeight * reps);
+                                        }
+                                    });
 
-                if (logData.exercises.length === 0) {
-                    alert('Inserisci almeno un set valido (peso e ripetizioni).');
-                    return;
-                }
+                                    if (setsData.length > 0) {
+                                        logData.exercises.push({
+                                            name: exName,
+                                            sets: setsData
+                                        });
+                                    }
+                                });
 
-                // Save to LocalStorage
-                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
-                logs.unshift(logData);
-                localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+                                if (logData.exercises.length === 0) {
+                                    alert('Inserisci almeno un set valido (peso e ripetizioni).');
+                                    return;
+                                }
 
-                // Reset UI
-                loggingArea.style.display = 'none';
-                startBtn.style.display = 'block';
-                historyList.style.display = 'block';
-                renderLogs();
+                                // Save to LocalStorage
+                                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
 
-                // Auto-Sync
-                if (storageService && storageService.hasCredentials()) {
-                    finishWorkoutBtn.textContent = 'Sincronizzazione...';
-                    await storageService.syncData();
-                    finishWorkoutBtn.textContent = 'Salva Allenamento';
-                }
-            });
+                                if (editingLogIndex >= 0) {
+                                    // Update existing
+                                    logData.id = logs[editingLogIndex].id; // Preserve ID
+                                    logs[editingLogIndex] = logData;
+                                } else {
+                                    // Create new
+                                    logs.unshift(logData);
+                                }
 
-            // 6. Render History
-            function renderLogs() {
-                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
-                historyList.innerHTML = '';
+                                localStorage.setItem('ironflow_logs', JSON.stringify(logs));
 
-                if (logs.length === 0) {
-                    historyList.innerHTML = '<p class="text-center" style="color: var(--color-text-muted); margin-top: 2rem;">Nessun allenamento registrato.</p>';
-                    return;
-                }
+                                // Reset UI
+                                closeLogging();
+                                renderLogs();
 
-                logs.forEach((log, index) => {
-                    const date = new Date(log.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
-                    const div = document.createElement('div');
-                    div.className = 'log-entry';
+                                // Auto-Sync
+                                if (storageService && storageService.hasCredentials()) {
+                                    // Show ephemeral status if possible, or just sync silently
+                                    await storageService.syncData();
+                                }
+                            });
 
-                    // Format volume nicely (e.g. 12.5k kg)
-                    let volumeDisplay = log.totalVolume + ' kg';
-                    if (log.totalVolume > 1000) {
-                        volumeDisplay = (log.totalVolume / 1000).toFixed(1) + 'k kg';
-                    }
+                            // 6. Render History
+                            function renderLogs() {
+                                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                                historyList.innerHTML = '';
 
-                    div.innerHTML = `
-                        <button class="delete-log-btn" data-index="${index}" title="Elimina Allenamento">×</button>
+                                if (logs.length === 0) {
+                                    historyList.innerHTML = '<p class="text-center" style="color: var(--color-text-muted); margin-top: 2rem;">Nessun allenamento registrato.</p>';
+                                    return;
+                                }
+
+                                logs.forEach((log, index) => {
+                                    const date = new Date(log.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+                                    const div = document.createElement('div');
+                                    div.className = 'log-entry';
+
+                                    // Format volume nicely
+                                    let volumeDisplay = '';
+                                    if (unitService) {
+                                        volumeDisplay = unitService.formatWeight(log.totalVolume);
+                                    } else {
+                                        volumeDisplay = log.totalVolume + ' kg';
+                                    }
+
+                                    // Check if volume is huge for 'k' suffix (optional, but formatWeight handles units)
+                                    // If we want '12.5k lbs', we might need custom logic, but formatWeight is fine for now.
+
+                                    div.innerHTML = `
+                        <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 10px;">
+                            <button class="edit-log-btn" data-index="${index}" title="Modifica" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✏️</button>
+                            <button class="delete-log-btn" data-index="${index}" title="Elimina" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#ff4444;">×</button>
+                        </div>
                         <div class="log-date">${date}</div>
                         <div class="log-title">${log.workoutName}</div>
                         <div class="log-stats">
@@ -398,38 +648,72 @@
                             <span class="stat-pill">⚖️ ${volumeDisplay}</span>
                         </div>
                     `;
-                    historyList.appendChild(div);
-                });
+                                    historyList.appendChild(div);
+                                });
 
-                // Attach Delete Listeners
-                document.querySelectorAll('.delete-log-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const index = e.target.dataset.index;
-                        deleteLog(index);
-                    });
-                });
-            }
+                                // Attach Listeners
+                                document.querySelectorAll('.delete-log-btn').forEach(btn => {
+                                    btn.addEventListener('click', (e) => {
+                                        const index = e.target.closest('button').dataset.index;
+                                        deleteLog(index);
+                                    });
+                                });
 
-            // 7. Delete Log
-            async function deleteLog(index) {
-                if (confirm('Sei sicuro di voler eliminare questo allenamento dal diario?')) {
-                    const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
-                    logs.splice(index, 1);
-                    localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+                                document.querySelectorAll('.edit-log-btn').forEach(btn => {
+                                    btn.addEventListener('click', (e) => {
+                                        const index = e.target.closest('button').dataset.index;
+                                        editLog(index);
+                                    });
+                                });
+                            }
 
-                    renderLogs();
+                            // 7. Delete Log
+                            async function deleteLog(index) {
+                                if (confirm('Sei sicuro di voler eliminare questo allenamento dal diario?')) {
+                                    const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                                    logs.splice(index, 1);
+                                    localStorage.setItem('ironflow_logs', JSON.stringify(logs));
 
-                    // Auto-Sync
-                    if (storageService && storageService.hasCredentials()) {
-                        await storageService.syncData();
-                    }
-                }
-            }
+                                    renderLogs();
 
-            // Initial Render
-            renderLogs();
-        });
-    </script>
-</body>
+                                    if (storageService && storageService.hasCredentials()) {
+                                        await storageService.syncData();
+                                    }
+                                }
+                            }
 
-</html>
+                            // 8. Edit Log
+                            function editLog(index) {
+                                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                                const log = logs[index];
+                                if (!log) return;
+
+                                editingLogIndex = index;
+
+                                // Mock a currentWorkout object from the log data
+                                currentWorkout = {
+                                    id: log.workoutId,
+                                    name: log.workoutName,
+                                    exercises: log.exercises // Use stored exercises structure
+                                };
+
+                                // Setup UI
+                                startBtn.style.display = 'none';
+                                historyList.style.display = 'none';
+                                loggingArea.style.display = 'block';
+
+                                loggingTitle.textContent = "Modifica: " + log.workoutName;
+                                logDate.value = log.date.split('T')[0];
+                                logDuration.value = parseFloat(log.duration) || '';
+                                finishWorkoutBtn.textContent = 'Aggiorna Allenamento';
+
+                                renderLoggingForm(currentWorkout, log.exercises);
+                            }
+
+                            // Initial Render
+                            renderLogs();
+                        });
+                    </script>
+                </body>
+
+                </html>

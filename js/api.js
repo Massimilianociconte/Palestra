@@ -100,8 +100,72 @@ if (typeof StorageService === 'undefined') {
     }
 
     window.StorageService = StorageService;
+
+    class UnitService {
+        constructor() {
+            this.system = localStorage.getItem('ironflow_units') || 'metric'; // 'metric' or 'imperial'
+        }
+
+        getSystem() {
+            return this.system;
+        }
+
+        toggleSystem(sys) {
+            this.system = sys;
+            localStorage.setItem('ironflow_units', sys);
+            window.location.reload(); // Simple way to refresh all UI
+        }
+
+        // Weight: kg <-> lbs
+        // Stored in kg. Display in lbs if imperial.
+        convertWeight(kg) {
+            if (this.system === 'imperial') {
+                return (kg * 2.20462).toFixed(1);
+            }
+            return parseFloat(kg).toFixed(1);
+        }
+
+        // Length: cm <-> in
+        // Stored in cm. Display in in if imperial.
+        convertLength(cm) {
+            if (this.system === 'imperial') {
+                return (cm * 0.393701).toFixed(1);
+            }
+            return parseFloat(cm).toFixed(1);
+        }
+
+        formatWeight(kg) {
+            const val = this.convertWeight(kg);
+            return `${val} ${this.system === 'imperial' ? 'lbs' : 'kg'}`;
+        }
+
+        formatLength(cm) {
+            const val = this.convertLength(cm);
+            return `${val} ${this.system === 'imperial' ? 'in' : 'cm'}`;
+        }
+
+        // Input (lbs) -> Storage (kg)
+        toMetricWeight(val) {
+            if (this.system === 'imperial') {
+                return val / 2.20462;
+            }
+            return val;
+        }
+
+        // Input (in) -> Storage (cm)
+        toMetricLength(val) {
+            if (this.system === 'imperial') {
+                return val / 0.393701;
+            }
+            return val;
+        }
+    }
+    window.UnitService = UnitService;
 }
 
 if (!window.storageService) {
     window.storageService = new window.StorageService();
+}
+if (!window.unitService) {
+    window.unitService = new window.UnitService();
 }
