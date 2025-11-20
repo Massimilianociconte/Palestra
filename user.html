@@ -165,211 +165,38 @@
                     </div>
                 </div>
 
-                <!DOCTYPE html>
-                <html lang="it">
+            </div>
+        </div>
+    </section>
 
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Profilo | IRONFLOW</title>
-                    <link rel="preconnect" href="https://fonts.googleapis.com">
-                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                    <link
-                        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
-                        rel="stylesheet">
-                    <link rel="stylesheet" href="css/style.css">
-                    <style>
-                        .profile-header {
-                            display: flex;
-                            align-items: center;
-                            gap: var(--spacing-md);
-                            margin-bottom: var(--spacing-md);
-                        }
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize API Service safely
+            let storageService;
+            try {
+                storageService = window.storageService || new StorageService();
+            } catch (e) {
+                console.error('StorageService not available:', e);
+            }
 
-                        .avatar {
-                            width: 80px;
-                            height: 80px;
-                            background: var(--color-surface);
-                            border: 2px solid var(--color-primary);
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 2rem;
-                            color: var(--color-primary);
-                        }
+            // Load Saved Workouts
+            const list = document.getElementById('savedWorkoutsList');
 
-                        .setting-item {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            padding: 1rem 0;
-                            border-bottom: 1px solid var(--color-border);
-                        }
+            function renderWorkouts() {
+                const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                if (!list) return;
 
-                        .setting-item:last-child {
-                            border-bottom: none;
-                        }
+                list.innerHTML = '';
 
-                        .workout-list-item {
-                            background: var(--color-surface);
-                            padding: 1rem;
-                            margin-bottom: 0.5rem;
-                            border-radius: var(--radius-sm);
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        }
-
-                        .delete-workout {
-                            color: #ff4444;
-                            cursor: pointer;
-                            font-size: 0.9rem;
-                        }
-                    </style>
-                </head>
-
-                <body>
-
-                    <header class="header">
-                        <div class="container">
-                            <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
-                            <nav>
-                                <div class="mobile-toggle" id="mobileToggle">☰</div>
-                                <ul class="nav-links" id="navLinks">
-                                    <li><a href="creator.html">Creator</a></li>
-                                    <li><a href="diary.html">Diario</a></li>
-                                    <li><a href="analysis.html">Analisi</a></li>
-                                    <li><a href="body.html">Corpo</a></li>
-                                    <li><a href="user.html" class="text-primary">Profilo</a></li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </header>
-
-                    <section class="section" style="padding-top: 120px;">
-                        <div class="container">
-
-                            <!-- Profile Header -->
-                            <div class="profile-header">
-                                <div class="avatar">👤</div>
-                                <div>
-                                    <h2>Atleta <span class="text-primary">Pro</span></h2>
-                                    <p>Membro dal 2024</p>
-                                </div>
-                            </div>
-
-                            <div class="grid"
-                                style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-
-                                <!-- Saved Workouts -->
-                                <div>
-                                    <h3 style="margin-bottom: 1rem;">Le tue Schede</h3>
-                                    <div id="savedWorkoutsList">
-                                        <!-- Dynamic List -->
-                                    </div>
-                                    <a href="creator.html" class="btn btn-outline"
-                                        style="width: 100%; margin-top: 1rem;">+ Nuova
-                                        Scheda</a>
-                                </div>
-
-                                <!-- Settings -->
-                                <div class="card">
-                                    <h3 style="margin-bottom: 1rem;">Impostazioni</h3>
-
-                                    <div class="setting-item">
-                                        <span>Unità di misura</span>
-                                        <select style="width: auto; padding: 0.2rem;">
-                                            <option>Metrico (kg/cm)</option>
-                                            <option>Imperiale (lbs/in)</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="setting-item">
-                                        <span>Tema</span>
-                                        <select style="width: auto; padding: 0.2rem;">
-                                            <option>Dark (Default)</option>
-                                            <option>OLED Black</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="setting-item">
-                                        <span>Notifiche</span>
-                                        <input type="checkbox" checked>
-                                    </div>
-
-                                    <!-- Cloud Sync Section -->
-                                    <div
-                                        style="margin-top: 2rem; border-top: 1px solid var(--color-border); padding-top: 1rem;">
-                                        <h4 style="margin-bottom: 1rem; color: var(--color-primary);">Cloud Sync
-                                            (JSONbin.io)</h4>
-
-                                        <div class="form-group" style="margin-bottom: 0.5rem;">
-                                            <label style="font-size: 0.8rem;">API Master Key</label>
-                                            <input type="password" id="apiKeyInput" placeholder="X-Master-Key">
-                                        </div>
-
-                                        <div class="form-group" style="margin-bottom: 1rem;">
-                                            <label style="font-size: 0.8rem;">Bin ID</label>
-                                            <input type="text" id="binIdInput" placeholder="Bin ID">
-                                        </div>
-
-                                        <div class="flex">
-                                            <button id="saveKeysBtn" class="btn btn-outline"
-                                                style="flex: 1; font-size: 0.8rem;">Salva
-                                                Chiavi</button>
-                                            <button id="syncBtn" class="btn btn-primary"
-                                                style="flex: 1; font-size: 0.8rem;">Sincronizza</button>
-                                        </div>
-                                        <p id="syncStatus"
-                                            style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--color-text-muted); text-align: center;">
-                                        </p>
-                                    </div>
-
-                                    <div class="setting-item">
-                                        <span>Esporta Dati (JSON)</span>
-                                        <button class="btn btn-outline"
-                                            style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Download</button>
-                                    </div>
-
-                                    <div class="setting-item" style="margin-top: 1rem;">
-                                        <button class="btn btn-primary"
-                                            style="width: 100%; background: #ff4444; border-color: #ff4444; color: white;">Logout</button>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </section>
-
-                    <script src="js/api.js"></script>
-                    <script src="js/main.js"></script>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', () => {
-                            // Initialize API Service safely
-                            let storageService;
-                            try {
-                                storageService = window.storageService || new StorageService();
-                            } catch (e) {
-                                console.error('StorageService not available:', e);
-                            }
-
-                            // Load Saved Workouts
-                            const list = document.getElementById('savedWorkoutsList');
-
-                            function renderWorkouts() {
-                                const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-                                if (!list) return;
-
-                                list.innerHTML = '';
-
-                                if (workouts.length === 0) {
-                                    list.innerHTML = '<p style="color: var(--color-text-muted);">Nessuna scheda salvata.</p>';
-                                } else {
-                                    workouts.forEach((w, index) => {
-                                        const div = document.createElement('div');
-                                        div.className = 'workout-list-item';
-                                        div.innerHTML = `
+                if (workouts.length === 0) {
+                    list.innerHTML = '<p style="color: var(--color-text-muted);">Nessuna scheda salvata.</p>';
+                } else {
+                    workouts.forEach((w, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'workout-list-item';
+                        div.innerHTML = `
 <div>
     <strong>${w.name}</strong>
     <div style="font-size: 0.8rem; color: var(--color-text-muted);">${w.exercises.length} Esercizi</div>
@@ -379,89 +206,89 @@
     <span class="delete-workout" data-index="${index}">Elimina</span>
 </div>
 `;
-                                        list.appendChild(div);
-                                    });
+                        list.appendChild(div);
+                    });
 
-                                    // Attach delete listeners
-                                    document.querySelectorAll('.delete-workout').forEach(btn => {
-                                        btn.addEventListener('click', (e) => {
-                                            const index = e.target.dataset.index;
-                                            deleteWorkout(index);
-                                        });
-                                    });
-                                }
-                            }
-
-                            renderWorkouts();
-
-                            async function deleteWorkout(index) {
-                                if (confirm('Sei sicuro di voler eliminare questa scheda?')) {
-                                    const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-                                    workouts.splice(index, 1);
-                                    localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
-
-                                    // Auto-sync after delete
-                                    if (storageService && storageService.hasCredentials()) {
-                                        const syncStatus = document.getElementById('syncStatus');
-                                        if (syncStatus) syncStatus.textContent = 'Sincronizzazione rimozione...';
-                                        await storageService.syncData();
-                                        if (syncStatus) syncStatus.textContent = '';
-                                    }
-
-                                    renderWorkouts();
-                                }
-                            }
-
-                            // Cloud Sync Logic
-                            const apiKeyInput = document.getElementById('apiKeyInput');
-                            const binIdInput = document.getElementById('binIdInput');
-                            const saveKeysBtn = document.getElementById('saveKeysBtn');
-                            const syncBtn = document.getElementById('syncBtn');
-                            const syncStatus = document.getElementById('syncStatus');
-
-                            if (apiKeyInput && binIdInput) {
-                                // Load existing keys
-                                apiKeyInput.value = localStorage.getItem('ironflow_apikey') || '';
-                                binIdInput.value = localStorage.getItem('ironflow_binid') || '';
-                            }
-
-                            if (saveKeysBtn) {
-                                saveKeysBtn.addEventListener('click', () => {
-                                    if (storageService) {
-                                        storageService.saveCredentials(apiKeyInput.value, binIdInput.value);
-                                        if (syncStatus) {
-                                            syncStatus.textContent = 'Credenziali salvate!';
-                                            syncStatus.style.color = 'var(--color-primary)';
-                                            setTimeout(() => syncStatus.textContent = '', 2000);
-                                        }
-                                    } else {
-                                        alert('Servizio di storage non disponibile.');
-                                    }
-                                });
-                            }
-
-                            if (syncBtn) {
-                                syncBtn.addEventListener('click', async () => {
-                                    if (!storageService) {
-                                        alert('Servizio di storage non disponibile.');
-                                        return;
-                                    }
-
-                                    if (syncStatus) {
-                                        syncStatus.textContent = 'Sincronizzazione in corso...';
-                                        syncStatus.style.color = 'var(--color-text-main)';
-                                    }
-
-                                    const result = await storageService.syncData();
-
-                                    if (syncStatus) {
-                                        syncStatus.textContent = result.message;
-                                        syncStatus.style.color = result.success ? 'var(--color-primary)' : '#ff4444';
-                                    }
-                                });
-                            }
+                    // Attach delete listeners
+                    document.querySelectorAll('.delete-workout').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const index = e.target.dataset.index;
+                            deleteWorkout(index);
                         });
-                    </script>
-                </body>
+                    });
+                }
+            }
 
-                </html>
+            renderWorkouts();
+
+            async function deleteWorkout(index) {
+                if (confirm('Sei sicuro di voler eliminare questa scheda?')) {
+                    const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                    workouts.splice(index, 1);
+                    localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
+
+                    // Auto-sync after delete
+                    if (storageService && storageService.hasCredentials()) {
+                        const syncStatus = document.getElementById('syncStatus');
+                        if (syncStatus) syncStatus.textContent = 'Sincronizzazione rimozione...';
+                        await storageService.syncData();
+                        if (syncStatus) syncStatus.textContent = '';
+                    }
+
+                    renderWorkouts();
+                }
+            }
+
+            // Cloud Sync Logic
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const binIdInput = document.getElementById('binIdInput');
+            const saveKeysBtn = document.getElementById('saveKeysBtn');
+            const syncBtn = document.getElementById('syncBtn');
+            const syncStatus = document.getElementById('syncStatus');
+
+            if (apiKeyInput && binIdInput) {
+                // Load existing keys
+                apiKeyInput.value = localStorage.getItem('ironflow_apikey') || '';
+                binIdInput.value = localStorage.getItem('ironflow_binid') || '';
+            }
+
+            if (saveKeysBtn) {
+                saveKeysBtn.addEventListener('click', () => {
+                    if (storageService) {
+                        storageService.saveCredentials(apiKeyInput.value, binIdInput.value);
+                        if (syncStatus) {
+                            syncStatus.textContent = 'Credenziali salvate!';
+                            syncStatus.style.color = 'var(--color-primary)';
+                            setTimeout(() => syncStatus.textContent = '', 2000);
+                        }
+                    } else {
+                        alert('Servizio di storage non disponibile.');
+                    }
+                });
+            }
+
+            if (syncBtn) {
+                syncBtn.addEventListener('click', async () => {
+                    if (!storageService) {
+                        alert('Servizio di storage non disponibile.');
+                        return;
+                    }
+
+                    if (syncStatus) {
+                        syncStatus.textContent = 'Sincronizzazione in corso...';
+                        syncStatus.style.color = 'var(--color-text-main)';
+                    }
+
+                    const result = await storageService.syncData();
+
+                    if (syncStatus) {
+                        syncStatus.textContent = result.message;
+                        syncStatus.style.color = result.success ? 'var(--color-primary)' : '#ff4444';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
