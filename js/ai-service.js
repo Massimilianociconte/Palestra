@@ -67,7 +67,7 @@ export class AIService {
             // Use the most advanced model available
             // Fallback chain: 1.5 Pro (Stable High Intelligence) -> 2.0 Flash (Fast)
             const model = genAI.getGenerativeModel({ 
-                model: "gemini-3-pro-preview", 
+                model: "gemini-2.5-pro", 
                 generationConfig 
             }); 
 
