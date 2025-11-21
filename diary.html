@@ -182,7 +182,9 @@
 
     <script src="js/api.js"></script>
     <script src="js/main.js"></script>
-    <script>
+    <script type="module">
+        import { firestoreService } from './js/firestore-service.js';
+
         document.addEventListener('DOMContentLoaded', () => {
             // DOM Elements
             const startBtn = document.getElementById('startWorkoutBtn');
@@ -352,6 +354,14 @@
             }
 
             // 5. Save Workout Log
+            const syncLogsToCloud = async () => {
+                try {
+                    await firestoreService.syncToCloud();
+                } catch (error) {
+                    console.warn('Sync diario fallita:', error.message || error);
+                }
+            };
+
             finishWorkoutBtn.addEventListener('click', async () => {
                 if (!logDuration.value) {
                     alert('Inserisci la durata dell\'allenamento.');
@@ -419,6 +429,7 @@
                 }
 
                 localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+                await syncLogsToCloud();
 
                 // Reset UI
                 closeLogging();
@@ -514,6 +525,8 @@
                     localStorage.setItem('ironflow_logs', JSON.stringify(logs));
 
                     renderLogs();
+
+                    await syncLogsToCloud();
 
                     if (storageService && storageService.hasCredentials()) {
                         await storageService.syncData();

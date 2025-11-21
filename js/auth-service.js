@@ -3,7 +3,7 @@ import { firestoreService } from './firestore-service.js';
 
 export class AuthService {
     constructor() {
-        this.user = null;
+        this.user = undefined;
         this.onUserChangeCallbacks = [];
         
         // Listen for auth state changes
@@ -54,8 +54,9 @@ export class AuthService {
 
     subscribe(callback) {
         this.onUserChangeCallbacks.push(callback);
-        // Immediately trigger with current state
-        callback(this.user);
+        if (this.user !== undefined) {
+            callback(this.user);
+        }
     }
 
     notifyListeners(user) {
