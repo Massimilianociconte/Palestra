@@ -239,12 +239,20 @@
 
             <!-- PR Table -->
             <div class="card">
-                <h3 style="margin-bottom: 1rem;">Record Personali (Stima 1RM)</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0;">Record Personali</h3>
+                    <div class="rm-selector" style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px;">
+                        <button class="btn-rm active" data-rm="1rm" style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">1RM</button>
+                        <button class="btn-rm" data-rm="3rm" style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">3RM</button>
+                        <button class="btn-rm" data-rm="5rm" style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">5RM</button>
+                    </div>
+                </div>
+
                 <table style="width: 100%; text-align: left; border-collapse: collapse;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
                             <th style="padding: 10px;">Esercizio</th>
-                            <th style="padding: 10px;">1RM (Stima)</th>
+                            <th style="padding: 10px;" id="rmHeader">1RM (Stima)</th>
                             <th style="padding: 10px;">Data</th>
                         </tr>
                     </thead>
@@ -828,9 +836,20 @@
                 volumeChart.appendChild(bar);
             });
 
-            // 3. Calculate PRs (Estimated 1RM)
-            // Formula: Weight * (1 + Reps/30)
+            // 3. Calculate PRs (Estimated 1RM, 3RM, 5RM)
+            // Formula: Weight * (1 + Reps/30) for base, then NSCA percentages
             const prs = {};
+
+            const calculateMultiRM = (weight, reps) => {
+                const oneRM = estimateOneRM(weight, reps);
+                // NSCA Load Coefficients: 1RM=100%, 3RM=93%, 5RM=87%
+                // This is a standard, robust way to derive N-RM from a calculated 1RM
+                return {
+                    '1rm': oneRM,
+                    '3rm': oneRM * 0.93,
+                    '5rm': oneRM * 0.87
+                };
+            };
 
             logs.forEach(log => {
                 if (!log.exercises) return;
@@ -840,12 +859,13 @@
                         const w = parseFloat(set.weight);
                         const r = parseFloat(set.reps);
                         if (w > 0 && r > 0) {
-                            const oneRM = estimateOneRM(w, r);
-                            if (!prs[name] || oneRM > prs[name].value) {
+                            const estimates = calculateMultiRM(w, r);
+                            // We track based on highest 1RM, which implies highest 3RM/5RM in this model
+                            if (!prs[name] || estimates['1rm'] > prs[name]['1rm']) {
                                 prs[name] = {
-                                    value: oneRM,
+                                    ...estimates,
                                     date: log.date,
-                                    display: name // Keep original casing if needed, simplified here
+                                    display: name 
                                 };
                             }
                         }
@@ -860,7 +880,7 @@
                 // Simple fuzzy match
                 for (const [name, data] of Object.entries(prs)) {
                     if (name.includes(key)) {
-                        if (data.value > max) max = data.value;
+                        if (data['1rm'] > max) max = data['1rm'];
                     }
                 }
 
@@ -874,30 +894,67 @@
             updateStatCard('bestBench', 'panca');
             updateStatCard('bestSquat', 'squat');
 
-            // Update Table
+            // Update Table Logic with Selector
             const prTableBody = document.getElementById('prTableBody');
-            prTableBody.innerHTML = '';
+            const rmHeader = document.getElementById('rmHeader');
+            const rmButtons = document.querySelectorAll('.btn-rm');
+            let currentView = '1rm';
 
-            // Sort by highest 1RM
-            const sortedPRs = Object.entries(prs).sort((a, b) => b[1].value - a[1].value).slice(0, 5); // Top 5
+            const renderTable = () => {
+                prTableBody.innerHTML = '';
 
-            sortedPRs.forEach(([name, data]) => {
-                const date = new Date(data.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+                // Update Header Text
+                rmHeader.textContent = currentView.toUpperCase() + ' (Stima)';
 
-                let weightDisplay = Math.round(data.value) + ' kg';
-                if (unitService) {
-                    weightDisplay = unitService.formatWeight(data.value);
-                }
+                // Update Buttons State
+                rmButtons.forEach(btn => {
+                    if (btn.dataset.rm === currentView) {
+                        btn.style.background = 'var(--color-primary)';
+                        btn.style.color = 'var(--color-background)'; 
+                        btn.classList.add('active');
+                        btn.style.fontWeight = 'bold';
+                    } else {
+                        btn.style.background = 'transparent';
+                        btn.style.color = '#ccc';
+                        btn.classList.remove('active');
+                        btn.style.fontWeight = 'normal';
+                    }
+                });
 
-                const tr = document.createElement('tr');
-                tr.style.borderBottom = '1px solid var(--color-border)';
-                tr.innerHTML = `
+                // Sort by current view metric
+                const sortedPRs = Object.entries(prs)
+                    .sort((a, b) => b[1][currentView] - a[1][currentView])
+                    .slice(0, 5); // Top 5
+
+                sortedPRs.forEach(([name, data]) => {
+                    const date = new Date(data.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+
+                    let weightDisplay = Math.round(data[currentView]) + ' kg';
+                    if (unitService) {
+                        weightDisplay = unitService.formatWeight(data[currentView]);
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid var(--color-border)';
+                    tr.innerHTML = `
 <td style="padding: 10px; text-transform: capitalize;">${name}</td>
-<td style="padding: 10px; color: var(--color-primary);">${weightDisplay}</td>
+<td style="padding: 10px; color: var(--color-primary); font-weight: bold;">${weightDisplay}</td>
 <td style="padding: 10px; font-size: 0.8rem;">${date}</td>
 `;
-                prTableBody.appendChild(tr);
+                    prTableBody.appendChild(tr);
+                });
+            };
+
+            // Attach Listeners
+            rmButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    currentView = e.target.dataset.rm;
+                    renderTable();
+                });
             });
+
+            // Initial Render
+            renderTable();
         });
     </script>
 </body>
