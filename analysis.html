@@ -397,8 +397,12 @@
         });
     </script>
 
-    <script>
+    <script type="module">
+        import { aiService } from './js/ai-service.js';
+        import { trendEngine } from './js/trend-engine.js';
+
         document.addEventListener('DOMContentLoaded', () => {
+            const DAY_MS = 24 * 60 * 60 * 1000;
             // Initialize Services
             let unitService;
             try {
