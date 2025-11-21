@@ -216,13 +216,18 @@
             }
 
             // 1. Load Saved Workouts into Select
-            const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-            workouts.forEach(w => {
-                const opt = document.createElement('option');
-                opt.value = w.id;
-                opt.textContent = w.name;
-                savedWorkoutsSelect.appendChild(opt);
-            });
+            let workoutsCache = [];
+            function populateWorkoutSelect() {
+                workoutsCache = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                savedWorkoutsSelect.innerHTML = '<option value="">-- Scegli una routine --</option>';
+                workoutsCache.forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = w.id;
+                    opt.textContent = w.name;
+                    savedWorkoutsSelect.appendChild(opt);
+                });
+            }
+            populateWorkoutSelect();
 
             // 2. Event Listeners for Navigation
             startBtn.addEventListener('click', () => {
@@ -261,7 +266,7 @@
                     return;
                 }
 
-                currentWorkout = workouts.find(w => w.id == workoutId);
+                currentWorkout = workoutsCache.find(w => w.id == workoutId);
                 if (!currentWorkout) return;
 
                 // Setup UI
@@ -479,6 +484,27 @@
                     });
                 });
             }
+
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'ironflow_workouts') {
+                    populateWorkoutSelect();
+                }
+                if (event.key === 'ironflow_logs') {
+                    renderLogs();
+                }
+            });
+
+            window.addEventListener('focus', () => {
+                populateWorkoutSelect();
+                renderLogs();
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    populateWorkoutSelect();
+                    renderLogs();
+                }
+            });
 
             // 7. Delete Log
             async function deleteLog(index) {

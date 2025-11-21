@@ -223,10 +223,27 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // ... existing listeners ...
 
-            // HEATMAP INITIALIZATION
-            const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
-            heatmapService.calculateFatigue(logs, 7); // 7 days lookback
-            heatmapService.renderSVG('muscleHeatmapContainer');
+            const muscleHeatmapContainer = document.getElementById('muscleHeatmapContainer');
+            const renderHeatmap = () => {
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                if (!logs.length) {
+                    if (muscleHeatmapContainer) {
+                        muscleHeatmapContainer.innerHTML = '<p style="text-align:center; color: var(--color-text-muted);">Registra un allenamento per visualizzare la distribuzione muscolare.</p>';
+                    }
+                    return;
+                }
+                heatmapService.calculateFatigue(logs, 7); // 7 days lookback
+                heatmapService.renderSVG('muscleHeatmapContainer');
+            };
+            renderHeatmap();
+
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'ironflow_logs') {
+                    renderHeatmap();
+                }
+            });
+
+            window.addEventListener('focus', renderHeatmap);
             
             const askCoachBtn = document.getElementById('askCoachBtn');
             const aiModal = document.getElementById('aiModal');

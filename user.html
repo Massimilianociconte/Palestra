@@ -653,6 +653,8 @@
             let remainingTime = 0;
             let currentWorkoutId = null;
             let sessionCompleted = false;
+            let sessionStartTime = null;
+            let sessionLogSaved = false;
 
             // Global Helpers for HTML attributes
             window.adjustTimer = (seconds) => {
@@ -793,6 +795,8 @@
                 }
 
                 currentWorkoutId = hydrated.id || source?.id || null;
+                sessionStartTime = Date.now();
+                sessionLogSaved = false;
                 focusOverlay.style.display = 'flex';
             };
 
@@ -990,11 +994,64 @@
                     focusSetCounter.textContent = "Aggiorna la scheda per iniziare.";
                     focusProgressBar.style.width = '0%';
                     focusProgressText.textContent = '0%';
+                    sessionLogSaved = true;
                 } else {
                     focusExerciseName.textContent = "Workout Completato!";
                     focusSetCounter.textContent = "Ottimo lavoro.";
                     focusProgressBar.style.width = '100%';
                     focusProgressText.textContent = '100%';
+                    persistFocusLog();
+                }
+            }
+
+            async function persistFocusLog() {
+                if (sessionLogSaved) return;
+                if (!currentWorkout || !Array.isArray(currentWorkout.exercises)) return;
+
+                const exercises = currentWorkout.exercises.map(ex => {
+                    const validSets = (ex.sets || []).map(set => {
+                        const weightVal = Number(set.weight) || 0;
+                        const repsVal = parseFloat(set.reps ?? set.target);
+                        if (weightVal <= 0 || !Number.isFinite(repsVal) || repsVal <= 0) return null;
+                        return { weight: weightVal, reps: repsVal };
+                    }).filter(Boolean);
+
+                    if (!validSets.length) return null;
+                    return { name: ex.name, sets: validSets };
+                }).filter(Boolean);
+
+                if (!exercises.length) {
+                    sessionLogSaved = true;
+                    return;
+                }
+
+                const totalVolume = exercises.reduce((acc, ex) => {
+                    return acc + ex.sets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+                }, 0);
+
+                const durationMinutes = sessionStartTime
+                    ? Math.max(1, Math.round((Date.now() - sessionStartTime) / 60000))
+                    : null;
+
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                const logEntry = {
+                    id: Date.now(),
+                    workoutId: currentWorkoutId,
+                    workoutName: currentWorkout?.name || 'Workout',
+                    date: new Date().toISOString(),
+                    duration: durationMinutes ? `${durationMinutes} min` : '',
+                    totalVolume,
+                    exercises,
+                    source: 'focus'
+                };
+                logs.unshift(logEntry);
+                localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+                sessionLogSaved = true;
+
+                try {
+                    await firestoreService.syncToCloud();
+                } catch (error) {
+                    console.warn('Sync diario da Focus fallita:', error.message || error);
                 }
             }
 
