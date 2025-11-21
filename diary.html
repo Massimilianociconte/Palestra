@@ -176,6 +176,25 @@
                     </div>
                 </div>
 
+                <div class="wellness-grid" style="display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:0.75rem; margin-bottom:1.5rem;">
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--color-text-muted);">Sonno (1-10)</label>
+                        <input type="number" id="logSleepQuality" class="set-input" min="1" max="10" placeholder="7">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--color-text-muted);">Energia (1-10)</label>
+                        <input type="number" id="logEnergyLevel" class="set-input" min="1" max="10" placeholder="7">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--color-text-muted);">Stress (1-10)</label>
+                        <input type="number" id="logStressLevel" class="set-input" min="1" max="10" placeholder="4">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--color-text-muted);">DOMS (1-10)</label>
+                        <input type="number" id="logSorenessLevel" class="set-input" min="1" max="10" placeholder="3">
+                    </div>
+                </div>
+
                 <div id="exercisesLogContainer">
                     <!-- Dynamic Exercises will go here -->
                 </div>
@@ -211,6 +230,10 @@
             const loggingTitle = document.getElementById('loggingTitle');
             const logDate = document.getElementById('logDate');
             const logDuration = document.getElementById('logDuration');
+            const logSleepQuality = document.getElementById('logSleepQuality');
+            const logEnergyLevel = document.getElementById('logEnergyLevel');
+            const logStressLevel = document.getElementById('logStressLevel');
+            const logSorenessLevel = document.getElementById('logSorenessLevel');
             const exercisesLogContainer = document.getElementById('exercisesLogContainer');
             const finishWorkoutBtn = document.getElementById('finishWorkoutBtn');
             const cancelLogBtn = document.getElementById('cancelLogBtn');
@@ -272,6 +295,10 @@
                 historyList.style.display = 'block';
                 currentWorkout = null;
                 editingLogIndex = -1;
+                if (logSleepQuality) logSleepQuality.value = '';
+                if (logEnergyLevel) logEnergyLevel.value = '';
+                if (logStressLevel) logStressLevel.value = '';
+                if (logSorenessLevel) logSorenessLevel.value = '';
             }
 
             // 3. Load Workout for Logging
@@ -291,6 +318,10 @@
                 loggingTitle.textContent = currentWorkout.name;
                 logDate.valueAsDate = new Date();
                 logDuration.value = '';
+                logSleepQuality.value = '';
+                logEnergyLevel.value = '';
+                logStressLevel.value = '';
+                logSorenessLevel.value = '';
 
                 renderLoggingForm(currentWorkout);
             });
@@ -392,6 +423,19 @@
                     totalVolume: 0,
                     fromAI: !!currentWorkout?.fromAI
                 };
+                const sleepVal = parseInt(logSleepQuality.value, 10);
+                const energyVal = parseInt(logEnergyLevel.value, 10);
+                const stressVal = parseInt(logStressLevel.value, 10);
+                const sorenessVal = parseInt(logSorenessLevel.value, 10);
+                if ([sleepVal, energyVal, stressVal, sorenessVal].some(val => !Number.isNaN(val))) {
+                    logData.wellness = {
+                        sleepQuality: Number.isNaN(sleepVal) ? null : sleepVal,
+                        energyLevel: Number.isNaN(energyVal) ? null : energyVal,
+                        stressLevel: Number.isNaN(stressVal) ? null : stressVal,
+                        sorenessLevel: Number.isNaN(sorenessVal) ? null : sorenessVal,
+                        recordedAt: new Date().toISOString()
+                    };
+                }
 
                 // Collect Data
                 const exerciseItems = document.querySelectorAll('.exercise-log-item');
@@ -437,6 +481,9 @@
                 if (editingLogIndex >= 0) {
                     logData.id = logs[editingLogIndex].id;
                     logData.fromAI = logs[editingLogIndex].fromAI;
+                    if (!logData.wellness && logs[editingLogIndex].wellness) {
+                        logData.wellness = logs[editingLogIndex].wellness;
+                    }
                     logs[editingLogIndex] = logData;
                 } else {
                     logs.unshift(logData);
@@ -574,6 +621,17 @@
                 loggingTitle.textContent = "Modifica: " + log.workoutName;
                 logDate.value = log.date.split('T')[0];
                 logDuration.value = parseFloat(log.duration) || '';
+                if (log.wellness) {
+                    logSleepQuality.value = log.wellness.sleepQuality ?? '';
+                    logEnergyLevel.value = log.wellness.energyLevel ?? '';
+                    logStressLevel.value = log.wellness.stressLevel ?? '';
+                    logSorenessLevel.value = log.wellness.sorenessLevel ?? '';
+                } else {
+                    logSleepQuality.value = '';
+                    logEnergyLevel.value = '';
+                    logStressLevel.value = '';
+                    logSorenessLevel.value = '';
+                }
                 finishWorkoutBtn.textContent = 'Aggiorna Allenamento';
 
                 renderLoggingForm(currentWorkout, log.exercises);

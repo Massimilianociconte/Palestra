@@ -75,6 +75,14 @@ export class AIService {
             const toonLogs = this.encodeToTOON(data.recentLogs, 'workoutLogs');
             const toonPrs = this.encodeToTOON(Object.entries(data.prs).map(([k,v]) => ({lift: k, weight: v})), 'personalRecords');
 
+            const wellnessBlock = data.wellness ? `
+**Recovery & Wellness (scala 1-10)**
+- Qualità Sonno Media: ${data.wellness.sleepQuality ?? 'N/D'}
+- Energia Giornaliera: ${data.wellness.energyLevel ?? 'N/D'}
+- Stress Percepito: ${data.wellness.stressLevel ?? 'N/D'}
+- Dolore Muscolare: ${data.wellness.sorenessLevel ?? 'N/D'}
+` : '';
+
             const prompt = `
 Sei un **Elite Strength & Conditioning Coach** con un PhD in Biomeccanica e Fisiologia dell'Esercizio. La tua specializzazione è l'analisi dei dati per ottimizzare l'ipertrofia e la forza massima.
 Il tuo compito è analizzare i dati di allenamento di un atleta forniti in formato **TOON** (Token-Oriented Object Notation) e fornire un feedback tecnico, critico e attuabile.
@@ -93,6 +101,8 @@ ${toonPrs}
 
 **Log Allenamenti Recenti:**
 ${toonLogs}
+
+${wellnessBlock}
 
 ---
 

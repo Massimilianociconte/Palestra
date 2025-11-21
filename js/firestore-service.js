@@ -264,16 +264,37 @@ export class FirestoreService {
                 return {
                     date: log.date.split('T')[0],
                     volume: log.totalVolume,
-                    mainExercises: mainLifts
+                    mainExercises: mainLifts,
+                    wellness: log.wellness ? {
+                        sleepQuality: log.wellness.sleepQuality,
+                        energyLevel: log.wellness.energyLevel,
+                        stressLevel: log.wellness.stressLevel,
+                        sorenessLevel: log.wellness.sorenessLevel
+                    } : undefined
                 };
             });
+
+            const avgWellness = (field) => {
+                const values = recentLogs
+                    .map(log => log.wellness?.[field])
+                    .filter(val => typeof val === 'number' && !Number.isNaN(val));
+                return values.length ? (values.reduce((sum, val) => sum + val, 0) / values.length) : null;
+            };
+
+            const wellnessSummary = {
+                sleepQuality: avgWellness('sleepQuality'),
+                energyLevel: avgWellness('energyLevel'),
+                stressLevel: avgWellness('stressLevel'),
+                sorenessLevel: avgWellness('sorenessLevel')
+            };
 
             return {
                 profile: localProfile,
                 bodyStats: localBodyStats.slice(0, 3), // Last 3 weigh-ins
                 recentLogs: simplifiedLogs,
                 recentWorkoutCount: recentLogs.length,
-                prs: topPrs
+                prs: topPrs,
+                wellness: wellnessSummary
             };
 
         } catch (e) {

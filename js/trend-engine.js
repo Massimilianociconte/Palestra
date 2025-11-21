@@ -56,6 +56,30 @@ const METRIC_CONFIG = {
         label: 'Costanza',
         higherIsBetter: true,
         formatter: (value) => `${Math.round(value * 100)}%`
+    },
+    sleepQuality: {
+        id: 'sleepQuality',
+        label: 'Qualità Sonno',
+        higherIsBetter: true,
+        formatter: (value) => `${value.toFixed(1)} / 10`
+    },
+    energyLevel: {
+        id: 'energyLevel',
+        label: 'Energia Giornaliera',
+        higherIsBetter: true,
+        formatter: (value) => `${value.toFixed(1)} / 10`
+    },
+    stressLevel: {
+        id: 'stressLevel',
+        label: 'Stress',
+        higherIsBetter: false,
+        formatter: (value) => `${value.toFixed(1)} / 10`
+    },
+    sorenessLevel: {
+        id: 'sorenessLevel',
+        label: 'DOMS / Dolore',
+        higherIsBetter: false,
+        formatter: (value) => `${value.toFixed(1)} / 10`
     }
 };
 
@@ -183,6 +207,13 @@ const bucketizeBodyStats = (stats = [], days = 14) => {
     return { recent, previous };
 };
 
+const getAverageWellness = (logs = [], field) => {
+    const values = logs
+        .map(log => log.wellness?.[field])
+        .filter(val => typeof val === 'number' && !Number.isNaN(val));
+    return values.length ? average(values) : 0;
+};
+
 const formatDeltaText = (metricId, trend) => {
     const arrow = trend.status === 'improving'
         ? '⬆️'
@@ -234,6 +265,51 @@ export const trendEngine = {
         const prevConsistency = getConsistency(prevLogs);
 
         const ctx = { unit: unit === 'imperial' ? 'imperial' : 'metric', profile };
+        const wellnessMetrics = [];
+
+        const recentSleep = getAverageWellness(recentLogs, 'sleepQuality');
+        const prevSleep = getAverageWellness(prevLogs, 'sleepQuality');
+        if (recentSleep || prevSleep) {
+            wellnessMetrics.push({
+                ...METRIC_CONFIG.sleepQuality,
+                current: recentSleep || prevSleep,
+                previous: prevSleep || recentSleep,
+                ...evalTrendDirection('sleepQuality', recentSleep || prevSleep, prevSleep || recentSleep, ctx)
+            });
+        }
+
+        const recentEnergy = getAverageWellness(recentLogs, 'energyLevel');
+        const prevEnergy = getAverageWellness(prevLogs, 'energyLevel');
+        if (recentEnergy || prevEnergy) {
+            wellnessMetrics.push({
+                ...METRIC_CONFIG.energyLevel,
+                current: recentEnergy || prevEnergy,
+                previous: prevEnergy || recentEnergy,
+                ...evalTrendDirection('energyLevel', recentEnergy || prevEnergy, prevEnergy || recentEnergy, ctx)
+            });
+        }
+
+        const recentStress = getAverageWellness(recentLogs, 'stressLevel');
+        const prevStress = getAverageWellness(prevLogs, 'stressLevel');
+        if (recentStress || prevStress) {
+            wellnessMetrics.push({
+                ...METRIC_CONFIG.stressLevel,
+                current: recentStress || prevStress,
+                previous: prevStress || recentStress,
+                ...evalTrendDirection('stressLevel', recentStress || prevStress, prevStress || recentStress, ctx)
+            });
+        }
+
+        const recentSoreness = getAverageWellness(recentLogs, 'sorenessLevel');
+        const prevSoreness = getAverageWellness(prevLogs, 'sorenessLevel');
+        if (recentSoreness || prevSoreness) {
+            wellnessMetrics.push({
+                ...METRIC_CONFIG.sorenessLevel,
+                current: recentSoreness || prevSoreness,
+                previous: prevSoreness || recentSoreness,
+                ...evalTrendDirection('sorenessLevel', recentSoreness || prevSoreness, prevSoreness || recentSoreness, ctx)
+            });
+        }
 
         const metrics = [
             {
@@ -266,7 +342,9 @@ export const trendEngine = {
                 previous: prevConsistency,
                 ...evalTrendDirection('consistency', recentConsistency, prevConsistency, ctx)
             }
-        ].map(metric => ({
+        ]
+        .concat(wellnessMetrics)
+        .map(metric => ({
             ...metric,
             summary: formatDeltaText(metric.id, metric)
         }));

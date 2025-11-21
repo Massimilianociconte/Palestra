@@ -389,6 +389,32 @@
         </div>
     </div>
 
+    <!-- Wellness Prompt Modal -->
+    <div id="wellnessPromptModal" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index:2100; align-items:center; justify-content:center; padding:1rem;">
+        <div class="card" style="max-width: 420px; width:100%; border:1px solid rgba(255,255,255,0.1);">
+            <h3 style="margin-bottom:0.5rem;">Come ti senti oggi?</h3>
+            <p style="color: var(--color-text-muted); font-size:0.85rem; margin-bottom:1rem;">Valuta il tuo stato prima di iniziare la sessione. Scala 1‑10.</p>
+            <form id="wellnessForm" style="display:flex; flex-direction:column; gap:0.75rem;">
+                <label>Qualità del Sonno
+                    <input type="number" id="sleepQualityInput" min="1" max="10" value="7" required class="input-compact" style="width:100%;">
+                </label>
+                <label>Energia / Vigore Attuale
+                    <input type="number" id="energyLevelInput" min="1" max="10" value="7" required class="input-compact" style="width:100%;">
+                </label>
+                <label>Stress percepito
+                    <input type="number" id="stressLevelInput" min="1" max="10" value="4" required class="input-compact" style="width:100%;">
+                </label>
+                <label>Dolore Muscolare / DOMS
+                    <input type="number" id="sorenessLevelInput" min="1" max="10" value="3" required class="input-compact" style="width:100%;">
+                </label>
+                <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
+                    <button type="button" id="cancelWellnessBtn" class="btn btn-outline" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Inizia Focus Mode</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Focus Mode Overlay -->
     <div id="focusModeOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; flex-direction: column; padding: 1.5rem;">
         <!-- Top Bar -->
@@ -851,6 +877,13 @@
             const focusWorkoutTitle = document.getElementById('focusWorkoutTitle');
             const focusProgressBar = document.getElementById('focusProgressBar');
             const focusProgressText = document.getElementById('focusProgressText');
+            const wellnessModal = document.getElementById('wellnessPromptModal');
+            const wellnessForm = document.getElementById('wellnessForm');
+            const cancelWellnessBtn = document.getElementById('cancelWellnessBtn');
+            const sleepQualityInput = document.getElementById('sleepQualityInput');
+            const energyLevelInput = document.getElementById('energyLevelInput');
+            const stressLevelInput = document.getElementById('stressLevelInput');
+            const sorenessLevelInput = document.getElementById('sorenessLevelInput');
             
             let currentWorkout = null;
             let currentExerciseIndex = 0;
@@ -862,6 +895,8 @@
             let sessionCompleted = false;
             let sessionStartTime = null;
             let sessionLogSaved = false;
+            let pendingFocusWorkout = null;
+            let currentWellnessSnapshot = null;
 
             // Global Helpers for HTML attributes
             window.adjustTimer = (seconds) => {
@@ -989,7 +1024,22 @@
                 }
             }
 
-            window.initFocusMode = (workout) => {
+            function openWellnessModal(workout) {
+                pendingFocusWorkout = workout;
+                currentWellnessSnapshot = null;
+                wellnessModal.style.display = 'flex';
+                sleepQualityInput.value = sleepQualityInput.value || 7;
+                energyLevelInput.value = energyLevelInput.value || 7;
+                stressLevelInput.value = stressLevelInput.value || 4;
+                sorenessLevelInput.value = sorenessLevelInput.value || 3;
+            }
+
+            function closeWellnessModal() {
+                wellnessModal.style.display = 'none';
+                pendingFocusWorkout = null;
+            }
+
+            function startFocusSession(workout) {
                 const source = typeof workout === 'string'
                     ? findWorkoutById(workout)
                     : (workout?.id ? (findWorkoutById(workout.id) || workout) : workout);
@@ -1005,7 +1055,32 @@
                 sessionStartTime = Date.now();
                 sessionLogSaved = false;
                 focusOverlay.style.display = 'flex';
+            }
+
+            window.initFocusMode = (workout) => {
+                openWellnessModal(workout);
             };
+
+            cancelWellnessBtn.addEventListener('click', () => {
+                wellnessModal.style.display = 'none';
+                pendingFocusWorkout = null;
+            });
+
+            wellnessForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                currentWellnessSnapshot = {
+                    sleepQuality: parseInt(sleepQualityInput.value, 10),
+                    energyLevel: parseInt(energyLevelInput.value, 10),
+                    stressLevel: parseInt(stressLevelInput.value, 10),
+                    sorenessLevel: parseInt(sorenessLevelInput.value, 10),
+                    recordedAt: new Date().toISOString()
+                };
+                wellnessModal.style.display = 'none';
+                if (pendingFocusWorkout) {
+                    startFocusSession(pendingFocusWorkout);
+                    pendingFocusWorkout = null;
+                }
+            });
 
             exitFocusModeBtn.addEventListener('click', () => {
                 if (confirm('Uscire dal Focus Mode? I progressi non salvati andranno persi.')) {
@@ -1249,12 +1324,15 @@
                     duration: durationMinutes ? `${durationMinutes} min` : '',
                     totalVolume,
                     exercises,
+                    wellness: currentWellnessSnapshot ? { ...currentWellnessSnapshot } : undefined,
                     fromAI: !!currentWorkout?.fromAI,
                     source: 'focus'
                 };
+                if (!logEntry.wellness) delete logEntry.wellness;
                 logs.unshift(logEntry);
                 localStorage.setItem('ironflow_logs', JSON.stringify(logs));
                 sessionLogSaved = true;
+                currentWellnessSnapshot = null;
 
                 try {
                     await firestoreService.syncToCloud();
