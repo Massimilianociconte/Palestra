@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <!-- Markdown Parser Library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         .chart-container {
             background: var(--color-surface);
@@ -231,13 +233,8 @@
 
                 // 3. Show Result
                 if (result.success) {
-                    // Simple Markdown to HTML converter
-                    const html = result.text
-                        .replace(/\*\*(.*?)\*\*/g, '<strong style="color: white;">$1</strong>') // Bold
-                        .replace(/\* (.*?)\n/g, '<li>$1</li>') // List items
-                        .replace(/\n/g, '<br>'); // Newlines
-
-                    aiContent.innerHTML = html;
+                    // Use 'marked' library to convert Markdown to HTML
+                    aiContent.innerHTML = marked.parse(result.text);
                 } else {
                     aiContent.innerHTML = `<p style="color: #ff4444;">Errore AI: ${result.message}</p>`;
                 }

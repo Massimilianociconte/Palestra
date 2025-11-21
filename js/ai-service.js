@@ -61,7 +61,7 @@ export class AIService {
                 temperature: 0.7, // Creative but grounded
                 topP: 0.95,
                 topK: 40,
-                maxOutputTokens: 2000,
+                maxOutputTokens: 8192, // Increased to prevent truncation (Gemini 1.5/Flash support high limits)
             };
 
             // Use the most advanced model available
