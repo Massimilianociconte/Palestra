@@ -84,6 +84,32 @@
             font-size: 0.9rem;
             color: var(--color-text-muted);
         }
+
+        .ai-summary h4 {
+            margin-top: 1rem;
+            margin-bottom: 0.4rem;
+            color: var(--color-primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .ai-summary p {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+            color: #ddd;
+        }
+
+        .ai-summary ul,
+        .ai-summary ol {
+            margin: 0.4rem 0 0.8rem;
+            padding-left: 1.3rem;
+            color: #ccc;
+        }
+
+        .ai-summary li {
+            margin-bottom: 0.35rem;
+        }
     </style>
 </head>
 
@@ -446,6 +472,61 @@
                 localStorage.setItem(SUMMARY_HISTORY_KEY, JSON.stringify(history.slice(0, 12)));
             };
 
+            const buildMetricList = (list, emptyText) => {
+                if (!list.length) return `<p>${emptyText}</p>`;
+                return `<ul>${list.map(item => `<li>${item.label}: ${item.summary}</li>`).join('')}</ul>`;
+            };
+
+            const buildSuggestions = () => {
+                const tips = [];
+                const declining = trendResult.metrics.filter(m => m.status === 'declining');
+                declining.forEach(metric => {
+                    switch (metric.id) {
+                        case 'frequency':
+                            tips.push('Blocca in agenda almeno tre sessioni fisse nei prossimi 7 giorni per ristabilire il ritmo.');
+                            break;
+                        case 'volume':
+                            tips.push('Aggiungi uno o due set di qualità per i gruppi in stallo, evitando di sacrificare la tecnica.');
+                            break;
+                        case 'bodyWeight':
+                            tips.push('Controlla l’apporto calorico: allinea alimentazione e goal (cut/bulk) tenendo monitorate le variazioni giornaliere.');
+                            break;
+                        case 'prs':
+                            tips.push('Integra lavoro di forza pura (3‑5 reps) sui big lift con progressione a piccoli incrementi.');
+                            break;
+                        case 'consistency':
+                            tips.push('Crea un rituale pre-allenamento e usa promemoria per ridurre le sessioni saltate.');
+                            break;
+                        default:
+                            tips.push('Monitora gli indicatori principali e registra ogni allenamento per mantenere il tracking accurato.');
+                    }
+                });
+
+                if (!tips.length) {
+                    tips.push('Mantieni l’attuale strategia ma continua a monitorare frequenza e recupero per consolidare i progressi.');
+                }
+
+                return `<ol>${tips.map(t => `<li>${t}</li>`).join('')}</ol>`;
+            };
+
+            const buildHeuristicSummaryHTML = () => {
+                const improving = trendResult.metrics.filter(m => m.status === 'improving');
+                const declining = trendResult.metrics.filter(m => m.status === 'declining');
+
+                return `
+                    <div class="ai-summary">
+                        <h4>Andamento Generale</h4>
+                        <p>${trendResult.digest}</p>
+                        <h4>Miglioramenti Evidenti</h4>
+                        ${buildMetricList(improving, 'Nessun miglioramento evidente in questo periodo.')}
+                        <h4>Rischi / Regressioni</h4>
+                        ${buildMetricList(declining, 'Nessuna regressione significativa rilevata.')}
+                        <h4>Focus Prossimi 7 Giorni</h4>
+                        ${buildSuggestions()}
+                    </div>
+                `;
+            };
+
             const renderTrendMetrics = () => {
                 if (!trendMetricsList) return;
                 trendMetricsList.innerHTML = '';
@@ -500,6 +581,17 @@
                 });
             };
 
+            const normalizeAiHtml = (raw) => {
+                if (!raw) return '';
+                const trimmed = raw.trim();
+                if (!trimmed) return '';
+                if (trimmed.includes('<')) return trimmed;
+                if (window.marked) {
+                    return marked.parse(trimmed);
+                }
+                return `<p>${trimmed.replace(/\n+/g, '</p><p>')}</p>`;
+            };
+
             const maybeGenerateSummary = async () => {
                 const history = getSummaryHistory();
                 const lastEntry = history[0];
@@ -508,7 +600,7 @@
 
                 if (!shouldGenerate || !trendResult.metrics.some(m => m.current)) return;
 
-                let summaryText = trendResult.digest;
+                let summaryHTML = buildHeuristicSummaryHTML();
                 let usedAI = false;
 
                 if (aiService.hasKey()) {
@@ -518,7 +610,7 @@
                         generatedAt: trendResult.generatedAt
                     });
                     if (response.success) {
-                        summaryText = response.text;
+                        summaryHTML = normalizeAiHtml(response.text);
                         usedAI = true;
                     }
                 }
@@ -526,7 +618,7 @@
                 const entry = {
                     id: crypto.randomUUID ? crypto.randomUUID() : `ai-summary-${Date.now()}`,
                     date: new Date().toISOString(),
-                    text: summaryText,
+                    text: summaryHTML,
                     title: 'Resoconto andamento',
                     source: usedAI ? 'ai' : 'heuristic'
                 };

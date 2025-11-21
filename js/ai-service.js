@@ -200,19 +200,33 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
             const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" }); 
 
             const prompt = `
-Sei un Performance Coach. Analizza queste metriche:
+Sei un Performance Coach di alto livello. Analizza le metriche qui sotto e genera un resoconto **solo in HTML valido** (niente Markdown, niente tag <html>/<body>). Usa esclusivamente questa struttura:
 
+<div class="ai-summary">
+  <h4>Andamento Generale</h4>
+  <p>...</p>
+  <h4>Miglioramenti Evidenti</h4>
+  <ul>
+    <li>...</li>
+  </ul>
+  <h4>Rischi / Regressioni</h4>
+  <ul>
+    <li>...</li>
+  </ul>
+  <h4>Focus Prossimi 7 Giorni</h4>
+  <ol>
+    <li>...</li>
+  </ol>
+</div>
+
+Metriche JSON:
 ${JSON.stringify(payload.metrics, null, 2)}
 
-Profilo: ${JSON.stringify(payload.profile || {})}
+Profilo atleta:
+${JSON.stringify(payload.profile || {})}
 
-Genera un resoconto in italiano con:
-- Sintesi generale dello stato
-- Miglioramenti evidenti
-- Rischi o regressioni
-- 3 consigli attuabili per i prossimi 7 giorni
-
-Tono: professionale, motivante, conciso.
+- Tono: professionale, motivante, conciso.
+- Se una sezione non ha punti rilevanti, scrivi "Nessun dato significativo" ma mantieni comunque la struttura.
 `;
             const result = await model.generateContent(prompt);
             const text = result.response.text();
