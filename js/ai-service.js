@@ -1,5 +1,50 @@
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const daysSince = (isoDate) => {
+    if (!isoDate) return null;
+    const ts = new Date(isoDate).getTime();
+    if (Number.isNaN(ts)) return null;
+    return Math.max(0, Math.round((Date.now() - ts) / DAY_MS));
+};
+
+const formatHotspotLine = (hotspot) => {
+    if (!hotspot) return '';
+    const intensity = hotspot.avgIntensity ?? hotspot.lastIntensity;
+    const since = daysSince(hotspot.lastReportedAt);
+    const rec = hotspot.avgRecoveryDays ?? hotspot.lastRecoveryDays;
+    const details = [
+        intensity !== null && intensity !== undefined ? `intensità media ${intensity}/10` : null,
+        rec !== null && rec !== undefined ? `REC medio ${rec}g` : null,
+        since !== null ? `ultimo ${since}g fa` : null
+    ].filter(Boolean).join(', ');
+    return `- ${hotspot.label}: ${hotspot.occurrences} segnalazioni${details ? ` (${details})` : ''}`;
+};
+
+const buildDomsSummaryBlock = (hotspots = [], limit = 6) => {
+    if (!hotspots.length) {
+        return '- Nessuna segnalazione DOMS registrata.';
+    }
+    return hotspots.slice(0, limit).map(formatHotspotLine).join('\n');
+};
+
+const buildRecentDomsBlock = (hotspots = [], windowDays = 4) => {
+    const filtered = hotspots.filter(h => {
+        const since = daysSince(h.lastReportedAt);
+        return since !== null && since <= windowDays;
+    });
+    if (!filtered.length) {
+        return 'Nessun DOMS significativo negli ultimi giorni.';
+    }
+    return filtered.map(h => {
+        const since = daysSince(h.lastReportedAt);
+        const rec = h.lastRecoveryDays ?? h.avgRecoveryDays;
+        const intensity = h.lastIntensity ?? h.avgIntensity;
+        return `- ${h.label}: dolore ${intensity ?? 'N/D'}/10, ${since}g fa, REC stimato ${rec ?? 'N/D'}g`;
+    }).join('\n');
+};
+
 export class AIService {
     constructor() {
         // API Key is loaded from LocalStorage only. 
@@ -83,6 +128,12 @@ export class AIService {
 - Dolore Muscolare: ${data.wellness.sorenessLevel ?? 'N/D'}
 ` : '';
 
+            const domsHotspots = data?.domsInsights?.hotspots || [];
+            const domsBlock = `
+**DOMS Localizzati & Recupero**
+${buildDomsSummaryBlock(domsHotspots)}
+`;
+
             const prompt = `
 Sei un **Elite Strength & Conditioning Coach** con un PhD in Biomeccanica e Fisiologia dell'Esercizio. La tua specializzazione è l'analisi dei dati per ottimizzare l'ipertrofia e la forza massima.
 Il tuo compito è analizzare i dati di allenamento di un atleta forniti in formato **TOON** (Token-Oriented Object Notation) e fornire un feedback tecnico, critico e attuabile.
@@ -103,6 +154,7 @@ ${toonPrs}
 ${toonLogs}
 
 ${wellnessBlock}
+${domsBlock}
 
 ---
 
@@ -128,6 +180,10 @@ Analizza i dati sopra e genera un report strutturato seguendo rigorosamente ques
 - Fornisci 3 direttive tecniche specifiche. Non dire "allenati di più", di "Aumenta il volume settimanale sui pettorali del 10% aggiungendo 2 set di croci ai cavi".
 - Suggerisci una variazione di intensità o volume basata sui dati.
 
+**5. RECUPERO & DOMS LOCALIZZATI**
+- Usa la mappa DOMS per capire quali distretti accumulano più fatica residua e quante giornate di recupero servono in media.
+- Indica eventuali deload, rotazioni di esercizi o accorgimenti tecnici per quei muscoli, evitando sovrapposizioni di stimolo finché non tornano sotto controllo.
+
 ---
 
 ### 📝 FORMATO RISPOSTA
@@ -150,6 +206,8 @@ Se mancano dati critici (es. peso corporeo), fallo notare come primo punto per m
 1.  **[Azione 1]**: ...
 2.  **[Azione 2]**: ...
 3.  **[Azione 3]**: ...
+
+Evidenzia sempre come modulare i carichi sui gruppi attualmente stressati da DOMS.
 
 #### 💡 Tip Avanzato
 ...
@@ -175,6 +233,7 @@ Se mancano dati critici (es. peso corporeo), fallo notare come primo punto per m
             const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" }); 
 
             const toonLogs = this.encodeToTOON(data.recentLogs.slice(0, 5), 'lastWorkouts'); // Only last 5 needed
+            const domsGuidance = buildRecentDomsBlock(data?.domsInsights?.hotspots || []);
 
             const prompt = `
 Come Personal Trainer esperto, analizza gli ultimi allenamenti di questo atleta e suggerisci l'allenamento per OGGI.
@@ -182,6 +241,11 @@ Obiettivo: Bilanciamento muscolare e recupero.
 
 **Ultimi Allenamenti:**
 ${toonLogs}
+
+**Segnalazioni DOMS recenti (<=4 giorni):**
+${domsGuidance}
+
+Linee guida: evita di sovraccaricare i distretti ancora doloranti, proponi varianti di recupero attivo o focus su gruppi freschi se necessario.
 
 Rispondi in formato JSON (senza markdown, solo JSON puro):
 {
@@ -209,6 +273,8 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
             const genAI = new GoogleGenerativeAI(this.apiKey);
             const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" }); 
 
+            const domsHotspots = payload?.domsHotspots || [];
+
             const prompt = `
 Sei un Performance Coach di alto livello. Analizza le metriche qui sotto e genera un resoconto **solo in HTML valido** (niente Markdown, niente tag <html>/<body>). Usa esclusivamente questa struttura:
 
@@ -235,8 +301,12 @@ ${JSON.stringify(payload.metrics, null, 2)}
 Profilo atleta:
 ${JSON.stringify(payload.profile || {})}
 
+DOMS Hotspot JSON (usa questi dati per contestualizzare recupero e rischi specifici):
+${JSON.stringify(domsHotspots, null, 2)}
+
 - Tono: professionale, motivante, conciso.
 - Se una sezione non ha punti rilevanti, scrivi "Nessun dato significativo" ma mantieni comunque la struttura.
+- Nella sezione "Rischi / Regressioni" cita eventuali distretti con DOMS persistenti e, se serve, richiamali anche nel focus dei prossimi 7 giorni.
 `;
             const result = await model.generateContent(prompt);
             const text = result.response.text();

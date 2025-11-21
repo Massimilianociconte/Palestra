@@ -1,3 +1,5 @@
+import { computeDomsInsights } from './doms-insights.js';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const includesAny = (value = '', keywords = []) => {
@@ -351,10 +353,14 @@ export const trendEngine = {
 
         const digest = buildHeuristicSummary(metrics);
 
+        const domsInsights = computeDomsInsights(logs);
+
         return {
             metrics,
             digest,
-            generatedAt: new Date().toISOString()
+            generatedAt: new Date().toISOString(),
+            domsHotspots: domsInsights.hotspots,
+            domsReportCount: domsInsights.totalReports
         };
     }
 };

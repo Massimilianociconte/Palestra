@@ -1,5 +1,6 @@
 import { db, doc, setDoc, getDoc, updateDoc, arrayUnion } from './firebase-config.js';
 import { auth } from './firebase-config.js';
+import { computeDomsInsights } from './doms-insights.js';
 
 export class FirestoreService {
     constructor() {
@@ -270,7 +271,10 @@ export class FirestoreService {
                         energyLevel: log.wellness.energyLevel,
                         stressLevel: log.wellness.stressLevel,
                         sorenessLevel: log.wellness.sorenessLevel
-                    } : undefined
+                    } : undefined,
+                    domsTargets: Array.isArray(log.wellness?.sorenessMuscles) && log.wellness.sorenessMuscles.length
+                        ? log.wellness.sorenessMuscles
+                        : undefined
                 };
             });
 
@@ -288,13 +292,16 @@ export class FirestoreService {
                 sorenessLevel: avgWellness('sorenessLevel')
             };
 
+            const domsInsights = computeDomsInsights(localLogs);
+
             return {
                 profile: localProfile,
                 bodyStats: localBodyStats.slice(0, 3), // Last 3 weigh-ins
                 recentLogs: simplifiedLogs,
                 recentWorkoutCount: recentLogs.length,
                 prs: topPrs,
-                wellness: wellnessSummary
+                wellness: wellnessSummary,
+                domsInsights
             };
 
         } catch (e) {

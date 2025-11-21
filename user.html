@@ -98,6 +98,58 @@
             min-width: 80px;
         }
 
+        .doms-chip-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.35rem;
+        }
+
+        .doms-chip-group {
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+        }
+
+        .doms-chip-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .doms-chip {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #fff;
+            border-radius: 999px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .doms-chip.active {
+            background: rgba(0,243,255,0.25);
+            color: #000;
+            border-color: rgba(0,243,255,0.6);
+            box-shadow: 0 0 10px rgba(0,243,255,0.3);
+        }
+
+        .doms-chip:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        .doms-chip-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 0.4rem;
+        }
+
         /* Mobile specific adjustments for settings */
         @media (max-width: 480px) {
             .setting-item {
@@ -407,6 +459,14 @@
                 <label>Dolore Muscolare / DOMS
                     <input type="number" id="sorenessLevelInput" min="1" max="10" value="3" required class="input-compact" style="width:100%;">
                 </label>
+                <label>Gruppi Muscolari con DOMS
+                    <span style="display:block; font-size:0.75rem; color:var(--color-text-muted); margin-top:0.25rem;">Seleziona uno o più distretti che senti ancora doloranti per guidare il monitoraggio del recupero.</span>
+                    <div id="sorenessMusclePicker" class="doms-chip-grid" role="listbox" aria-multiselectable="true"></div>
+                </label>
+                <div class="doms-chip-info">
+                    <small id="sorenessMuscleHint">Nessun distretto selezionato</small>
+                    <button type="button" id="clearSorenessSelection" class="link-btn" style="font-size:0.75rem;">Azzera</button>
+                </div>
                 <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
                     <button type="button" id="cancelWellnessBtn" class="btn btn-outline" style="flex:1;">Annulla</button>
                     <button type="submit" class="btn btn-primary" style="flex:1;">Inizia Focus Mode</button>
@@ -507,6 +567,7 @@
         import { authService } from './js/auth-service.js';
         import { firestoreService } from './js/firestore-service.js';
         import { aiService } from './js/ai-service.js';
+        import { MUSCLE_GROUPS } from './js/exercise-db.js';
 
         document.addEventListener('DOMContentLoaded', () => {
             
@@ -884,6 +945,9 @@
             const energyLevelInput = document.getElementById('energyLevelInput');
             const stressLevelInput = document.getElementById('stressLevelInput');
             const sorenessLevelInput = document.getElementById('sorenessLevelInput');
+            const sorenessMusclePicker = document.getElementById('sorenessMusclePicker');
+            const sorenessMuscleHint = document.getElementById('sorenessMuscleHint');
+            const clearSorenessSelectionBtn = document.getElementById('clearSorenessSelection');
             
             let currentWorkout = null;
             let currentExerciseIndex = 0;
@@ -897,6 +961,139 @@
             let sessionLogSaved = false;
             let pendingFocusWorkout = null;
             let currentWellnessSnapshot = null;
+
+            const DOMS_SELECTION_STORAGE_KEY = 'ironflow_last_doms_selection';
+            const categoryOrder = ['push', 'pull', 'legs', 'core', 'other'];
+            const groupLabels = {
+                push: 'Spinta',
+                pull: 'Trazione',
+                legs: 'Lower Body',
+                core: 'Core',
+                other: 'Full Body'
+            };
+
+            const getCategoryRank = (key) => {
+                const idx = categoryOrder.indexOf(key);
+                return idx === -1 ? categoryOrder.length : idx;
+            };
+
+            const muscleOptions = Object.entries(MUSCLE_GROUPS).map(([id, meta]) => ({
+                id,
+                label: meta.label || id,
+                category: meta.group || 'other'
+            })).sort((a, b) => {
+                const rankDiff = getCategoryRank(a.category) - getCategoryRank(b.category);
+                if (rankDiff !== 0) return rankDiff;
+                return a.label.localeCompare(b.label, 'it');
+            });
+
+            const muscleLabelMap = muscleOptions.reduce((acc, option) => {
+                acc[option.id] = option.label;
+                return acc;
+            }, {});
+
+            const loadStoredSelection = () => {
+                try {
+                    const raw = JSON.parse(localStorage.getItem(DOMS_SELECTION_STORAGE_KEY) || '[]');
+                    return Array.isArray(raw) ? raw.filter(id => muscleLabelMap[id]) : [];
+                } catch (error) {
+                    console.warn('Impossibile leggere DOMS salvati:', error);
+                    return [];
+                }
+            };
+
+            let selectedSorenessMuscles = new Set(loadStoredSelection());
+
+            const persistSorenessSelection = () => {
+                localStorage.setItem(
+                    DOMS_SELECTION_STORAGE_KEY,
+                    JSON.stringify(Array.from(selectedSorenessMuscles))
+                );
+            };
+
+            const updateSorenessHint = () => {
+                if (!sorenessMuscleHint) return;
+                if (!selectedSorenessMuscles.size) {
+                    sorenessMuscleHint.textContent = 'Nessun distretto selezionato.';
+                    return;
+                }
+                const labels = Array.from(selectedSorenessMuscles).map(id => muscleLabelMap[id] || id);
+                sorenessMuscleHint.textContent = `Gruppi selezionati: ${labels.join(', ')}`;
+            };
+
+            const syncSorenessButtons = () => {
+                if (!sorenessMusclePicker) return;
+                sorenessMusclePicker.querySelectorAll('.doms-chip').forEach(btn => {
+                    const id = btn.dataset.muscle;
+                    const isActive = selectedSorenessMuscles.has(id);
+                    btn.classList.toggle('active', isActive);
+                    btn.setAttribute('aria-pressed', String(isActive));
+                });
+            };
+
+            const buildSorenessPicker = () => {
+                if (!sorenessMusclePicker) return;
+                sorenessMusclePicker.innerHTML = '';
+                const grouped = muscleOptions.reduce((acc, option) => {
+                    const key = option.category || 'other';
+                    if (!acc[key]) acc[key] = [];
+                    acc[key].push(option);
+                    return acc;
+                }, {});
+
+                Object.keys(grouped)
+                    .sort((a, b) => getCategoryRank(a) - getCategoryRank(b))
+                    .forEach(category => {
+                        const header = document.createElement('div');
+                        header.className = 'doms-chip-group';
+                        header.textContent = groupLabels[category] || category;
+                        sorenessMusclePicker.appendChild(header);
+
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'doms-chip-wrapper';
+
+                        grouped[category].forEach(option => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'doms-chip' + (selectedSorenessMuscles.has(option.id) ? ' active' : '');
+                            btn.dataset.muscle = option.id;
+                            btn.textContent = option.label;
+                            btn.setAttribute('role', 'option');
+                            btn.setAttribute('aria-pressed', String(selectedSorenessMuscles.has(option.id)));
+                            btn.addEventListener('click', () => {
+                                if (selectedSorenessMuscles.has(option.id)) {
+                                    selectedSorenessMuscles.delete(option.id);
+                                } else {
+                                    selectedSorenessMuscles.add(option.id);
+                                }
+                                btn.classList.toggle('active');
+                                btn.setAttribute('aria-pressed', String(btn.classList.contains('active')));
+                                persistSorenessSelection();
+                                updateSorenessHint();
+                            });
+                            wrapper.appendChild(btn);
+                        });
+
+                        sorenessMusclePicker.appendChild(wrapper);
+                    });
+            };
+
+            const hydrateSorenessSelection = () => {
+                selectedSorenessMuscles = new Set(loadStoredSelection());
+                syncSorenessButtons();
+                updateSorenessHint();
+            };
+
+            buildSorenessPicker();
+            updateSorenessHint();
+
+            clearSorenessSelectionBtn?.addEventListener('click', (event) => {
+                event.preventDefault();
+                selectedSorenessMuscles.clear();
+                persistSorenessSelection();
+                syncSorenessButtons();
+                updateSorenessHint();
+            });
 
             // Global Helpers for HTML attributes
             window.adjustTimer = (seconds) => {
@@ -1032,6 +1229,7 @@
                 energyLevelInput.value = energyLevelInput.value || 7;
                 stressLevelInput.value = stressLevelInput.value || 4;
                 sorenessLevelInput.value = sorenessLevelInput.value || 3;
+                hydrateSorenessSelection();
             }
 
             function closeWellnessModal() {
@@ -1068,12 +1266,16 @@
 
             wellnessForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                const recordedAt = new Date().toISOString();
+                const muscleSelection = Array.from(selectedSorenessMuscles);
                 currentWellnessSnapshot = {
                     sleepQuality: parseInt(sleepQualityInput.value, 10),
                     energyLevel: parseInt(energyLevelInput.value, 10),
                     stressLevel: parseInt(stressLevelInput.value, 10),
                     sorenessLevel: parseInt(sorenessLevelInput.value, 10),
-                    recordedAt: new Date().toISOString()
+                    recordedAt,
+                    sorenessMuscles: muscleSelection,
+                    sorenessLabels: muscleSelection.map(id => muscleLabelMap[id] || id)
                 };
                 wellnessModal.style.display = 'none';
                 if (pendingFocusWorkout) {
