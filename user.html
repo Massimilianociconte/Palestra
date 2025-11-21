@@ -18,6 +18,11 @@
             margin-bottom: var(--spacing-md);
         }
 
+        .avatar-container {
+            position: relative;
+            cursor: pointer;
+        }
+
         .avatar {
             width: 80px;
             height: 80px;
@@ -29,6 +34,25 @@
             justify-content: center;
             font-size: 2rem;
             color: var(--color-primary);
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--color-primary);
+            color: black;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            border: 2px solid var(--color-bg);
         }
 
         .setting-item {
@@ -58,6 +82,46 @@
             cursor: pointer;
             font-size: 0.9rem;
         }
+
+        /* Auth Forms */
+        .auth-container {
+            display: none; /* Hidden by default */
+        }
+        .profile-content {
+            display: none; /* Hidden by default */
+        }
+        
+        .visible {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+        }
+        .text-center { text-align: center; }
+        .link-btn {
+            background: none;
+            border: none;
+            color: var(--color-primary);
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 
@@ -82,109 +146,299 @@
     <section class="section" style="padding-top: 120px;">
         <div class="container">
 
-            <!-- Profile Header -->
-            <div class="profile-header">
-                <div class="avatar">👤</div>
-                <div>
-                    <h2>Atleta <span class="text-primary">Pro</span></h2>
-                    <p>Membro dal 2024</p>
-                </div>
+            <!-- Auth Section (Login/Register) -->
+            <div id="authSection" class="auth-container card" style="max-width: 400px; margin: 0 auto 2rem auto;">
+                <h3 id="authTitle" class="text-center" style="margin-bottom: 1.5rem;">Accedi</h3>
+                
+                <form id="authForm">
+                    <div class="form-group" id="nameGroup" style="display: none;">
+                        <label>Nome</label>
+                        <input type="text" id="nameInput" placeholder="Il tuo nome">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="emailInput" required placeholder="email@esempio.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="passwordInput" required placeholder="******">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Entra</button>
+                </form>
+                
+                <p class="text-center" style="margin-top: 1rem; font-size: 0.9rem;">
+                    <span id="authSwitchText">Non hai un account?</span>
+                    <button id="authSwitchBtn" class="link-btn">Registrati</button>
+                </p>
+                <p id="authError" style="color: #ff4444; font-size: 0.9rem; text-align: center; margin-top: 1rem;"></p>
             </div>
 
-            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
 
-                <!-- Saved Workouts -->
-                <div>
-                    <h3 style="margin-bottom: 1rem;">Le tue Schede</h3>
-                    <div id="savedWorkoutsList">
-                        <!-- Dynamic List -->
+            <!-- Profile Content (Logged In) -->
+            <div id="profileContent" class="profile-content">
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="avatar-container" id="avatarContainer">
+                        <div class="avatar" id="profileAvatar">👤</div>
+                        <div class="avatar-overlay">📷</div>
+                        <input type="file" id="photoInput" accept="image/*" style="display: none;">
                     </div>
-                    <a href="creator.html" class="btn btn-outline" style="width: 100%; margin-top: 1rem;">+ Nuova
-                        Scheda</a>
+                    <div>
+                        <h2 id="profileNameDisplay">Atleta <span class="text-primary">Pro</span></h2>
+                        <p id="profileEmailDisplay" style="font-size: 0.9rem; color: var(--color-text-muted);">...</p>
+                    </div>
                 </div>
 
-                <!-- Settings -->
-                <div class="card">
-                    <h3 style="margin-bottom: 1rem;">Impostazioni</h3>
+                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
 
-                    <div class="setting-item">
-                        <span>Unità di misura</span>
-                        <select style="width: auto; padding: 0.2rem;">
-                            <option>Metrico (kg/cm)</option>
-                            <option>Imperiale (lbs/in)</option>
-                        </select>
+                    <!-- Saved Workouts -->
+                    <div>
+                        <h3 style="margin-bottom: 1rem;">Le tue Schede</h3>
+                        <div id="savedWorkoutsList">
+                            <!-- Dynamic List -->
+                        </div>
+                        <a href="creator.html" class="btn btn-outline" style="width: 100%; margin-top: 1rem;">+ Nuova
+                            Scheda</a>
                     </div>
 
-                    <div class="setting-item">
-                        <span>Tema</span>
-                        <select style="width: auto; padding: 0.2rem;">
-                            <option>Dark (Default)</option>
-                            <option>OLED Black</option>
-                        </select>
-                    </div>
+                    <!-- Settings -->
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Impostazioni</h3>
 
-                    <div class="setting-item">
-                        <span>Notifiche</span>
-                        <input type="checkbox" checked>
-                    </div>
-
-                    <!-- Cloud Sync Section -->
-                    <div style="margin-top: 2rem; border-top: 1px solid var(--color-border); padding-top: 1rem;">
-                        <h4 style="margin-bottom: 1rem; color: var(--color-primary);">Cloud Sync
-                            (JSONbin.io)</h4>
-
-                        <div class="form-group" style="margin-bottom: 0.5rem;">
-                            <label style="font-size: 0.8rem;">API Master Key</label>
-                            <input type="password" id="apiKeyInput" placeholder="X-Master-Key">
+                        <div class="setting-item">
+                            <span>Nome Visualizzato</span>
+                            <input type="text" id="profileNameInput" style="width: 120px; padding: 0.2rem; background: transparent; border: 1px solid var(--color-border); color: white;">
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 1rem;">
-                            <label style="font-size: 0.8rem;">Bin ID</label>
-                            <input type="text" id="binIdInput" placeholder="Bin ID">
+                        <div class="setting-item">
+                            <span>Unità di misura</span>
+                            <select style="width: auto; padding: 0.2rem;">
+                                <option>Metrico (kg/cm)</option>
+                                <option>Imperiale (lbs/in)</option>
+                            </select>
                         </div>
 
-                        <div class="flex">
-                            <button id="saveKeysBtn" class="btn btn-outline" style="flex: 1; font-size: 0.8rem;">Salva
-                                Chiavi</button>
-                            <button id="syncBtn" class="btn btn-primary"
-                                style="flex: 1; font-size: 0.8rem;">Sincronizza</button>
+                        <div class="setting-item">
+                            <span>Sincronizzazione</span>
+                            <button id="syncBtn" class="btn btn-outline" style="font-size: 0.8rem;">Sincronizza Ora</button>
                         </div>
-                        <p id="syncStatus"
-                            style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--color-text-muted); text-align: center;">
-                        </p>
-                    </div>
+                        <p id="syncStatus" style="font-size: 0.8rem; color: var(--color-text-muted); text-align: right;"></p>
 
-                    <div class="setting-item">
-                        <span>Esporta Dati (JSON)</span>
-                        <button class="btn btn-outline"
-                            style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Download</button>
-                    </div>
+                        <div class="setting-item">
+                            <span>Esporta Dati (JSON)</span>
+                            <button id="exportBtn" class="btn btn-outline"
+                                style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Download</button>
+                        </div>
 
-                    <div class="setting-item" style="margin-top: 1rem;">
-                        <button class="btn btn-primary"
-                            style="width: 100%; background: #ff4444; border-color: #ff4444; color: white;">Logout</button>
+                        <div class="setting-item" style="margin-top: 1rem;">
+                            <button id="logoutBtn" class="btn btn-primary"
+                                style="width: 100%; background: #ff4444; border-color: #ff4444; color: white;">Esci</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <script src="js/api.js"></script>
     <script src="js/main.js"></script>
-    <script>
+    
+    <!-- Module Script for Firebase Logic -->
+    <script type="module">
+        import { authService } from './js/auth-service.js';
+        import { firestoreService } from './js/firestore-service.js';
+
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize API Service safely
-            let storageService;
-            try {
-                storageService = window.storageService || new StorageService();
-            } catch (e) {
-                console.error('StorageService not available:', e);
+            
+            // Elements
+            const authSection = document.getElementById('authSection');
+            const profileContent = document.getElementById('profileContent');
+            const authForm = document.getElementById('authForm');
+            const authSwitchBtn = document.getElementById('authSwitchBtn');
+            const nameGroup = document.getElementById('nameGroup');
+            const authTitle = document.getElementById('authTitle');
+            const authError = document.getElementById('authError');
+            
+            const profileAvatar = document.getElementById('profileAvatar');
+            const avatarContainer = document.getElementById('avatarContainer');
+            const photoInput = document.getElementById('photoInput');
+            const profileNameDisplay = document.getElementById('profileNameDisplay');
+            const profileEmailDisplay = document.getElementById('profileEmailDisplay');
+            const profileNameInput = document.getElementById('profileNameInput');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const syncBtn = document.getElementById('syncBtn');
+            const syncStatus = document.getElementById('syncStatus');
+
+            let isLoginMode = true;
+
+            // --- Auth Logic ---
+
+            // Switch between Login and Register
+            authSwitchBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                isLoginMode = !isLoginMode;
+                if (isLoginMode) {
+                    authTitle.textContent = 'Accedi';
+                    nameGroup.style.display = 'none';
+                    authForm.querySelector('button[type="submit"]').textContent = 'Entra';
+                    document.getElementById('authSwitchText').textContent = 'Non hai un account?';
+                    authSwitchBtn.textContent = 'Registrati';
+                } else {
+                    authTitle.textContent = 'Registrati';
+                    nameGroup.style.display = 'block';
+                    authForm.querySelector('button[type="submit"]').textContent = 'Registrati';
+                    document.getElementById('authSwitchText').textContent = 'Hai già un account?';
+                    authSwitchBtn.textContent = 'Accedi';
+                }
+            });
+
+            // Handle Submit
+            authForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                authError.textContent = '';
+                const email = document.getElementById('emailInput').value;
+                const password = document.getElementById('passwordInput').value;
+                const name = document.getElementById('nameInput').value;
+
+                let result;
+                if (isLoginMode) {
+                    result = await authService.login(email, password);
+                } else {
+                    result = await authService.register(email, password, name);
+                }
+
+                if (!result.success) {
+                    let msg = result.message;
+                    if(msg.includes('auth/invalid-email')) msg = 'Email non valida.';
+                    if(msg.includes('auth/wrong-password')) msg = 'Password errata.';
+                    if(msg.includes('auth/user-not-found')) msg = 'Utente non trovato.';
+                    if(msg.includes('auth/email-already-in-use')) msg = 'Email già in uso.';
+                    authError.textContent = msg;
+                }
+                // Success is handled by auth state listener
+            });
+
+            // Logout
+            logoutBtn.addEventListener('click', async () => {
+                await authService.logout();
+                window.location.reload(); // Clean state
+            });
+
+
+            // --- State Management ---
+
+            authService.subscribe(async (user) => {
+                if (user) {
+                    // Logged In
+                    authSection.classList.remove('visible');
+                    profileContent.classList.add('visible');
+                    
+                    profileEmailDisplay.textContent = user.email;
+                    profileNameDisplay.innerHTML = user.displayName || 'Atleta <span class="text-primary">Pro</span>';
+                    profileNameInput.value = user.displayName || '';
+
+                    // Load Profile Data from LocalStorage (or trigger sync)
+                    const localProfile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+                    if (localProfile.photoUrl) {
+                        profileAvatar.style.backgroundImage = `url('${localProfile.photoUrl}')`;
+                        profileAvatar.textContent = '';
+                    } else {
+                         // Fallback to user photoURL from Auth if exists
+                         if (user.photoURL) {
+                            profileAvatar.style.backgroundImage = `url('${user.photoURL}')`;
+                            profileAvatar.textContent = '';
+                         }
+                    }
+
+                    // Load Workouts from Cloud
+                    syncStatus.textContent = 'Sincronizzazione...';
+                    const loadResult = await firestoreService.loadFromCloud();
+                    if (loadResult.success) {
+                        syncStatus.textContent = 'Sincronizzato';
+                        renderWorkouts(); // Update list
+                        
+                        // Update avatar if cloud had newer one
+                        const updatedProfile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+                        if (updatedProfile.photoUrl) {
+                             profileAvatar.style.backgroundImage = `url('${updatedProfile.photoUrl}')`;
+                             profileAvatar.textContent = '';
+                        }
+                    }
+                } else {
+                    // Logged Out
+                    authSection.classList.add('visible');
+                    profileContent.classList.remove('visible');
+                }
+            });
+
+
+            // --- Profile Features ---
+
+            // Photo Upload
+            avatarContainer.addEventListener('click', () => photoInput.click());
+            
+            photoInput.addEventListener('change', async (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    
+                    // Optimistic UI update
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        profileAvatar.style.backgroundImage = `url('${e.target.result}')`;
+                        profileAvatar.textContent = '';
+                    }
+                    reader.readAsDataURL(file);
+
+                    syncStatus.textContent = 'Caricamento foto...';
+                    const result = await firestoreService.uploadProfilePhoto(file);
+                    if (result.success) {
+                        syncStatus.textContent = 'Foto aggiornata!';
+                    } else {
+                        syncStatus.textContent = 'Errore caricamento foto';
+                        alert('Errore: ' + result.message);
+                    }
+                }
+            });
+
+            // Name Update
+            profileNameInput.addEventListener('change', async (e) => {
+                const newName = e.target.value;
+                profileNameDisplay.innerHTML = newName; // Immediate UI
+                await firestoreService.updateProfileField('name', newName);
+                await firestoreService.syncToCloud(); // Sync all
+            });
+
+            // Manual Sync
+            syncBtn.addEventListener('click', async () => {
+                syncStatus.textContent = 'Sync in corso...';
+                await firestoreService.syncToCloud();
+                syncStatus.textContent = 'Sincronizzato ora.';
+                setTimeout(() => syncStatus.textContent = '', 2000);
+            });
+            
+            // Export Data (Existing logic adapted)
+            const exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    const data = {
+                        workouts: JSON.parse(localStorage.getItem('ironflow_workouts') || '[]'),
+                        logs: JSON.parse(localStorage.getItem('ironflow_logs') || '[]'),
+                        profile: JSON.parse(localStorage.getItem('ironflow_profile') || '{}'),
+                        exportDate: new Date().toISOString()
+                    };
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", "ironflow_backup_" + new Date().toISOString().split('T')[0] + ".json");
+                    document.body.appendChild(downloadAnchorNode);
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                });
             }
 
-            // Load Saved Workouts
-            const list = document.getElementById('savedWorkoutsList');
 
+            // --- Existing Workout List Logic (Preserved) ---
             function renderWorkouts() {
+                const list = document.getElementById('savedWorkoutsList');
                 const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
                 if (!list) return;
 
@@ -197,149 +451,48 @@
                         const div = document.createElement('div');
                         div.className = 'workout-list-item';
                         div.innerHTML = `
-<div>
-    <strong>${w.name}</strong>
-    <div style="font-size: 0.8rem; color: var(--color-text-muted);">${w.exercises.length} Esercizi</div>
-</div>
-<div style="display: flex; gap: 1rem; align-items: center;">
-    <a href="creator.html?id=${w.id}" style="font-size: 0.9rem; color: var(--color-primary); text-decoration: none;">Apri</a>
-    <span class="delete-workout" data-index="${index}">Elimina</span>
-</div>
-`;
+                            <div>
+                                <strong>${w.name}</strong>
+                                <div style="font-size: 0.8rem; color: var(--color-text-muted);">${w.exercises.length} Esercizi</div>
+                            </div>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <a href="creator.html?id=${w.id}" style="font-size: 0.9rem; color: var(--color-primary); text-decoration: none;">Apri</a>
+                                <span class="delete-workout" data-index="${index}">Elimina</span>
+                            </div>
+                        `;
                         list.appendChild(div);
                     });
 
-                    // Attach delete listeners
                     document.querySelectorAll('.delete-workout').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const index = e.target.dataset.index;
-                            deleteWorkout(index);
+                        btn.addEventListener('click', async (e) => {
+                            if (confirm('Sei sicuro?')) {
+                                const idx = e.target.dataset.index;
+                                const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                                workouts.splice(idx, 1);
+                                localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
+                                renderWorkouts();
+                                // Auto sync deletion
+                                if (authService.getCurrentUser()) {
+                                    await firestoreService.syncToCloud();
+                                }
+                            }
                         });
                     });
                 }
             }
-
+            
+            // Initial render
             renderWorkouts();
 
-            async function deleteWorkout(index) {
-                if (confirm('Sei sicuro di voler eliminare questa scheda?')) {
-                    const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-                    workouts.splice(index, 1);
-                    localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
-
-                    // Auto-sync after delete
-                    if (storageService && storageService.hasCredentials()) {
-                        const syncStatus = document.getElementById('syncStatus');
-                        if (syncStatus) syncStatus.textContent = 'Sincronizzazione rimozione...';
-                        await storageService.syncData();
-                        if (syncStatus) syncStatus.textContent = '';
-                    }
-
-                    renderWorkouts();
-                }
-            }
-
-            // Cloud Sync Logic
-            const apiKeyInput = document.getElementById('apiKeyInput');
-            const binIdInput = document.getElementById('binIdInput');
-            const saveKeysBtn = document.getElementById('saveKeysBtn');
-            const syncBtn = document.getElementById('syncBtn');
-            const syncStatus = document.getElementById('syncStatus');
-
-            if (apiKeyInput && binIdInput) {
-                // Load existing keys
-                apiKeyInput.value = localStorage.getItem('ironflow_apikey') || '';
-                binIdInput.value = localStorage.getItem('ironflow_binid') || '';
-            }
-
-            if (saveKeysBtn) {
-                saveKeysBtn.addEventListener('click', () => {
-                    if (storageService) {
-                        storageService.saveCredentials(apiKeyInput.value, binIdInput.value);
-                        if (syncStatus) {
-                            syncStatus.textContent = 'Credenziali salvate!';
-                            syncStatus.style.color = 'var(--color-primary)';
-                            setTimeout(() => syncStatus.textContent = '', 2000);
-                        }
-                    } else {
-                        alert('Servizio di storage non disponibile.');
-                    }
-                });
-            }
-
-            if (syncBtn) {
-                syncBtn.addEventListener('click', async () => {
-                    if (storageService && storageService.hasCredentials()) {
-                        if (syncStatus) {
-                            syncStatus.textContent = 'Sincronizzazione in corso...';
-                            syncStatus.style.color = 'var(--color-text-muted)';
-                        }
-
-                        const success = await storageService.syncData();
-
-                        if (syncStatus) {
-                            if (success) {
-                                syncStatus.textContent = 'Sincronizzazione completata!';
-                                syncStatus.style.color = 'var(--color-primary)';
-                            } else {
-                                syncStatus.textContent = 'Errore durante la sincronizzazione.';
-                                syncStatus.style.color = '#ff4444';
-                            }
-                            setTimeout(() => syncStatus.textContent = '', 3000);
-                        }
-                    } else {
-                        alert('Inserisci prima le chiavi API e Bin ID.');
-                    }
-                });
-            }
-
-            // Unit Conversion Toggle
-            const unitSelect = document.querySelectorAll('.setting-item select')[0];
-            if (unitSelect && window.unitService) {
-                unitSelect.value = window.unitService.getSystem() === 'imperial' ? 'Imperiale (lbs/in)' : 'Metrico (kg/cm)';
-                unitSelect.addEventListener('change', (e) => {
+            // Unit toggle (Existing)
+            if (window.unitService) {
+                 const unitSelect = document.querySelectorAll('.setting-item select')[0];
+                 unitSelect.value = window.unitService.getSystem() === 'imperial' ? 'Imperiale (lbs/in)' : 'Metrico (kg/cm)';
+                 unitSelect.addEventListener('change', (e) => {
                     const val = e.target.value;
-                    if (val.includes('Imperiale')) {
-                        window.unitService.toggleSystem('imperial');
-                    } else {
-                        window.unitService.toggleSystem('metric');
-                    }
-                });
-            }
-
-            // Export Data
-            // Find the button that contains "Download" text
-            const buttons = document.querySelectorAll('.setting-item button.btn-outline');
-            let exportBtn = null;
-            buttons.forEach(btn => {
-                if (btn.textContent.includes('Download')) exportBtn = btn;
-            });
-
-            if (exportBtn) {
-                exportBtn.addEventListener('click', () => {
-                    const data = {
-                        workouts: JSON.parse(localStorage.getItem('ironflow_workouts') || '[]'),
-                        logs: JSON.parse(localStorage.getItem('ironflow_logs') || '[]'),
-                        profile: JSON.parse(localStorage.getItem('ironflow_profile') || '{}'),
-                        bodyStats: JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]'),
-                        photos: JSON.parse(localStorage.getItem('ironflow_photos') || '[]'),
-                        settings: {
-                            units: localStorage.getItem('ironflow_units'),
-                            apiKey: localStorage.getItem('ironflow_apikey'),
-                            binId: localStorage.getItem('ironflow_binid'),
-                            imgbbKey: localStorage.getItem('ironflow_imgbb_key')
-                        },
-                        exportDate: new Date().toISOString()
-                    };
-
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-                    const downloadAnchorNode = document.createElement('a');
-                    downloadAnchorNode.setAttribute("href", dataStr);
-                    downloadAnchorNode.setAttribute("download", "ironflow_backup_" + new Date().toISOString().split('T')[0] + ".json");
-                    document.body.appendChild(downloadAnchorNode);
-                    downloadAnchorNode.click();
-                    downloadAnchorNode.remove();
-                });
+                    if (val.includes('Imperiale')) window.unitService.toggleSystem('imperial');
+                    else window.unitService.toggleSystem('metric');
+                 });
             }
         });
     </script>
