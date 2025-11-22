@@ -118,7 +118,14 @@ export class AIService {
 
             // Convert data to TOON to save tokens
             const toonLogs = this.encodeToTOON(data.recentLogs, 'workoutLogs');
-            const toonPrs = this.encodeToTOON(Object.entries(data.prs).map(([k,v]) => ({lift: k, weight: v})), 'personalRecords');
+            
+            // Flatten PRs for cleaner AI context (lift + 1rm/3rm/5rm/8rm)
+            const prList = Object.entries(data.prs).map(([k, v]) => {
+                // Handle both legacy (number) and new (object) formats
+                if (typeof v === 'number') return { lift: k, '1rm': v };
+                return { lift: k, ...v };
+            });
+            const toonPrs = this.encodeToTOON(prList, 'personalRecords');
 
             const wellnessBlock = data.wellness ? `
 **Recovery & Wellness (scala 1-10)**

@@ -235,6 +235,17 @@ export class FirestoreService {
             const recentLogs = localLogs.filter(log => new Date(log.date) >= thirtyDaysAgo);
 
             // Calculate PRs locally to save tokens
+            // Formula: Hybrid (Epley + Brzycki + Lombardi) average for stability
+            const estimateOneRM = (weight, reps) => {
+                if (!weight || !reps) return 0;
+                const epley = weight * (1 + reps / 30);
+                const brzycki = (reps < 37) ? weight * (36 / (37 - reps)) : 0;
+                const lombardi = weight * Math.pow(reps, 0.10);
+                const estimates = [epley, brzycki, lombardi].filter(val => Number.isFinite(val) && val > 0);
+                if (!estimates.length) return 0;
+                return estimates.reduce((sum, val) => sum + val, 0) / estimates.length;
+            };
+
             const prs = {};
             localLogs.forEach(log => {
                 if (!log.exercises) return;
@@ -244,18 +255,23 @@ export class FirestoreService {
                         const w = parseFloat(set.weight);
                         const r = parseFloat(set.reps);
                         if (w > 0 && r > 0) {
-                            const oneRM = w * (1 + r / 30);
-                            if (!prs[name] || oneRM > prs[name]) {
-                                prs[name] = Math.round(oneRM);
+                            const oneRM = estimateOneRM(w, r);
+                            if (!prs[name] || oneRM > prs[name]['1rm']) {
+                                prs[name] = {
+                                    '1rm': Math.round(oneRM),
+                                    '3rm': Math.round(oneRM * 0.93),
+                                    '5rm': Math.round(oneRM * 0.87),
+                                    '8rm': Math.round(oneRM * 0.80)
+                                };
                             }
                         }
                     });
                 });
             });
 
-            // Sort PRs to keep only top 5-10 relevant ones
+            // Sort PRs to keep only top 5-10 relevant ones (by 1RM)
             const topPrs = Object.entries(prs)
-                .sort(([,a], [,b]) => b - a)
+                .sort(([,a], [,b]) => b['1rm'] - a['1rm'])
                 .slice(0, 10)
                 .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {});
 

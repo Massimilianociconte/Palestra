@@ -1445,6 +1445,52 @@
                 focusProgressText.textContent = percent + '%';
             }
 
+            let timerWorker = null;
+
+            if (window.Worker) {
+                timerWorker = new Worker('js/timer.worker.js');
+                timerWorker.onmessage = function(e) {
+                    if (e.data.action === 'tick') {
+                        updateTimerDisplay(e.data.remaining);
+                    } else if (e.data.action === 'complete') {
+                        updateTimerDisplay(0);
+                        playBeep();
+                        
+                        // Notification & Vibration
+                        if ("vibrate" in navigator) {
+                            navigator.vibrate([200, 100, 200]);
+                        }
+                        
+                        // Robust Notification via Service Worker if available
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                                navigator.serviceWorker.ready.then(registration => {
+                                    registration.showNotification("Recupero Terminato!", {
+                                        body: "Torna ad allenarti!",
+                                        icon: "assets/icon.svg",
+                                        vibrate: [200, 100, 200],
+                                        requireInteraction: true
+                                    });
+                                });
+                            } else {
+                                // Fallback
+                                try {
+                                    new Notification("Recupero Terminato!", {
+                                        body: "Torna ad allenarti!",
+                                        icon: "assets/icon.svg",
+                                        vibrate: [200, 100, 200]
+                                    });
+                                } catch (e) {
+                                    console.warn("Notification error:", e);
+                                }
+                            }
+                        }
+
+                        window.skipRest();
+                    }
+                };
+            }
+
             function startRest() {
                 isResting = true;
                 
@@ -1463,7 +1509,6 @@
                     restTime = 60; // Isolation
                 }
                 
-                const endTime = Date.now() + restTime * 1000;
                 updateTimerDisplay(restTime);
                 
                 focusActionBtn.textContent = "SALTA REST";
@@ -1471,38 +1516,26 @@
                 focusActionBtn.style.border = '1px solid #333';
                 focusActionBtn.style.color = 'white';
 
-                if (timerInterval) clearInterval(timerInterval);
-
-                timerInterval = setInterval(() => {
-                    const now = Date.now();
-                    const remaining = Math.ceil((endTime - now) / 1000);
-                    
-                    if (remaining <= 0) {
-                        updateTimerDisplay(0);
-                        playBeep();
-                        
-                        // Notification & Vibration
-                        if ("vibrate" in navigator) {
-                            navigator.vibrate([200, 100, 200]);
+                // Start Worker Timer
+                if (timerWorker) {
+                    timerWorker.postMessage({ action: 'start', duration: restTime });
+                } else {
+                    // Fallback if Workers not supported
+                    const endTime = Date.now() + restTime * 1000;
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = setInterval(() => {
+                        const remaining = Math.ceil((endTime - Date.now()) / 1000);
+                        if (remaining <= 0) {
+                            clearInterval(timerInterval);
+                            playBeep();
+                            if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+                            new Notification("Recupero Terminato!", { body: "Torna ad allenarti!", icon: "assets/icon.svg", vibrate: [200, 100, 200] });
+                            window.skipRest();
+                        } else {
+                            updateTimerDisplay(remaining);
                         }
-                        
-                        if ("Notification" in window && Notification.permission === "granted") {
-                            try {
-                                new Notification("Recupero Terminato!", {
-                                    body: "Torna ad allenarti!",
-                                    icon: "assets/icon.svg",
-                                    vibrate: [200, 100, 200]
-                                });
-                            } catch (e) {
-                                console.warn("Notification error:", e);
-                            }
-                        }
-
-                        window.skipRest();
-                    } else {
-                        updateTimerDisplay(remaining);
-                    }
-                }, 250);
+                    }, 250);
+                }
             }
 
             function updateTimerDisplay(seconds) {
@@ -1512,6 +1545,9 @@
             }
 
             function stopTimer() {
+                if (timerWorker) {
+                    timerWorker.postMessage({ action: 'stop' });
+                }
                 if (timerInterval) clearInterval(timerInterval);
                 timerInterval = null;
             }
