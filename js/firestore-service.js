@@ -261,7 +261,9 @@ export class FirestoreService {
                                     '1rm': Math.round(oneRM),
                                     '3rm': Math.round(oneRM * 0.93),
                                     '5rm': Math.round(oneRM * 0.87),
-                                    '8rm': Math.round(oneRM * 0.80)
+                                    '8rm': Math.round(oneRM * 0.80),
+                                    '10rm': Math.round(oneRM * 0.75),
+                                    '12rm': Math.round(oneRM * 0.70)
                                 };
                             }
                         }

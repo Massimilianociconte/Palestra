@@ -169,6 +169,42 @@
 
                         <!-- Photos -->
                         <div>
+                            <div class="card" style="margin-bottom: 2rem;">
+                                <h3 style="margin-bottom: 1rem;">Parametri Atleta</h3>
+                                <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+                                    Dati per calcoli futuri (BMR, TDEE, AI).
+                                </p>
+                                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div class="form-group">
+                                        <label>Età</label>
+                                        <input type="number" id="athleteAge" placeholder="es. 25">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Altezza (cm)</label>
+                                        <input type="number" id="athleteHeight" placeholder="es. 180">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Sesso</label>
+                                        <select id="athleteGender" style="width: 100%; padding: 0.8rem; background: var(--color-bg); border: 1px solid var(--color-border); color: white; border-radius: var(--radius-sm);">
+                                            <option value="M">Maschio</option>
+                                            <option value="F">Femmina</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Livello Attività</label>
+                                        <select id="athleteActivity" style="width: 100%; padding: 0.8rem; background: var(--color-bg); border: 1px solid var(--color-border); color: white; border-radius: var(--radius-sm);">
+                                            <option value="sedentary">Sedentario</option>
+                                            <option value="light">Leggero (1-3gg)</option>
+                                            <option value="moderate">Moderato (3-5gg)</option>
+                                            <option value="active">Attivo (6-7gg)</option>
+                                            <option value="athlete">Atleta (2x/die)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button id="saveParamsBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Salva Parametri</button>
+                                <p id="paramsStatus" style="margin-top: 0.5rem; font-size: 0.9rem; text-align: center; color: var(--color-primary); min-height: 1.2em;"></p>
+                            </div>
+
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                                 <h3>Foto Progressi</h3>
@@ -300,12 +336,67 @@
                     document.getElementById('labelWaist').textContent = `Vita (${lengthUnit})`;
                     document.getElementById('labelLegs').textContent = `Gambe (${lengthUnit})`;
 
+                    // --- Athlete Params Logic ---
+                    const saveParamsBtn = document.getElementById('saveParamsBtn');
+                    const paramsStatus = document.getElementById('paramsStatus');
+                    
+                    async function loadParams() {
+                        const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+                        if (profile.athleteParams) {
+                            document.getElementById('athleteAge').value = profile.athleteParams.age || '';
+                            document.getElementById('athleteHeight').value = profile.athleteParams.height || '';
+                            document.getElementById('athleteGender').value = profile.athleteParams.gender || 'M';
+                            document.getElementById('athleteActivity').value = profile.athleteParams.activity || 'moderate';
+                        }
+                    }
+
+                    if (saveParamsBtn) {
+                        saveParamsBtn.addEventListener('click', async () => {
+                            const age = document.getElementById('athleteAge').value;
+                            const height = document.getElementById('athleteHeight').value;
+                            const gender = document.getElementById('athleteGender').value;
+                            const activity = document.getElementById('athleteActivity').value;
+
+                            if (!age || !height) {
+                                paramsStatus.textContent = 'Inserisci Età e Altezza';
+                                paramsStatus.style.color = 'red';
+                                return;
+                            }
+
+                            paramsStatus.textContent = 'Salvataggio...';
+                            
+                            // Update Profile
+                            const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+                            profile.athleteParams = { age, height, gender, activity };
+                            localStorage.setItem('ironflow_profile', JSON.stringify(profile));
+
+                            // Sync to Firestore
+                            const result = await firestoreService.updateProfileField('athleteParams', profile.athleteParams);
+                            
+                            if (result.success) {
+                                paramsStatus.textContent = 'Parametri salvati!';
+                                paramsStatus.style.color = 'var(--color-primary)';
+                            } else {
+                                paramsStatus.textContent = 'Salvato in locale. Sync fallito.';
+                                paramsStatus.style.color = 'orange';
+                            }
+                            setTimeout(() => paramsStatus.textContent = '', 3000);
+                        });
+                    }
+
                     // Load Data from Cloud on Init
                     async function loadData() {
+                         loadParams(); // Load local params immediately
                          const result = await firestoreService.loadFromCloud();
                          if (result.success && result.data) {
                              if (result.data.bodyStats) bodyStats = result.data.bodyStats;
                              if (result.data.photos) photos = result.data.photos;
+                             // Also refresh params if cloud has them
+                             const cloudProfile = await firestoreService.loadFromCloud(); // Re-fetch profile specifically? 
+                             // Actually loadFromCloud updates localStorage profile too in firestore-service usually, 
+                             // but let's ensure UI updates
+                             loadParams();
+                             
                              renderStats();
                              initChart();
                              renderPhotos();
