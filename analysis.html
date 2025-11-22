@@ -439,26 +439,30 @@
                 // 2. Call AI
                 const result = await aiService.analyzeProgress(data);
 
-                // 3. Show Result & Save
-                if (result.success) {
-                    // Save to History (Fire & Forget)
-                    firestoreService.saveAIAnalysis(result.text);
+                    // 3. Show Result & Save
+                    if (result.success) {
+                        // Save to History (Fire & Forget)
+                        firestoreService.saveAIAnalysis(result.text);
 
-                    // Use 'marked' library to convert Markdown to HTML
-                    aiContent.innerHTML = marked.parse(result.text);
-                } else {
-                    aiContent.innerHTML = `<p style="color: #ff4444;">Errore AI: ${result.message}</p>`;
-                }
+                        // Use 'marked' library to convert Markdown to HTML
+                        if (window.marked) {
+                            aiContent.innerHTML = marked.parse(result.text);
+                        } else {
+                            aiContent.innerHTML = `<pre>${result.text}</pre>`; // Fallback
+                        }
+                    } else {
+                        aiContent.innerHTML = `<p style="color: #ff4444;">Errore AI: ${result.message}</p>`;
+                    }
+                });
             });
-        });
-    </script>
+        </script>
 
-    <script type="module">
-        import { aiService } from './js/ai-service.js';
-        import { trendEngine } from './js/trend-engine.js';
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const DAY_MS = 24 * 60 * 60 * 1000;
+        <script type="module">
+            import { aiService } from './js/ai-service.js';
+            import { trendEngine } from './js/trend-engine.js';
+    
+            document.addEventListener('DOMContentLoaded', () => {
+                const DAY_MS = 24 * 60 * 60 * 1000;
             // Initialize Services
             let unitService;
             try {
@@ -847,19 +851,21 @@
                 volumeChart.appendChild(bar);
             });
 
-            // 3. Calculate PRs (Estimated 1RM, 3RM, 5RM)
+            // 3. Calculate PRs (Estimated 1RM, 3RM, 5RM, 8RM, 10RM, 12RM)
             // Formula: Weight * (1 + Reps/30) for base, then NSCA percentages
             const prs = {};
 
             const calculateMultiRM = (weight, reps) => {
                 const oneRM = estimateOneRM(weight, reps);
-                // NSCA Load Coefficients: 1RM=100%, 3RM=93%, 5RM=87%, 8RM=80%
+                // NSCA Load Coefficients: 1RM=100%, 3RM=93%, 5RM=87%, 8RM=80%, 10RM=75%, 12RM=70%
                 // This is a standard, robust way to derive N-RM from a calculated 1RM
                 return {
                     '1rm': oneRM,
                     '3rm': oneRM * 0.93,
                     '5rm': oneRM * 0.87,
-                    '8rm': oneRM * 0.80
+                    '8rm': oneRM * 0.80,
+                    '10rm': oneRM * 0.75,
+                    '12rm': oneRM * 0.70
                 };
             };
 
