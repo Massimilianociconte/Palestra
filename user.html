@@ -11,6 +11,7 @@
         rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00f3ff">
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .profile-header {
@@ -774,29 +775,6 @@
                     // Once logged in, this subscription runs again and handles the import
                 }
             });
-                    if (loadResult.success) {
-                        syncStatus.textContent = 'Sincronizzato';
-                        renderWorkouts(); // Update list
-                        syncFocusOverlayWithLatestPlan();
-                        
-                        // Update avatar if cloud had newer one
-                        const updatedProfile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
-                        if (updatedProfile.photoUrl) {
-                             profileAvatar.style.backgroundImage = `url('${updatedProfile.photoUrl}')`;
-                             profileAvatar.textContent = '';
-                        }
-                        // Sync API Key from Cloud Profile
-                        if (updatedProfile.geminiKey) {
-                            aiService.saveKey(updatedProfile.geminiKey);
-                            const aiKeyInput = document.getElementById('aiKeyInput');
-                            if (aiKeyInput) aiKeyInput.value = updatedProfile.geminiKey;
-                        }
-                    }
-                } else {
-                    // Logged Out
-                    authSection.classList.add('visible');
-                    profileContent.classList.remove('visible');
-                }
             });
 
 
