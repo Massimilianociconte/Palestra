@@ -275,13 +275,15 @@ export class FirestoreService {
                 .slice(0, 10)
                 .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {});
 
-            // Simplify Logs for Token Efficiency (Date + Volume + Main Lift if any)
+            // Simplify Logs for Token Efficiency (Date + Volume + All Exercises for Style Analysis)
             const simplifiedLogs = recentLogs.map(log => {
-                const mainLifts = log.exercises.slice(0, 3).map(e => `${e.name} (${e.sets.length} sets)`);
+                // Pass ALL exercises to allow AI to understand the split/structure
+                const workoutStructure = log.exercises.map(e => `${e.name} (${e.sets.length} sets)`);
+                
                 return {
                     date: log.date.split('T')[0],
-                    volume: log.totalVolume,
-                    mainExercises: mainLifts,
+                    volume: log.totalVolume, // Total tonnage if calculated, or just rely on sets
+                    exercises: workoutStructure, // Renamed from mainExercises to avoid confusion
                     wellness: log.wellness ? {
                         sleepQuality: log.wellness.sleepQuality,
                         energyLevel: log.wellness.energyLevel,

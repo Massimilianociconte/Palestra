@@ -261,14 +261,20 @@ ${toonLogs}
 **Segnalazioni DOMS recenti (<=4 giorni):**
 ${domsGuidance}
 
-Linee guida: evita di sovraccaricare i distretti ancora doloranti, proponi varianti di recupero attivo o focus su gruppi freschi se necessario.
+**ANALISI STILE E STRUTTURA:**
+1. Identifica la "Split" o lo stile abituale dell'utente guardando gli ultimi workout (es. fa Push/Pull/Legs? Upper/Lower? Full Body? O split per gruppi muscolari singoli?).
+2. Nota il volume abituale (quanti esercizi fa in media per sessione?).
+
+**COMPITO:**
+Suggerisci un allenamento per OGGI.
+IMPORTANTE: Cerca di mantenere una struttura simile a quella a cui l'atleta è abituato (es. se fa solitamente 6 esercizi, non proporne 3 a caso; se usa schede specifiche, cerca di rimanere in quel solco), A MENO CHE non sia esplicitamente necessario cambiare per motivi di recupero o stallo.
 
 Rispondi in formato JSON (senza markdown, solo JSON puro):
 {
     "suggestion": "Titolo Allenamento (es. Push Day o nome di una scheda esistente)",
-    "focus": "Breve spiegazione del perché (es. Hai fatto gambe ieri, oggi tocca spinta)",
+    "focus": "Breve spiegazione del perché (es. 'Visto il tuo stile PPL e l'ultimo leg day, oggi tocca Push. Mantengo il volume alto come piace a te').",
     "warmup": ["Esercizio 1", "Esercizio 2"],
-    "main_lifts": ["Esercizio Key 1", "Esercizio Key 2"]
+    "main_lifts": ["Esercizio Key 1", "Esercizio Key 2", "Esercizio Key 3 (se necessario)"]
 }
 `;
             const result = await model.generateContent(prompt);
