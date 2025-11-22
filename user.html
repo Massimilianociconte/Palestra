@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
         rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00f3ff">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .profile-header {
@@ -1307,6 +1309,9 @@
             }
 
             window.initFocusMode = (workout) => {
+                if ("Notification" in window && Notification.permission !== "granted") {
+                    Notification.requestPermission();
+                }
                 openWellnessModal(workout);
             };
 
@@ -1458,23 +1463,46 @@
                     restTime = 60; // Isolation
                 }
                 
-                remainingTime = restTime;
-                updateTimerDisplay(remainingTime);
+                const endTime = Date.now() + restTime * 1000;
+                updateTimerDisplay(restTime);
                 
                 focusActionBtn.textContent = "SALTA REST";
                 focusActionBtn.style.background = 'transparent';
                 focusActionBtn.style.border = '1px solid #333';
                 focusActionBtn.style.color = 'white';
 
+                if (timerInterval) clearInterval(timerInterval);
+
                 timerInterval = setInterval(() => {
-                    remainingTime--;
-                    updateTimerDisplay(remainingTime);
+                    const now = Date.now();
+                    const remaining = Math.ceil((endTime - now) / 1000);
                     
-                    if (remainingTime <= 0) {
+                    if (remaining <= 0) {
+                        updateTimerDisplay(0);
                         playBeep();
+                        
+                        // Notification & Vibration
+                        if ("vibrate" in navigator) {
+                            navigator.vibrate([200, 100, 200]);
+                        }
+                        
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            try {
+                                new Notification("Recupero Terminato!", {
+                                    body: "Torna ad allenarti!",
+                                    icon: "assets/icon.svg",
+                                    vibrate: [200, 100, 200]
+                                });
+                            } catch (e) {
+                                console.warn("Notification error:", e);
+                            }
+                        }
+
                         window.skipRest();
+                    } else {
+                        updateTimerDisplay(remaining);
                     }
-                }, 1000);
+                }, 250);
             }
 
             function updateTimerDisplay(seconds) {

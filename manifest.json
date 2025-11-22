@@ -1,0 +1,17 @@
+{
+  "name": "IronFlow Gym",
+  "short_name": "IronFlow",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00f3ff",
+  "description": "La tua app per il tracciamento dell'allenamento.",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

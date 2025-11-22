@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
         rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00f3ff">
     <link rel="stylesheet" href="css/style.css">
     <!-- Markdown Parser Library -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -245,6 +247,7 @@
                         <button class="btn-rm active" data-rm="1rm" style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">1RM</button>
                         <button class="btn-rm" data-rm="3rm" style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">3RM</button>
                         <button class="btn-rm" data-rm="5rm" style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">5RM</button>
+                        <button class="btn-rm" data-rm="8rm" style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">8RM</button>
                     </div>
                 </div>
 
@@ -842,12 +845,13 @@
 
             const calculateMultiRM = (weight, reps) => {
                 const oneRM = estimateOneRM(weight, reps);
-                // NSCA Load Coefficients: 1RM=100%, 3RM=93%, 5RM=87%
+                // NSCA Load Coefficients: 1RM=100%, 3RM=93%, 5RM=87%, 8RM=80%
                 // This is a standard, robust way to derive N-RM from a calculated 1RM
                 return {
                     '1rm': oneRM,
                     '3rm': oneRM * 0.93,
-                    '5rm': oneRM * 0.87
+                    '5rm': oneRM * 0.87,
+                    '8rm': oneRM * 0.80
                 };
             };
 
