@@ -657,6 +657,7 @@
         import { firestoreService } from './js/firestore-service.js';
         import { aiService } from './js/ai-service.js';
         import { MUSCLE_GROUPS } from './js/exercise-db.js';
+        import { notificationManager } from './js/notification-manager.js';
 
         document.addEventListener('DOMContentLoaded', () => {
             
@@ -1436,9 +1437,7 @@
             }
 
             window.initFocusMode = (workout) => {
-                if ("Notification" in window && Notification.permission !== "granted") {
-                    Notification.requestPermission();
-                }
+                notificationManager.requestPermission();
                 openWellnessModal(workout);
             };
 
@@ -1581,44 +1580,14 @@
                         updateTimerDisplay(e.data.remaining);
                     } else if (e.data.action === 'complete') {
                         updateTimerDisplay(0);
-                        playBeep();
-                        
-                        // Notification & Vibration
-                        if ("vibrate" in navigator) {
-                            navigator.vibrate([200, 100, 200]);
-                        }
-                        
-                        // Robust Notification via Service Worker if available
-                        if ("Notification" in window && Notification.permission === "granted") {
-                            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                                navigator.serviceWorker.ready.then(registration => {
-                                    registration.showNotification("Recupero Terminato!", {
-                                        body: "Torna ad allenarti!",
-                                        icon: "assets/icon.svg",
-                                        vibrate: [200, 100, 200],
-                                        requireInteraction: true
-                                    });
-                                });
-                            } else {
-                                // Fallback
-                                try {
-                                    new Notification("Recupero Terminato!", {
-                                        body: "Torna ad allenarti!",
-                                        icon: "assets/icon.svg",
-                                        vibrate: [200, 100, 200]
-                                    });
-                                } catch (e) {
-                                    console.warn("Notification error:", e);
-                                }
-                            }
-                        }
-
+                        notificationManager.triggerNotification();
                         window.skipRest();
                     }
                 };
             }
 
             function startRest() {
+                notificationManager.unlockAudio();
                 isResting = true;
                 
                 // Hide inputs, show timer
@@ -1654,9 +1623,7 @@
                         const remaining = Math.ceil((endTime - Date.now()) / 1000);
                         if (remaining <= 0) {
                             clearInterval(timerInterval);
-                            playBeep();
-                            if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
-                            new Notification("Recupero Terminato!", { body: "Torna ad allenarti!", icon: "assets/icon.svg", vibrate: [200, 100, 200] });
+                            notificationManager.triggerNotification();
                             window.skipRest();
                         } else {
                             updateTimerDisplay(remaining);
@@ -1785,19 +1752,6 @@
                 }
             }
 
-            function playBeep() {
-                try {
-                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.frequency.value = 880; // A5
-                    osc.start();
-                    gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-                    osc.stop(ctx.currentTime + 0.5);
-                } catch(e) { console.error(e); }
-            }
             const aiKeyInput = document.getElementById('aiKeyInput');
             const saveAiKeyBtn = document.getElementById('saveAiKeyBtn');
             const aiKeyStatus = document.getElementById('aiKeyStatus');
