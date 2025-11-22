@@ -310,6 +310,17 @@ export class FirestoreService {
 
             const domsInsights = computeDomsInsights(localLogs);
 
+            // Get existing workouts (Schede) created by user
+            const existingWorkouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]').map(w => ({
+                name: w.name,
+                exercises: w.exercises.map(ex => ({
+                    name: ex.name,
+                    sets: ex.sets,
+                    reps: ex.reps,
+                    rpe: ex.rpe || 'N/D'
+                }))
+            }));
+
             return {
                 profile: localProfile,
                 bodyStats: localBodyStats.slice(0, 3), // Last 3 weigh-ins
@@ -317,7 +328,8 @@ export class FirestoreService {
                 recentWorkoutCount: recentLogs.length,
                 prs: topPrs,
                 wellness: wellnessSummary,
-                domsInsights
+                domsInsights,
+                existingWorkouts
             };
 
         } catch (e) {

@@ -241,12 +241,21 @@ Evidenzia sempre come modulare i carichi sui gruppi attualmente stressati da DOM
 
             const toonLogs = this.encodeToTOON(data.recentLogs.slice(0, 5), 'lastWorkouts'); // Only last 5 needed
             const domsGuidance = buildRecentDomsBlock(data?.domsInsights?.hotspots || []);
+            
+            // Include existing workouts in TOON format
+            const existingWorkoutsTOON = data.existingWorkouts && data.existingWorkouts.length > 0 
+                ? this.encodeToTOON(data.existingWorkouts, 'existingWorkoutPlans')
+                : 'existingWorkoutPlans: []';
 
             const prompt = `
 Come Personal Trainer esperto, analizza gli ultimi allenamenti di questo atleta e suggerisci l'allenamento per OGGI.
 Obiettivo: Bilanciamento muscolare e recupero.
 
-**Ultimi Allenamenti:**
+**Schede Allenamento Create dall'Utente:**
+(Queste sono le schede che l'utente ha già configurato. Se appropriato, suggerisci di usare o modificare una di queste, oppure fanne una nuova se nessuna è adatta.)
+${existingWorkoutsTOON}
+
+**Ultimi Allenamenti Svolti:**
 ${toonLogs}
 
 **Segnalazioni DOMS recenti (<=4 giorni):**
@@ -256,7 +265,7 @@ Linee guida: evita di sovraccaricare i distretti ancora doloranti, proponi varia
 
 Rispondi in formato JSON (senza markdown, solo JSON puro):
 {
-    "suggestion": "Titolo Allenamento (es. Push Day)",
+    "suggestion": "Titolo Allenamento (es. Push Day o nome di una scheda esistente)",
     "focus": "Breve spiegazione del perché (es. Hai fatto gambe ieri, oggi tocca spinta)",
     "warmup": ["Esercizio 1", "Esercizio 2"],
     "main_lifts": ["Esercizio Key 1", "Esercizio Key 2"]
