@@ -149,12 +149,17 @@ Il tuo compito è analizzare i dati di allenamento di un atleta forniti in forma
 
 ### 📊 DATI ATLETA (TOON Format)
 
-**Profilo:**
+**Profilo & Biometria:**
 - Nome: ${data.profile.name || 'Atleta'}
+- Età: ${data.profile.athleteParams?.age || 'N/D'} anni
+- Altezza: ${data.profile.athleteParams?.height || 'N/D'} cm
+- Sesso: ${data.profile.athleteParams?.gender || 'N/D'}
+- Livello Attività: ${data.profile.athleteParams?.activity || 'N/D'}
 - Peso Corporeo Attuale: ${data.bodyStats.length > 0 ? data.bodyStats[0].weight + ' kg' : 'N/D'}
+- Grasso Corporeo: ${data.bodyStats.length > 0 && data.bodyStats[0].fat ? data.bodyStats[0].fat + '%' : 'N/D'}
 - Sessioni (Ultimi 30gg): ${data.recentWorkoutCount}
 
-**Massimali Stimati (1RM):**
+**Massimali Stimati (1RM, 5RM, 10RM):**
 ${toonPrs}
 
 **Log Allenamenti Recenti:**
@@ -169,27 +174,26 @@ ${domsBlock}
 
 Analizza i dati sopra e genera un report strutturato seguendo rigorosamente questi passaggi logici:
 
-**1. ANALISI DEL CARICO & FREQUENZA**
-- Valuta la consistenza dell'atleta (frequenza settimanale).
+**1. CONTESTUALIZZAZIONE BIOMETRICA & LIVELLO**
+- Usa età, peso, altezza e sesso (se disponibili) per contestualizzare i carichi sollevati. (Es. 100kg di panca sono ottimi per un atleta di 70kg, normali per uno di 100kg).
+- Stima il livello dell'atleta (Principiante, Intermedio, Avanzato) basandoti sul rapporto Forza Relativa (1RM / Peso Corporeo).
+
+**2. ANALISI DEL CARICO & FREQUENZA**
+- Valuta la consistenza dell'atleta (frequenza settimanale) rispetto al suo livello di attività dichiarato.
 - Analizza il trend del volume (sta aumentando, stallando o diminuendo?).
 - Identifica se c'è un sovraccarico progressivo evidente nei log.
 
-**2. ANALISI STRUTTURALE & BILANCIAMENTO**
-- Osserva i \`mainExercises\` e i \`personalRecords\`.
+**3. ANALISI STRUTTURALE & BILANCIAMENTO**
+- Osserva i \`exercises\` (struttura workout) e i \`personalRecords\`.
 - C'è equilibrio tra catena cinetica anteriore (es. Squat, Bench) e posteriore (es. Deadlift, Row)?
-- I massimali sono proporzionati? (Es. Una panca forte ma uno squat debole indica uno squilibrio).
-
-**3. DIAGNOSI CRITICA**
-- Qual è il collo di bottiglia attuale? (Es. Volume spazzatura, frequenza incostante, selezione esercizi povera).
-- Stima il livello dell'atleta (Principiante, Intermedio, Avanzato) basandoti sui carichi relativi al peso corporeo (se disponibile) o ai numeri assoluti.
+- I massimali sono proporzionati?
 
 **4. PIANO D'AZIONE (PROSSIME 4 SETTIMANE)**
-- Fornisci 3 direttive tecniche specifiche. Non dire "allenati di più", di "Aumenta il volume settimanale sui pettorali del 10% aggiungendo 2 set di croci ai cavi".
-- Suggerisci una variazione di intensità o volume basata sui dati.
+- Fornisci 3 direttive tecniche specifiche.
+- Suggerisci una variazione di intensità o volume basata sui dati e sull'età/recupero atteso.
 
 **5. RECUPERO & DOMS LOCALIZZATI**
-- Usa la mappa DOMS per capire quali distretti accumulano più fatica residua e quante giornate di recupero servono in media.
-- Indica eventuali deload, rotazioni di esercizi o accorgimenti tecnici per quei muscoli, evitando sovrapposizioni di stimolo finché non tornano sotto controllo.
+- Usa la mappa DOMS e l'età dell'atleta per stimare la capacità di recupero reale.
 
 ---
 
@@ -198,13 +202,14 @@ Analizza i dati sopra e genera un report strutturato seguendo rigorosamente ques
 Rispondi in **Markdown** pulito.
 Usa un tono **Professionale, Tecnico ma Motivante**.
 Non inventare dati non presenti nel TOON.
-Se mancano dati critici (es. peso corporeo), fallo notare come primo punto per migliorare l'analisi futura.
+Se mancano dati critici (es. peso o altezza), fallo notare come suggerimento.
 
 **Struttura Output:**
 ### 🛡️ Coach Insight per ${data.profile.name || 'Atleta'}
-> *Breve frase riassuntiva sullo stato attuale (es. "Sei in una fase di accumulo produttiva, ma attenzione al recupero").*
+> *Breve frase riassuntiva sullo stato attuale (es. "Dati i tuoi 25 anni e 80kg, i carichi sono promettenti, ma attenzione al volume").*
 
 #### 📉 Analisi Tecnica
+*   **Livello Stimato**: ... (basato su forza relativa)
 *   **Volume & Frequenza**: ...
 *   **Equilibrio Strutturale**: ...
 *   **Punti di Forza**: ...
@@ -260,6 +265,12 @@ ${toonLogs}
 
 **Segnalazioni DOMS recenti (<=4 giorni):**
 ${domsGuidance}
+
+**Profilo & Biometria Atleta:**
+- Età: ${data.profile.athleteParams?.age || 'N/D'}
+- Altezza: ${data.profile.athleteParams?.height || 'N/D'} cm
+- Livello Attività: ${data.profile.athleteParams?.activity || 'N/D'}
+- Peso Corporeo: ${data.bodyStats && data.bodyStats.length > 0 ? data.bodyStats[0].weight + ' kg' : 'N/D'}
 
 **ANALISI STILE E STRUTTURA:**
 1. Identifica la "Split" o lo stile abituale dell'utente guardando gli ultimi workout (es. fa Push/Pull/Legs? Upper/Lower? Full Body? O split per gruppi muscolari singoli?).
@@ -322,6 +333,11 @@ ${JSON.stringify(payload.metrics, null, 2)}
 
 Profilo atleta:
 ${JSON.stringify(payload.profile || {})}
+
+**Parametri Biometrici Atleta:**
+Età: ${payload.profile.athleteParams?.age || 'N/D'}
+Altezza: ${payload.profile.athleteParams?.height || 'N/D'} cm
+Livello: ${payload.profile.athleteParams?.activity || 'N/D'}
 
 DOMS Hotspot JSON (usa questi dati per contestualizzare recupero e rischi specifici):
 ${JSON.stringify(domsHotspots, null, 2)}
