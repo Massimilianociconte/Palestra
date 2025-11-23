@@ -439,16 +439,36 @@ class HealthConnectService {
     }
 
     /**
-     * Fetch sonno
+     * Fetch sonno (media giornaliera)
      */
     async fetchSleep(startTime, endTime) {
         const data = await this.fetchGoogleFitData('sleep', startTime, endTime);
-        const sleepMinutes = data.point?.reduce((sum, point) => {
+        
+        // Raggruppa i segmenti di sonno per giorno
+        const sleepByDay = {};
+        
+        data.point?.forEach(point => {
             const start = parseInt(point.startTimeNanos) / 1000000;
             const end = parseInt(point.endTimeNanos) / 1000000;
-            return sum + ((end - start) / (1000 * 60));
-        }, 0) || 0;
-        return Math.round(sleepMinutes / 60 * 10) / 10; // Converti in ore con 1 decimale
+            const duration = (end - start) / (1000 * 60); // minuti
+            
+            // Usa la data di inizio del segmento come chiave
+            const dayKey = new Date(start).toISOString().split('T')[0];
+            
+            if (!sleepByDay[dayKey]) {
+                sleepByDay[dayKey] = 0;
+            }
+            sleepByDay[dayKey] += duration;
+        });
+        
+        // Calcola la media giornaliera
+        const days = Object.keys(sleepByDay);
+        if (days.length === 0) return 0;
+        
+        const totalMinutes = Object.values(sleepByDay).reduce((sum, min) => sum + min, 0);
+        const avgMinutes = totalMinutes / days.length;
+        
+        return Math.round(avgMinutes / 60 * 10) / 10; // Converti in ore con 1 decimale
     }
 
     /**

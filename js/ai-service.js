@@ -178,19 +178,19 @@ ${buildDomsSummaryBlock(domsHotspots)}
 - Passi Totali (Settimanali): ${data.healthData.steps ? Math.round(data.healthData.steps).toLocaleString('it-IT') : 'N/D'} passi
 - Frequenza Cardiaca Media: ${data.healthData.heartRate ? Math.round(data.healthData.heartRate) : 'N/D'} bpm
 - Peso (Google Fit): ${data.healthData.weight ? data.healthData.weight.toFixed(1) : 'N/D'} kg
-- Calorie Totali: ${data.healthData.calories ? Math.round(data.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal (include metabolismo basale + attività fisica da passi)
-- Distanza Percorsa: ${data.healthData.distance ? data.healthData.distance.toFixed(1) : 'N/D'} km
-- Sonno Totale: ${data.healthData.sleep ? data.healthData.sleep.toFixed(1) : 'N/D'} ore (attenzione: possibili anomalie di misurazione)
+- Calorie Totali (Settimanali): ${data.healthData.calories ? Math.round(data.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal (include metabolismo basale + attività fisica da passi)
+- Distanza Percorsa (Settimanale): ${data.healthData.distance ? data.healthData.distance.toFixed(1) : 'N/D'} km
+- Sonno Medio Giornaliero: ${data.healthData.sleep ? data.healthData.sleep.toFixed(1) : 'N/D'} ore/notte
 - Fonte: ${data.healthData.source || 'google_fit'}
 - Ultimo Sync: ${data.healthData.syncTimestamp ? new Date(data.healthData.syncTimestamp).toLocaleString('it-IT') : 'N/D'}
 
 **IMPORTANTE - Note sui Dati Health:**
 1. **Passi**: Valore cumulativo settimanale (7 giorni), non giornaliero
-2. **Calorie**: Include TDEE completo (metabolismo basale + attività da passi). NON include allenamenti specifici o cardio dedicato perché l'orologio non li traccia
-3. **Sonno**: Dato potenzialmente inaccurato a causa di limitazioni hardware dell'orologio. Valori anomali (es. <2h o >12h/notte) vanno ignorati o presi con cautela
-4. **Distanza**: Calcolata solo dai passi, non include altre attività
+2. **Calorie**: Valore cumulativo settimanale. Include TDEE completo (metabolismo basale + attività da passi). NON include allenamenti specifici o cardio dedicato
+3. **Sonno**: Media giornaliera calcolata sui giorni con dati disponibili. Valori normali: 6-9 ore/notte
+4. **Distanza**: Valore cumulativo settimanale, calcolata solo dai passi
 
-*Usa questi dati per valutare NEAT (attività non da esercizio) e recupero generale, ma non fare affidamento assoluto sul sonno se i valori sembrano irrealistici.*
+*Usa questi dati per valutare NEAT (attività non da esercizio) e recupero generale.*
 ` : '';
 
             const prompt = `
@@ -210,6 +210,9 @@ Il tuo compito è analizzare i dati di allenamento di un atleta forniti in forma
 - Peso Corporeo Attuale: ${data.bodyStats.length > 0 ? data.bodyStats[0].weight + ' kg' : 'N/D'}
 - Grasso Corporeo: ${data.bodyStats.length > 0 && data.bodyStats[0].fat ? data.bodyStats[0].fat + '%' : 'N/D'}
 - Sessioni (Ultimi 30gg): ${data.recentWorkoutCount}
+
+**CONTESTO IMPORTANTE - Inizio Tracking:**
+L'atleta ha iniziato a usare IronFlow per il tracking il **21 novembre 2025**. I dati disponibili coprono quindi solo gli ultimi 2-3 giorni, non l'intero mese. Le "sessioni" registrate potrebbero rappresentare una singola sessione di allenamento split su più giorni (es. giorno 1: petto/tricipiti, giorno 2: schiena/bicipiti). Non interpretare la bassa frequenza come abbandono o inconsistenza: è semplicemente l'inizio del tracking.
 
 **Massimali Stimati Attuali (1RM, 3RM, 5RM):**
 ${toonPrs}
@@ -368,15 +371,15 @@ ${domsGuidance}
 ${data.healthData ? `
 - Passi Totali (Settimanali): ${data.healthData.steps ? Math.round(data.healthData.steps).toLocaleString('it-IT') : 'N/D'} passi
 - Frequenza Cardiaca Media: ${data.healthData.heartRate ? Math.round(data.healthData.heartRate) : 'N/D'} bpm
-- Calorie Totali: ${data.healthData.calories ? Math.round(data.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal (include metabolismo basale + passi)
-- Sonno Totale: ${data.healthData.sleep ? data.healthData.sleep.toFixed(1) : 'N/D'} ore (possibili anomalie di misurazione)
-- Distanza: ${data.healthData.distance ? data.healthData.distance.toFixed(1) : 'N/D'} km
+- Calorie Totali (Settimanali): ${data.healthData.calories ? Math.round(data.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal (include metabolismo basale + passi)
+- Sonno Medio Giornaliero: ${data.healthData.sleep ? data.healthData.sleep.toFixed(1) : 'N/D'} ore/notte
+- Distanza (Settimanale): ${data.healthData.distance ? data.healthData.distance.toFixed(1) : 'N/D'} km
 
 **Note Importanti:**
 - Passi: valore settimanale cumulativo, non giornaliero
-- Calorie: TDEE completo (basale + passi), NON include allenamenti specifici
-- Sonno: dato potenzialmente inaccurato, ignora valori irrealistici (<2h o >12h/notte)
-*Usa questi dati per valutare NEAT e recupero generale, ma con cautela sul sonno.*
+- Calorie: valore settimanale cumulativo, TDEE completo (basale + passi), NON include allenamenti specifici
+- Sonno: media giornaliera calcolata sui giorni disponibili (valori normali: 6-9 ore/notte)
+*Usa questi dati per valutare NEAT e recupero generale.*
 ` : '- Dati salute non disponibili'}
 
 **ANALISI STILE E STRUTTURA:**
@@ -470,15 +473,15 @@ ${payload.healthData ? `
 - Passi Totali (Settimanali): ${payload.healthData.steps ? Math.round(payload.healthData.steps).toLocaleString('it-IT') : 'N/D'} passi
 - Frequenza Cardiaca Media: ${payload.healthData.heartRate ? Math.round(payload.healthData.heartRate) : 'N/D'} bpm
 - Peso: ${payload.healthData.weight ? payload.healthData.weight.toFixed(1) : 'N/D'} kg
-- Calorie Totali: ${payload.healthData.calories ? Math.round(payload.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal (include metabolismo basale + passi)
-- Sonno Totale: ${payload.healthData.sleep ? payload.healthData.sleep.toFixed(1) : 'N/D'} ore (possibili anomalie di misurazione)
-- Distanza: ${payload.healthData.distance ? payload.healthData.distance.toFixed(1) : 'N/D'} km
+- Calorie Totali (Settimanali): ${payload.healthData.calories ? Math.round(payload.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal (include metabolismo basale + passi)
+- Sonno Medio Giornaliero: ${payload.healthData.sleep ? payload.healthData.sleep.toFixed(1) : 'N/D'} ore/notte
+- Distanza (Settimanale): ${payload.healthData.distance ? payload.healthData.distance.toFixed(1) : 'N/D'} km
 
 **Note Importanti:**
 - Passi: valore settimanale cumulativo
-- Calorie: TDEE completo (basale + passi), NON include allenamenti specifici
-- Sonno: dato potenzialmente inaccurato, ignora valori irrealistici
-*Considera questi dati per valutare NEAT e recupero generale, ma con cautela sul sonno.*
+- Calorie: valore settimanale cumulativo, TDEE completo (basale + passi), NON include allenamenti specifici
+- Sonno: media giornaliera calcolata sui giorni disponibili (valori normali: 6-9 ore/notte)
+*Considera questi dati per valutare NEAT e recupero generale.*
 ` : '- Dati salute non disponibili'}
 
 - Tono: professionale, motivante, conciso.
