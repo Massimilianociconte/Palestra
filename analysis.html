@@ -173,13 +173,13 @@
 
             <!-- AI History Modal -->
             <div id="historyModal"
-                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: clamp(0.5rem, 2vw, 1rem); overflow-y: auto;">
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: clamp(0.5rem, 2vw, 1rem); overflow-y: auto; overflow-x: hidden;">
                 <div class="card"
-                    style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; margin: auto;">
+                    style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; position: relative; margin: auto; box-sizing: border-box;">
                     <button id="closeHistoryModal"
-                        style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px;">&times;</button>
-                    <h3 style="margin-bottom: 1rem; font-size: clamp(1.1rem, 4vw, 1.3rem); padding-right: 40px;">Storico <span class="text-primary">Insight</span></h3>
-                    <div id="historyList" style="display: flex; flex-direction: column; gap: 1rem;">
+                        style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px; flex-shrink: 0;">&times;</button>
+                    <h3 style="margin-bottom: 1rem; font-size: clamp(1rem, 4.5vw, 1.3rem); padding-right: 40px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">Storico <span class="text-primary">Insight</span></h3>
+                    <div id="historyList" style="display: flex; flex-direction: column; gap: 1rem; max-width: 100%; overflow-x: hidden;">
                         <!-- History items go here -->
                     </div>
                 </div>
@@ -187,13 +187,13 @@
 
             <!-- AI Response Modal -->
             <div id="aiModal"
-                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: clamp(0.5rem, 2vw, 1rem); overflow-y: auto;">
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: clamp(0.5rem, 2vw, 1rem); overflow-y: auto; overflow-x: hidden;">
                 <div class="card"
-                    style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; margin: auto;">
+                    style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; position: relative; margin: auto; box-sizing: border-box;">
                     <button id="closeAiModal"
-                        style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px;">&times;</button>
-                    <h3 style="margin-bottom: 1rem; font-size: clamp(1.1rem, 4vw, 1.3rem); padding-right: 40px;">Coach <span class="text-primary">Insight</span></h3>
-                    <div id="aiResponseContent" class="markdown-content">
+                        style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px; flex-shrink: 0;">&times;</button>
+                    <h3 style="margin-bottom: 1rem; font-size: clamp(1rem, 4.5vw, 1.3rem); padding-right: 40px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">Coach <span class="text-primary">Insight</span></h3>
+                    <div id="aiResponseContent" class="markdown-content" style="max-width: 100%; overflow-x: hidden; word-wrap: break-word;">
                         <!-- Content goes here -->
                     </div>
                 </div>
@@ -467,19 +467,19 @@
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0;">Record Personali</h3>
                     <div class="rm-selector"
-                        style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px;">
+                        style="display: flex; gap: clamp(2px, 1vw, 5px); background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; flex-wrap: nowrap; overflow-x: auto;">
                         <button class="btn-rm active" data-rm="1rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">1RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">1RM</button>
                         <button class="btn-rm" data-rm="3rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">3RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">3RM</button>
                         <button class="btn-rm" data-rm="5rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">5RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">5RM</button>
                         <button class="btn-rm" data-rm="8rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">8RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">8RM</button>
                         <button class="btn-rm" data-rm="10rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">10RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">10RM</button>
                         <button class="btn-rm" data-rm="12rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">12RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">12RM</button>
                     </div>
                 </div>
 
@@ -519,23 +519,23 @@
     </div>
 
     <div id="trendSummaryModal"
-        style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:2500; align-items:center; justify-content:center; padding:clamp(0.5rem, 2vw, 1rem); overflow-y:auto;">
-        <div class="card" style="max-width: 600px; width:100%; max-height:90vh; overflow-y:auto; position: relative; margin: auto;">
+        style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:2500; align-items:center; justify-content:center; padding:clamp(0.5rem, 2vw, 1rem); overflow-y:auto; overflow-x:hidden;">
+        <div class="card" style="max-width: 600px; width:100%; max-height:90vh; overflow-y:auto; overflow-x:hidden; position: relative; margin: auto; box-sizing:border-box;">
             <button id="closeTrendSummaryModal"
-                style="position:sticky; top:0; right:0; float:right; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; cursor:pointer; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10; margin-bottom:-36px;">×</button>
-            <h3 style="margin-bottom:0.5rem; font-size:clamp(1.1rem, 4vw, 1.3rem); padding-right:40px;">Resoconto <span class="text-primary">AI</span></h3>
-            <small id="trendSummaryMeta" style="color: var(--color-text-muted); font-size:clamp(0.75rem, 2.5vw, 0.85rem);"></small>
-            <div id="trendSummaryContent" class="ai-summary" style="margin-top:1rem; line-height:1.6;"></div>
+                style="position:sticky; top:0; right:0; float:right; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; cursor:pointer; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10; margin-bottom:-36px; flex-shrink:0;">×</button>
+            <h3 style="margin-bottom:0.5rem; font-size:clamp(1rem, 4.5vw, 1.3rem); padding-right:40px; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">Resoconto <span class="text-primary">AI</span></h3>
+            <small id="trendSummaryMeta" style="color: var(--color-text-muted); font-size:clamp(0.75rem, 2.8vw, 0.85rem); word-wrap:break-word; display:block; max-width:100%;"></small>
+            <div id="trendSummaryContent" class="ai-summary" style="margin-top:1rem; line-height:1.6; max-width:100%; overflow-x:hidden; word-wrap:break-word;"></div>
         </div>
     </div>
 
     <div id="trendSummaryHistoryModal"
-        style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:2500; align-items:center; justify-content:center; padding:clamp(0.5rem, 2vw, 1rem); overflow-y:auto;">
-        <div class="card" style="max-width: 500px; width:100%; max-height:90vh; overflow-y:auto; position: relative; margin: auto;">
+        style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:2500; align-items:center; justify-content:center; padding:clamp(0.5rem, 2vw, 1rem); overflow-y:auto; overflow-x:hidden;">
+        <div class="card" style="max-width: 500px; width:100%; max-height:90vh; overflow-y:auto; overflow-x:hidden; position: relative; margin: auto; box-sizing:border-box;">
             <button id="closeTrendSummaryHistory"
-                style="position:sticky; top:0; right:0; float:right; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; cursor:pointer; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10; margin-bottom:-36px;">×</button>
-            <h3 style="margin-bottom:1rem; font-size:clamp(1.1rem, 4vw, 1.3rem); padding-right:40px;">Storico Resoconti</h3>
-            <div id="trendSummaryHistoryList" style="display:flex; flex-direction:column; gap:0.75rem;"></div>
+                style="position:sticky; top:0; right:0; float:right; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; cursor:pointer; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10; margin-bottom:-36px; flex-shrink:0;">×</button>
+            <h3 style="margin-bottom:1rem; font-size:clamp(1rem, 4.5vw, 1.3rem); padding-right:40px; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">Storico Resoconti</h3>
+            <div id="trendSummaryHistoryList" style="display:flex; flex-direction:column; gap:0.75rem; max-width:100%; overflow-x:hidden;"></div>
         </div>
     </div>
 
@@ -684,6 +684,9 @@
 
                     // Process tables for mobile responsiveness
                     processTables(aiContent);
+                    
+                    // Sanitize content to prevent overflow
+                    sanitizeAIContent(aiContent);
                 } else {
                     aiContent.innerHTML = `<p style="color: #ff4444;">Errore AI: ${result.message}</p>`;
                 }
@@ -713,6 +716,62 @@
                             }
                         });
                     });
+                });
+            }
+
+            // Function to sanitize AI content for mobile (prevent overflow)
+            function sanitizeAIContent(container) {
+                if (!container) return;
+
+                // Add overflow protection to all elements
+                const allElements = container.querySelectorAll('*');
+                allElements.forEach(el => {
+                    el.style.maxWidth = '100%';
+                    el.style.wordWrap = 'break-word';
+                    el.style.overflowWrap = 'break-word';
+                    el.style.boxSizing = 'border-box';
+                });
+
+                // Handle long words/URLs in text nodes
+                const textNodes = [];
+                const walker = document.createTreeWalker(
+                    container,
+                    NodeFilter.SHOW_TEXT,
+                    null,
+                    false
+                );
+
+                let node;
+                while (node = walker.nextNode()) {
+                    textNodes.push(node);
+                }
+
+                textNodes.forEach(textNode => {
+                    const text = textNode.textContent;
+                    // Check for long words (>30 chars without spaces)
+                    const words = text.split(/\s+/);
+                    const hasLongWord = words.some(word => word.length > 30);
+                    
+                    if (hasLongWord && textNode.parentElement) {
+                        textNode.parentElement.style.wordBreak = 'break-all';
+                        textNode.parentElement.style.overflowWrap = 'break-word';
+                    }
+                });
+
+                // Ensure images don't overflow
+                const images = container.querySelectorAll('img');
+                images.forEach(img => {
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                });
+
+                // Ensure pre/code blocks are scrollable but contained
+                const preBlocks = container.querySelectorAll('pre');
+                preBlocks.forEach(pre => {
+                    pre.style.maxWidth = '100%';
+                    pre.style.overflowX = 'auto';
+                    pre.style.whiteSpace = 'pre-wrap';
+                    pre.style.wordBreak = 'break-all';
                 });
             }
         });
