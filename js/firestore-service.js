@@ -1,4 +1,4 @@
-import { db, doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp, collection, query, orderBy, limit, getDocs } from './firebase-config.js';
+import { db, doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp, collection, query, where, orderBy, limit, getDocs } from './firebase-config.js';
 import { auth } from './firebase-config.js';
 import { computeDomsInsights } from './doms-insights.js';
 

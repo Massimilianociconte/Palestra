@@ -285,7 +285,7 @@ class HealthConnectService {
                     
                     // Distingui tra dato non disponibile e errore reale
                     if (errorMsg.includes('Data type not available')) {
-                        console.warn(`⚠️ ${names[idx]}: dato non disponibile (normale se non hai questo tipo di dato)`);
+                        console.info(`ℹ️ ${names[idx]}: dato non disponibile (normale se non hai registrato questo tipo di dato)`);
                     } else {
                         console.error(`❌ Failed to fetch ${names[idx]}:`, result.reason);
                     }
