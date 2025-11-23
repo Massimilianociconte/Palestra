@@ -377,6 +377,30 @@ export class FirestoreService {
                 }
             });
 
+            // Get health data from Google Fit (last 7 days)
+            let healthData = null;
+            try {
+                const healthRecords = await this.getHealthData(7);
+                if (healthRecords && healthRecords.length > 0) {
+                    // Get the most recent record
+                    const latestHealth = healthRecords[0];
+                    
+                    // Keep in TOON format for AI (already encoded)
+                    healthData = {
+                        steps: latestHealth.steps || null,
+                        heartRate: latestHealth.heartRate || null,
+                        weight: latestHealth.weight || null,
+                        calories: latestHealth.calories || null,
+                        distance: latestHealth.distance || null,
+                        sleep: latestHealth.sleep || null,
+                        syncTimestamp: latestHealth.syncTimestamp || null,
+                        source: latestHealth.source || 'google_fit'
+                    };
+                }
+            } catch (error) {
+                console.warn('Could not load health data for AI:', error);
+            }
+
             return {
                 profile: localProfile,
                 bodyStats: localBodyStats.slice(0, 5), // Last 5 weigh-ins for trend
@@ -391,7 +415,8 @@ export class FirestoreService {
                 progressionData: progressionData,
                 wellness: wellnessSummary,
                 domsInsights,
-                existingWorkouts
+                existingWorkouts,
+                healthData: healthData // Add health data in TOON format
             };
 
         } catch (e) {

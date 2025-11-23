@@ -1069,11 +1069,15 @@
                     // Get historical trends for long-term analysis
                     const historicalTrends = trendEngine.getHistoricalTrends(90);
                     
+                    // Get health data for AI context
+                    const aiData = await firestoreService.gatherDataForAI();
+                    
                     const response = await aiService.generateTrendDigest({
                         metrics: trendResult.metrics,
                         profile,
                         generatedAt: trendResult.generatedAt,
                         domsHotspots: trendResult.domsHotspots,
+                        healthData: aiData?.healthData || null, // Add health data
                         historicalTrends: historicalTrends.map(h => ({
                             date: h.timestamp,
                             metrics: h.metrics.map(m => ({

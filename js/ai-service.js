@@ -172,6 +172,21 @@ export class AIService {
 ${buildDomsSummaryBlock(domsHotspots)}
 `;
 
+            // Health Data from Google Fit (TOON format)
+            const healthBlock = data.healthData ? `
+**Dati Salute (Google Fit - Ultimi 7 giorni, TOON Format)**
+- Passi: ${data.healthData.steps || 'N/D'}
+- Frequenza Cardiaca Media: ${data.healthData.heartRate || 'N/D'} bpm
+- Peso (Google Fit): ${data.healthData.weight || 'N/D'} kg
+- Calorie Bruciate: ${data.healthData.calories || 'N/D'} kcal
+- Distanza Percorsa: ${data.healthData.distance || 'N/D'} km
+- Sonno: ${data.healthData.sleep || 'N/D'} ore
+- Fonte: ${data.healthData.source || 'google_fit'}
+- Ultimo Sync: ${data.healthData.syncTimestamp ? new Date(data.healthData.syncTimestamp).toLocaleString('it-IT') : 'N/D'}
+
+*Nota: Questi dati sono sincronizzati automaticamente da Google Fit e forniscono un quadro oggettivo dell'attività quotidiana e del recupero.*
+` : '';
+
             const prompt = `
 Sei un **Elite Strength & Conditioning Coach** con un PhD in Biomeccanica e Fisiologia dell'Esercizio. La tua specializzazione è l'analisi dei dati per ottimizzare l'ipertrofia e la forza massima.
 Il tuo compito è analizzare i dati di allenamento di un atleta forniti in formato **TOON** (Token-Oriented Object Notation) e fornire un feedback tecnico, critico e attuabile.
@@ -207,6 +222,7 @@ ${toonBodyStats}
 
 ${wellnessBlock}
 ${domsBlock}
+${healthBlock}
 
 ---
 
@@ -241,6 +257,14 @@ Analizza i dati sopra e genera un report strutturato seguendo rigorosamente ques
 **6. RECUPERO & DOMS LOCALIZZATI**
 - Usa la mappa DOMS e l'età dell'atleta per stimare la capacità di recupero reale.
 - Identifica se i DOMS persistenti stanno influenzando le performance (correlazione con regressioni).
+
+**7. ANALISI DATI SALUTE (Google Fit)**
+- Se disponibili, usa i dati di passi, calorie, sonno e frequenza cardiaca per valutare:
+  - Livello di attività generale (NEAT - Non-Exercise Activity Thermogenesis)
+  - Qualità del recupero (sonno oggettivo vs percepito)
+  - Stress cardiovascolare (frequenza cardiaca a riposo)
+  - Bilancio energetico (calorie bruciate vs obiettivo)
+- Correla questi dati con le performance in palestra (es. pochi passi + basso sonno = possibile overtraining o underrecovery)
 
 ---
 
@@ -334,6 +358,16 @@ ${domsGuidance}
 - Obiettivo: ${data.profile.goal || data.profile.objective || 'N/D'}
 - Sessioni Totali (30gg): ${data.recentWorkoutCount || 0}
 
+**Dati Salute (Google Fit - Ultimi 7 giorni):**
+${data.healthData ? `
+- Passi Medi: ${data.healthData.steps || 'N/D'}
+- Frequenza Cardiaca: ${data.healthData.heartRate || 'N/D'} bpm
+- Calorie Bruciate: ${data.healthData.calories || 'N/D'} kcal
+- Sonno: ${data.healthData.sleep || 'N/D'} ore
+- Distanza: ${data.healthData.distance || 'N/D'} km
+*Usa questi dati per valutare il livello di recupero e attività generale dell'atleta.*
+` : '- Dati salute non disponibili'}
+
 **ANALISI STILE E STRUTTURA:**
 1. Identifica la "Split" o lo stile abituale dell'utente guardando gli ultimi workout (es. fa Push/Pull/Legs? Upper/Lower? Full Body? O split per gruppi muscolari singoli?).
 2. Nota il volume abituale (quanti esercizi fa in media per sessione?).
@@ -419,6 +453,17 @@ ${toonDomsHotspots}
 
 **Storico Trend (TOON Format):**
 ${toonHistoricalTrends}
+
+**Dati Salute (Google Fit - Ultimi 7 giorni):**
+${payload.healthData ? `
+- Passi: ${payload.healthData.steps || 'N/D'}
+- Frequenza Cardiaca: ${payload.healthData.heartRate || 'N/D'} bpm
+- Peso: ${payload.healthData.weight || 'N/D'} kg
+- Calorie: ${payload.healthData.calories || 'N/D'} kcal
+- Sonno: ${payload.healthData.sleep || 'N/D'} ore
+- Distanza: ${payload.healthData.distance || 'N/D'} km
+*Considera questi dati oggettivi per valutare il recupero e l'attività generale.*
+` : '- Dati salute non disponibili'}
 
 - Tono: professionale, motivante, conciso.
 - Se una sezione non ha punti rilevanti, scrivi "Nessun dato significativo" ma mantieni comunque la struttura.
