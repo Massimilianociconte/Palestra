@@ -34,15 +34,16 @@ class HealthConnectService {
     }
 
     /**
-     * Inizia il flusso OAuth per connettere Google Fit (Implicit Flow)
+     * Inizia il flusso OAuth per connettere Google Fit (Authorization Code Flow con Firebase Functions)
      */
     async connect() {
-        // Usa Implicit Flow (token diretto, no code exchange)
+        // Usa Authorization Code Flow (con Firebase Function per exchange)
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
             `client_id=${this.clientId}&` +
             `redirect_uri=${encodeURIComponent(this.redirectUri)}&` +
-            `response_type=token&` + // Cambiato da 'code' a 'token'
+            `response_type=code&` + // Code per avere refresh_token
             `scope=${encodeURIComponent(this.scopes)}&` +
+            `access_type=offline&` + // Necessario per refresh_token
             `prompt=consent`;
         
         // Apri popup OAuth
@@ -68,7 +69,7 @@ class HealthConnectService {
                     } catch (e) {
                         console.log('Popup already closed');
                     }
-                    await this.handleAuthToken(event.data.token, event.data.expiresIn);
+                    await this.handleAuthCode(event.data.code);
                     resolve(true);
                 } else if (event.data.type === 'oauth_error') {
                     try {
@@ -83,37 +84,61 @@ class HealthConnectService {
     }
 
     /**
-     * Gestisce il token di autorizzazione OAuth (Implicit Flow)
+     * Gestisce il codice di autorizzazione OAuth tramite Firebase Function
      */
-    async handleAuthToken(accessToken, expiresIn) {
+    async handleAuthCode(code) {
         try {
-            this.accessToken = accessToken;
-            this.tokenExpiry = Date.now() + (parseInt(expiresIn) * 1000);
-            this.isConnected = true;
+            // Importa Firebase Functions
+            const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
+            const functions = getFunctions();
             
-            // Salva token in Firestore
-            await this.saveToken();
+            // Chiama la Firebase Function per scambiare il code
+            const exchangeCode = httpsCallable(functions, 'exchangeHealthCode');
+            const result = await exchangeCode({ code });
             
-            // Prima sincronizzazione
-            await this.syncAllData();
-            
-            return true;
+            if (result.data.success) {
+                // Token salvato server-side, ora caricalo
+                await this.loadSavedToken();
+                this.isConnected = true;
+                
+                // Prima sincronizzazione
+                await this.syncAllData();
+                
+                return true;
+            } else {
+                throw new Error(result.data.message || 'Failed to exchange code');
+            }
         } catch (error) {
-            console.error('Error handling auth token:', error);
+            console.error('Error handling auth code:', error);
             throw error;
         }
     }
 
     /**
-     * Refresh access token quando scade
-     * NOTA: Implicit Flow non fornisce refresh token
-     * L'utente dovrà riconnettersi quando il token scade
+     * Refresh access token quando scade (tramite Firebase Function)
      */
     async refreshAccessToken() {
-        // Implicit Flow non supporta refresh token
-        // Chiedi all'utente di riconnettersi
-        this.isConnected = false;
-        throw new Error('Token scaduto. Riconnetti Google Fit.');
+        try {
+            // Importa Firebase Functions
+            const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
+            const functions = getFunctions();
+            
+            // Chiama la Firebase Function per refresh
+            const refreshToken = httpsCallable(functions, 'refreshHealthToken');
+            const result = await refreshToken();
+            
+            if (result.data.success) {
+                this.accessToken = result.data.accessToken;
+                this.tokenExpiry = result.data.expiryDate;
+                return true;
+            } else {
+                throw new Error(result.data.message || 'Failed to refresh token');
+            }
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+            this.isConnected = false;
+            throw error;
+        }
     }
 
     /**
@@ -124,10 +149,9 @@ class HealthConnectService {
             throw new Error('Not connected to Google Fit');
         }
         
-        // Se il token è scaduto, disconnetti
-        if (this.tokenExpiry && this.tokenExpiry < Date.now()) {
-            this.isConnected = false;
-            throw new Error('Token scaduto. Riconnetti Google Fit.');
+        // Se il token scade tra meno di 5 minuti, refresh automatico
+        if (this.tokenExpiry && this.tokenExpiry - Date.now() < 5 * 60 * 1000) {
+            await this.refreshAccessToken();
         }
     }
 

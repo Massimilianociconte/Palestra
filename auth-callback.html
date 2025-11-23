@@ -49,11 +49,10 @@
     </div>
 
     <script>
-        // Estrai parametri da URL hash (Implicit Flow usa # invece di ?)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const expiresIn = hashParams.get('expires_in');
-        const error = hashParams.get('error');
+        // Estrai parametri da URL query string (Authorization Code Flow)
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
         
         const statusEl = document.getElementById('status');
         const errorEl = document.getElementById('error');
@@ -79,15 +78,14 @@
                     console.log('Cannot close window');
                 }
             }, 3000);
-        } else if (accessToken) {
-            // Successo - invia token al parent
+        } else if (code) {
+            // Successo - invia code al parent
             statusEl.textContent = 'Autenticazione completata!';
             
             if (window.opener) {
                 window.opener.postMessage({
                     type: 'oauth_success',
-                    token: accessToken,
-                    expiresIn: expiresIn
+                    code: code
                 }, window.location.origin);
             }
             
