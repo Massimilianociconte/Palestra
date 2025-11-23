@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Word Export</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        button {
+            background: #00f3ff;
+            color: black;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 0.5rem;
+        }
+        button:hover {
+            background: #00d4e0;
+        }
+        #result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Export Word (RTF)</h1>
+    <p>Clicca il bottone per testare l'esportazione Word</p>
+    
+    <button id="testBtn">📄 Test Download Word</button>
+    
+    <div id="result"></div>
+
+    <script type="module">
+        import { exportService } from './js/export-service.js';
+
+        const testBtn = document.getElementById('testBtn');
+        const result = document.getElementById('result');
+
+        testBtn.addEventListener('click', async () => {
+            result.innerHTML = '<p>⏳ Generazione file in corso...</p>';
+            
+            const testContent = `
+                <h2>Test Report</h2>
+                <p>Questo è un <strong>test</strong> di esportazione Word.</p>
+                <h3>Lista di test</h3>
+                <ul>
+                    <li>Item 1</li>
+                    <li>Item 2</li>
+                    <li>Item 3</li>
+                </ul>
+                <p><em>Testo in corsivo</em></p>
+            `;
+            
+            try {
+                const response = await exportService.downloadAsWord(
+                    testContent, 
+                    'test-report', 
+                    'Test IronFlow'
+                );
+                
+                if (response.success) {
+                    result.innerHTML = `<p style="color: green;">✅ ${response.message}</p>`;
+                } else {
+                    result.innerHTML = `<p style="color: red;">❌ ${response.message}</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">❌ Errore: ${error.message}</p>`;
+                console.error('Errore completo:', error);
+            }
+        });
+    </script>
+</body>
+</html>

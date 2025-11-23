@@ -76,8 +76,10 @@ class ExportService {
      */
     async downloadAsWord(content, filename, title = 'Report IronFlow') {
         try {
+            console.log('downloadAsWord chiamato - inizio generazione RTF');
             // Genera RTF dal contenuto HTML
             const rtfContent = this.htmlToRTF(content, title);
+            console.log('RTF generato, lunghezza:', rtfContent.length);
             
             // Crea blob RTF
             const blob = new Blob([rtfContent], { type: 'application/rtf' });
