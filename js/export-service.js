@@ -4,40 +4,7 @@
 
 class ExportService {
     constructor() {
-        this.supportedFormats = ['markdown', 'text', 'html', 'docx'];
-        this.docxLoaded = false;
-    }
-
-    /**
-     * Carica la libreria docx dinamicamente
-     */
-    async loadDocx() {
-        if (this.docxLoaded || window.docx) {
-            this.docxLoaded = true;
-            return true;
-        }
-
-        try {
-            await this.loadScript('https://unpkg.com/docx@8.5.0/build/index.js');
-            this.docxLoaded = true;
-            return true;
-        } catch (error) {
-            console.error('Errore caricamento docx:', error);
-            return false;
-        }
-    }
-
-    /**
-     * Carica uno script esterno
-     */
-    loadScript(src) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
+        this.supportedFormats = ['markdown', 'text', 'html', 'rtf'];
     }
 
     /**
@@ -105,38 +72,21 @@ class ExportService {
     }
 
     /**
-     * Download come file Word (.docx)
+     * Download come file Word (.doc) in formato RTF
      */
     async downloadAsWord(content, filename, title = 'Report IronFlow') {
         try {
-            // Assicurati che la libreria sia caricata
-            if (!this.docxLoaded) {
-                await this.loadDocx();
-            }
-
-            if (!window.docx) {
-                return { success: false, message: 'Libreria Word non disponibile' };
-            }
-
-            // Converti HTML in elementi docx
-            const children = this.htmlToDocxElements(content, title);
+            // Genera RTF dal contenuto HTML
+            const rtfContent = this.htmlToRTF(content, title);
             
-            // Crea documento
-            const doc = new window.docx.Document({
-                sections: [{
-                    properties: {},
-                    children: children
-                }]
-            });
-            
-            // Genera blob
-            const blob = await window.docx.Packer.toBlob(doc);
+            // Crea blob RTF
+            const blob = new Blob([rtfContent], { type: 'application/rtf' });
             
             // Download del file
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${filename}.docx`;
+            a.download = `${filename}.doc`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -147,6 +97,180 @@ class ExportService {
             console.error('Errore download Word:', error);
             return { success: false, message: 'Errore durante la creazione del file Word' };
         }
+    }
+
+    /**
+     * Converte HTML in formato RTF
+     */
+    htmlToRTF(htmlContent, title) {
+        // Header RTF
+        let rtf = '{\\rtf1\\ansi\\deff0\n';
+        
+        // Font table
+        rtf += '{\\fonttbl{\\f0\\fswiss\\fcharset0 Arial;}{\\f1\\fmodern\\fcharset0 Courier New;}}\n';
+        
+        // Color table
+        rtf += '{\\colortbl;\\red0\\green243\\blue255;\\red102\\green102\\blue102;\\red0\\green0\\blue0;}\n';
+        
+        // Document formatting
+        rtf += '\\viewkind4\\uc1\\pard\\sa200\\sl276\\slmult1\\lang1040\\f0\\fs22\n';
+        
+        // Title header
+        rtf += '\\qc\\b\\fs48 IRONFLOW\\b0\\fs22\\par\n';
+        rtf += '\\qc\\cf2\\fs20 Report generato il ' + new Date().toLocaleDateString('it-IT', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }) + '\\cf0\\fs22\\par\n';
+        rtf += '\\pard\\sa200\\sl276\\slmult1\\par\n';
+        
+        // Parse HTML content
+        const temp = document.createElement('div');
+        temp.innerHTML = htmlContent;
+        
+        // Convert HTML to RTF
+        rtf += this.parseHtmlToRTF(temp);
+        
+        // Footer
+        rtf += '\\par\\pard\\qc\\brdrb\\brdrs\\brdrw10\\brsp20\\par\n';
+        rtf += '\\cf2\\i Generato da IronFlow - Il tuo assistente di allenamento intelligente\\i0\\cf0\\par\n';
+        
+        // Close RTF
+        rtf += '}';
+        
+        return rtf;
+    }
+
+    /**
+     * Parse ricorsivo HTML to RTF
+     */
+    parseHtmlToRTF(node) {
+        let rtf = '';
+        
+        for (const child of node.childNodes) {
+            if (child.nodeType === Node.TEXT_NODE) {
+                const text = child.textContent.trim();
+                if (text) {
+                    rtf += this.escapeRTF(text) + ' ';
+                }
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+                const tagName = child.tagName.toLowerCase();
+                
+                switch (tagName) {
+                    case 'h1':
+                        rtf += '\\pard\\sa200\\sl276\\slmult1\\b\\fs36\\cf1 ' + this.escapeRTF(child.textContent) + '\\cf0\\b0\\fs22\\par\n';
+                        break;
+                    
+                    case 'h2':
+                        rtf += '\\pard\\sa200\\sl276\\slmult1\\b\\fs32\\cf1 ' + this.escapeRTF(child.textContent) + '\\cf0\\b0\\fs22\\par\n';
+                        break;
+                    
+                    case 'h3':
+                        rtf += '\\pard\\sa200\\sl276\\slmult1\\b\\fs28\\cf1 ' + this.escapeRTF(child.textContent) + '\\cf0\\b0\\fs22\\par\n';
+                        break;
+                    
+                    case 'h4':
+                        rtf += '\\pard\\sa200\\sl276\\slmult1\\b\\fs24 ' + this.escapeRTF(child.textContent) + '\\b0\\fs22\\par\n';
+                        break;
+                    
+                    case 'p':
+                        rtf += '\\pard\\sa200\\sl276\\slmult1 ' + this.parseInlineToRTF(child) + '\\par\n';
+                        break;
+                    
+                    case 'ul':
+                    case 'ol':
+                        const items = child.querySelectorAll('li');
+                        items.forEach(li => {
+                            rtf += '\\pard\\fi-360\\li720\\sa100\\sl276\\slmult1\\bullet  ' + this.escapeRTF(li.textContent) + '\\par\n';
+                        });
+                        rtf += '\\pard\\sa200\\sl276\\slmult1\\par\n';
+                        break;
+                    
+                    case 'blockquote':
+                        rtf += '\\pard\\li720\\sa200\\sl276\\slmult1\\i\\cf2 ' + this.escapeRTF(child.textContent) + '\\cf0\\i0\\par\n';
+                        break;
+                    
+                    case 'table':
+                        const rows = child.querySelectorAll('tr');
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td, th');
+                            const isHeader = row.querySelector('th') !== null;
+                            
+                            rtf += '\\pard\\sa100\\sl276\\slmult1';
+                            if (isHeader) rtf += '\\b';
+                            
+                            const rowText = Array.from(cells).map(cell => this.escapeRTF(cell.textContent.trim())).join(' | ');
+                            rtf += ' ' + rowText;
+                            
+                            if (isHeader) rtf += '\\b0';
+                            rtf += '\\par\n';
+                        });
+                        rtf += '\\pard\\sa200\\sl276\\slmult1\\par\n';
+                        break;
+                    
+                    case 'br':
+                        rtf += '\\line\n';
+                        break;
+                    
+                    default:
+                        rtf += this.parseHtmlToRTF(child);
+                        break;
+                }
+            }
+        }
+        
+        return rtf;
+    }
+
+    /**
+     * Parse elementi inline per RTF
+     */
+    parseInlineToRTF(element) {
+        let rtf = '';
+        
+        for (const child of element.childNodes) {
+            if (child.nodeType === Node.TEXT_NODE) {
+                rtf += this.escapeRTF(child.textContent);
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+                const tagName = child.tagName.toLowerCase();
+                const text = this.escapeRTF(child.textContent);
+                
+                switch (tagName) {
+                    case 'strong':
+                    case 'b':
+                        rtf += '\\b ' + text + '\\b0 ';
+                        break;
+                    case 'em':
+                    case 'i':
+                        rtf += '\\i ' + text + '\\i0 ';
+                        break;
+                    case 'code':
+                        rtf += '\\f1\\fs20 ' + text + '\\f0\\fs22 ';
+                        break;
+                    default:
+                        rtf += text;
+                        break;
+                }
+            }
+        }
+        
+        return rtf;
+    }
+
+    /**
+     * Escape caratteri speciali per RTF
+     */
+    escapeRTF(text) {
+        return text
+            .replace(/\\/g, '\\\\')
+            .replace(/{/g, '\\{')
+            .replace(/}/g, '\\}')
+            .replace(/\n/g, '\\line ')
+            .replace(/[\u00A0-\uFFFF]/g, (char) => {
+                return '\\u' + char.charCodeAt(0) + '?';
+            });
     }
 
     /**
