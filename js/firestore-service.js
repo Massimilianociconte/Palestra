@@ -451,6 +451,137 @@ export class FirestoreService {
             return { success: false, message: error.message };
         }
     }
+
+    // --- HEALTH DATA (Google Fit / Health Connect Integration) ---
+    
+    /**
+     * Salva dati health in formato TOON
+     */
+    async saveHealthData(toonHealthData) {
+        const user = auth.currentUser;
+        if (!user) throw new Error('User not authenticated');
+        
+        try {
+            const healthRef = doc(db, 'users', user.uid, 'health', new Date().toISOString().split('T')[0]);
+            await setDoc(healthRef, {
+                ...toonHealthData,
+                syncTimestamp: Date.now(),
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving health data:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get dati health per periodo
+     */
+    async getHealthData(days = 7) {
+        const user = auth.currentUser;
+        if (!user) return [];
+        
+        try {
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+            
+            const healthRef = collection(db, 'users', user.uid, 'health');
+            const q = query(
+                healthRef,
+                where('syncTimestamp', '>=', startDate.getTime()),
+                orderBy('syncTimestamp', 'desc')
+            );
+            
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error('Error getting health data:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Salva token OAuth Google Fit
+     */
+    async saveHealthToken(tokenData) {
+        const user = auth.currentUser;
+        if (!user) throw new Error('User not authenticated');
+        
+        try {
+            const tokenRef = doc(db, 'users', user.uid, 'private', 'healthToken');
+            await setDoc(tokenRef, {
+                ...tokenData,
+                updatedAt: serverTimestamp()
+            });
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving health token:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get token OAuth Google Fit
+     */
+    async getHealthToken() {
+        const user = auth.currentUser;
+        if (!user) return null;
+        
+        try {
+            const tokenRef = doc(db, 'users', user.uid, 'private', 'healthToken');
+            const docSnap = await getDoc(tokenRef);
+            
+            if (docSnap.exists()) {
+                return docSnap.data();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting health token:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Rimuovi token OAuth Google Fit
+     */
+    async removeHealthToken() {
+        const user = auth.currentUser;
+        if (!user) return;
+        
+        try {
+            const tokenRef = doc(db, 'users', user.uid, 'private', 'healthToken');
+            await deleteDoc(tokenRef);
+            return { success: true };
+        } catch (error) {
+            console.error('Error removing health token:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get ultimo sync health data
+     */
+    async getLastHealthSync() {
+        const user = auth.currentUser;
+        if (!user) return null;
+        
+        try {
+            const healthRef = collection(db, 'users', user.uid, 'health');
+            const q = query(healthRef, orderBy('syncTimestamp', 'desc'), limit(1));
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+                return snapshot.docs[0].data();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting last health sync:', error);
+            return null;
+        }
+    }
 }
 
 export const firestoreService = new FirestoreService();
