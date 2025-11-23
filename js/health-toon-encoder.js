@@ -16,8 +16,13 @@ class HealthTOONEncoder {
             ACTIVE_MINUTES: 'AM',
             HRV: 'HRV',
             BODY_FAT: 'BF',
+            HEIGHT: 'H',
+            HYDRATION: 'H2O',
+            BLOOD_PRESSURE_SYS: 'BPS',
+            BLOOD_PRESSURE_DIA: 'BPD',
+            BLOOD_GLUCOSE: 'BG',
+            OXYGEN_SATURATION: 'SPO2',
             BMI: 'BMI',
-            WATER: 'H2O',
             PROTEIN: 'P',
             CARBS: 'CH',
             FATS: 'F'
@@ -256,39 +261,63 @@ class HealthTOONEncoder {
         const toonData = {};
         const timestamp = new Date();
         
-        // Steps
+        // Dati base
         if (googleFitData.steps) {
             toonData.steps = this.encode('STEPS', googleFitData.steps, timestamp, 'steps');
         }
         
-        // Heart Rate
         if (googleFitData.heartRate) {
             toonData.heartRate = this.encode('HEART_RATE', googleFitData.heartRate, timestamp, 'bpm');
         }
         
-        // Weight
         if (googleFitData.weight) {
             toonData.weight = this.encode('WEIGHT', googleFitData.weight, timestamp, 'kg');
         }
         
-        // Sleep
         if (googleFitData.sleep) {
             toonData.sleep = this.encode('SLEEP', googleFitData.sleep, timestamp, 'hours');
         }
         
-        // Calories
         if (googleFitData.calories) {
             toonData.calories = this.encode('CALORIES', googleFitData.calories, timestamp, 'kcal');
         }
         
-        // Distance
         if (googleFitData.distance) {
             toonData.distance = this.encode('DISTANCE', googleFitData.distance / 1000, timestamp, 'km');
         }
         
-        // Active Minutes
+        // Dati aggiuntivi
         if (googleFitData.activeMinutes) {
             toonData.activeMinutes = this.encode('ACTIVE_MINUTES', googleFitData.activeMinutes, timestamp, 'min');
+        }
+        
+        if (googleFitData.hrv) {
+            toonData.hrv = this.encode('HRV', googleFitData.hrv, timestamp, 'ms');
+        }
+        
+        if (googleFitData.bodyFat) {
+            toonData.bodyFat = this.encode('BODY_FAT', googleFitData.bodyFat, timestamp, '%');
+        }
+        
+        if (googleFitData.height) {
+            toonData.height = this.encode('HEIGHT', googleFitData.height * 100, timestamp, 'cm'); // Converti m in cm
+        }
+        
+        if (googleFitData.hydration) {
+            toonData.hydration = this.encode('HYDRATION', googleFitData.hydration, timestamp, 'ml');
+        }
+        
+        if (googleFitData.bloodPressure) {
+            toonData.bloodPressureSys = this.encode('BLOOD_PRESSURE_SYS', googleFitData.bloodPressure.systolic, timestamp, 'mmHg');
+            toonData.bloodPressureDia = this.encode('BLOOD_PRESSURE_DIA', googleFitData.bloodPressure.diastolic, timestamp, 'mmHg');
+        }
+        
+        if (googleFitData.bloodGlucose) {
+            toonData.bloodGlucose = this.encode('BLOOD_GLUCOSE', googleFitData.bloodGlucose, timestamp, 'mg/dL');
+        }
+        
+        if (googleFitData.oxygenSaturation) {
+            toonData.oxygenSaturation = this.encode('OXYGEN_SATURATION', googleFitData.oxygenSaturation, timestamp, '%');
         }
         
         return toonData;
@@ -330,18 +359,27 @@ class HealthTOONEncoder {
      */
     decodeHealthData(healthRecord) {
         const decoded = {
+            // Dati base
             steps: null,
             heartRate: null,
             weight: null,
             sleep: null,
             calories: null,
             distance: null,
+            // Dati aggiuntivi
             activeMinutes: null,
+            hrv: null,
+            bodyFat: null,
+            height: null,
+            hydration: null,
+            bloodPressure: null,
+            bloodGlucose: null,
+            oxygenSaturation: null,
             syncTimestamp: healthRecord.syncTimestamp || null,
             source: healthRecord.source || null
         };
 
-        // Decodifica ogni campo TOON se presente
+        // Decodifica dati base
         if (healthRecord.steps && this.isValidTOON(healthRecord.steps)) {
             decoded.steps = this.decode(healthRecord.steps).value;
         }
@@ -363,12 +401,44 @@ class HealthTOONEncoder {
         }
 
         if (healthRecord.distance && this.isValidTOON(healthRecord.distance)) {
-            // Distance è salvata in km nel TOON, convertiamo in metri per consistenza
-            decoded.distance = this.decode(healthRecord.distance).value * 1000;
+            decoded.distance = this.decode(healthRecord.distance).value * 1000; // km -> m
         }
 
+        // Decodifica dati aggiuntivi
         if (healthRecord.activeMinutes && this.isValidTOON(healthRecord.activeMinutes)) {
             decoded.activeMinutes = this.decode(healthRecord.activeMinutes).value;
+        }
+
+        if (healthRecord.hrv && this.isValidTOON(healthRecord.hrv)) {
+            decoded.hrv = this.decode(healthRecord.hrv).value;
+        }
+
+        if (healthRecord.bodyFat && this.isValidTOON(healthRecord.bodyFat)) {
+            decoded.bodyFat = this.decode(healthRecord.bodyFat).value;
+        }
+
+        if (healthRecord.height && this.isValidTOON(healthRecord.height)) {
+            decoded.height = this.decode(healthRecord.height).value;
+        }
+
+        if (healthRecord.hydration && this.isValidTOON(healthRecord.hydration)) {
+            decoded.hydration = this.decode(healthRecord.hydration).value;
+        }
+
+        if (healthRecord.bloodPressureSys && this.isValidTOON(healthRecord.bloodPressureSys) &&
+            healthRecord.bloodPressureDia && this.isValidTOON(healthRecord.bloodPressureDia)) {
+            decoded.bloodPressure = {
+                systolic: this.decode(healthRecord.bloodPressureSys).value,
+                diastolic: this.decode(healthRecord.bloodPressureDia).value
+            };
+        }
+
+        if (healthRecord.bloodGlucose && this.isValidTOON(healthRecord.bloodGlucose)) {
+            decoded.bloodGlucose = this.decode(healthRecord.bloodGlucose).value;
+        }
+
+        if (healthRecord.oxygenSaturation && this.isValidTOON(healthRecord.oxygenSaturation)) {
+            decoded.oxygenSaturation = this.decode(healthRecord.oxygenSaturation).value;
         }
 
         return decoded;

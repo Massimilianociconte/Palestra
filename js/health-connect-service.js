@@ -230,12 +230,26 @@ class HealthConnectService {
      */
     getDataSourceId(dataType) {
         const sources = {
+            // Dati base (già implementati)
             steps: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps',
             heartRate: 'derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm',
             weight: 'derived:com.google.weight:com.google.android.gms:merge_weight',
             calories: 'derived:com.google.calories.expended:com.google.android.gms:merge_calories_expended',
             distance: 'derived:com.google.distance.delta:com.google.android.gms:merge_distance_delta',
-            sleep: 'derived:com.google.sleep.segment:com.google.android.gms:merged'
+            sleep: 'derived:com.google.sleep.segment:com.google.android.gms:merged',
+            
+            // Dati aggiuntivi
+            activeMinutes: 'derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes',
+            hrv: 'derived:com.google.heart_rate.variability:com.google.android.gms:merge_heart_rate_variability',
+            bodyFat: 'derived:com.google.body.fat.percentage:com.google.android.gms:merge_body_fat_percentage',
+            height: 'derived:com.google.height:com.google.android.gms:merge_height',
+            hydration: 'derived:com.google.hydration:com.google.android.gms:merge_hydration',
+            bloodPressure: 'derived:com.google.blood_pressure:com.google.android.gms:merge_blood_pressure',
+            bloodGlucose: 'derived:com.google.blood_glucose:com.google.android.gms:merge_blood_glucose',
+            oxygenSaturation: 'derived:com.google.oxygen_saturation:com.google.android.gms:merge_oxygen_saturation',
+            speed: 'derived:com.google.speed:com.google.android.gms:merge_speed',
+            power: 'derived:com.google.power.sample:com.google.android.gms:merge_power',
+            activitySegment: 'derived:com.google.activity.segment:com.google.android.gms:merge_activity_segments'
         };
         
         return sources[dataType] || dataType;
@@ -257,14 +271,28 @@ class HealthConnectService {
             
             console.log('Time range:', new Date(startTime), 'to', new Date(endTime));
             
-            // Fetch tutti i tipi di dati
-            const [steps, heartRate, weight, calories, distance, sleep] = await Promise.allSettled([
+            // Fetch tutti i tipi di dati (base + aggiuntivi)
+            const [
+                steps, heartRate, weight, calories, distance, sleep,
+                activeMinutes, hrv, bodyFat, height, hydration,
+                bloodPressure, bloodGlucose, oxygenSaturation
+            ] = await Promise.allSettled([
+                // Dati base
                 this.fetchSteps(startNanos, endNanos),
                 this.fetchHeartRate(startNanos, endNanos),
                 this.fetchWeight(startNanos, endNanos),
                 this.fetchCalories(startNanos, endNanos),
                 this.fetchDistance(startNanos, endNanos),
-                this.fetchSleep(startNanos, endNanos)
+                this.fetchSleep(startNanos, endNanos),
+                // Dati aggiuntivi
+                this.fetchActiveMinutes(startNanos, endNanos),
+                this.fetchHRV(startNanos, endNanos),
+                this.fetchBodyFat(startNanos, endNanos),
+                this.fetchHeight(startNanos, endNanos),
+                this.fetchHydration(startNanos, endNanos),
+                this.fetchBloodPressure(startNanos, endNanos),
+                this.fetchBloodGlucose(startNanos, endNanos),
+                this.fetchOxygenSaturation(startNanos, endNanos)
             ]);
             
             // Log risultati
@@ -274,13 +302,31 @@ class HealthConnectService {
                 weight: weight.status,
                 calories: calories.status,
                 distance: distance.status,
-                sleep: sleep.status
+                sleep: sleep.status,
+                activeMinutes: activeMinutes.status,
+                hrv: hrv.status,
+                bodyFat: bodyFat.status,
+                height: height.status,
+                hydration: hydration.status,
+                bloodPressure: bloodPressure.status,
+                bloodGlucose: bloodGlucose.status,
+                oxygenSaturation: oxygenSaturation.status
             });
             
             // Log errori
-            [steps, heartRate, weight, calories, distance, sleep].forEach((result, idx) => {
+            const allResults = [
+                steps, heartRate, weight, calories, distance, sleep,
+                activeMinutes, hrv, bodyFat, height, hydration,
+                bloodPressure, bloodGlucose, oxygenSaturation
+            ];
+            const names = [
+                'steps', 'heartRate', 'weight', 'calories', 'distance', 'sleep',
+                'activeMinutes', 'hrv', 'bodyFat', 'height', 'hydration',
+                'bloodPressure', 'bloodGlucose', 'oxygenSaturation'
+            ];
+            
+            allResults.forEach((result, idx) => {
                 if (result.status === 'rejected') {
-                    const names = ['steps', 'heartRate', 'weight', 'calories', 'distance', 'sleep'];
                     const errorMsg = result.reason?.message || result.reason;
                     
                     // Distingui tra dato non disponibile e errore reale
@@ -294,12 +340,22 @@ class HealthConnectService {
             
             // Processa risultati
             const healthData = {
+                // Dati base
                 steps: steps.status === 'fulfilled' ? steps.value : null,
                 heartRate: heartRate.status === 'fulfilled' ? heartRate.value : null,
                 weight: weight.status === 'fulfilled' ? weight.value : null,
                 calories: calories.status === 'fulfilled' ? calories.value : null,
                 distance: distance.status === 'fulfilled' ? distance.value : null,
                 sleep: sleep.status === 'fulfilled' ? sleep.value : null,
+                // Dati aggiuntivi
+                activeMinutes: activeMinutes.status === 'fulfilled' ? activeMinutes.value : null,
+                hrv: hrv.status === 'fulfilled' ? hrv.value : null,
+                bodyFat: bodyFat.status === 'fulfilled' ? bodyFat.value : null,
+                height: height.status === 'fulfilled' ? height.value : null,
+                hydration: hydration.status === 'fulfilled' ? hydration.value : null,
+                bloodPressure: bloodPressure.status === 'fulfilled' ? bloodPressure.value : null,
+                bloodGlucose: bloodGlucose.status === 'fulfilled' ? bloodGlucose.value : null,
+                oxygenSaturation: oxygenSaturation.status === 'fulfilled' ? oxygenSaturation.value : null,
                 syncTimestamp: Date.now(),
                 source: 'google_fit'
             };
@@ -393,6 +449,96 @@ class HealthConnectService {
             return sum + ((end - start) / (1000 * 60));
         }, 0) || 0;
         return Math.round(sleepMinutes / 60 * 10) / 10; // Converti in ore con 1 decimale
+    }
+
+    /**
+     * Fetch minuti attivi
+     */
+    async fetchActiveMinutes(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('activeMinutes', startTime, endTime);
+        const totalMinutes = data.point?.reduce((sum, point) => {
+            return sum + (point.value?.[0]?.intVal || 0);
+        }, 0) || 0;
+        return totalMinutes;
+    }
+
+    /**
+     * Fetch HRV (Heart Rate Variability)
+     */
+    async fetchHRV(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('hrv', startTime, endTime);
+        const hrvValues = data.point?.map(p => p.value?.[0]?.fpVal).filter(v => v) || [];
+        if (hrvValues.length === 0) return null;
+        const avgHRV = hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length;
+        return Math.round(avgHRV * 10) / 10; // 1 decimale
+    }
+
+    /**
+     * Fetch percentuale grasso corporeo
+     */
+    async fetchBodyFat(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('bodyFat', startTime, endTime);
+        const bodyFatValues = data.point?.map(p => p.value?.[0]?.fpVal).filter(v => v) || [];
+        if (bodyFatValues.length === 0) return null;
+        return bodyFatValues[bodyFatValues.length - 1]; // Ultimo valore registrato
+    }
+
+    /**
+     * Fetch altezza
+     */
+    async fetchHeight(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('height', startTime, endTime);
+        const heights = data.point?.map(p => p.value?.[0]?.fpVal).filter(v => v) || [];
+        if (heights.length === 0) return null;
+        return heights[heights.length - 1]; // Ultimo valore (in metri)
+    }
+
+    /**
+     * Fetch idratazione
+     */
+    async fetchHydration(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('hydration', startTime, endTime);
+        const totalHydration = data.point?.reduce((sum, point) => {
+            return sum + (point.value?.[0]?.fpVal || 0);
+        }, 0) || 0;
+        return Math.round(totalHydration * 1000); // Converti in ml
+    }
+
+    /**
+     * Fetch pressione sanguigna
+     */
+    async fetchBloodPressure(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('bloodPressure', startTime, endTime);
+        if (!data.point || data.point.length === 0) return null;
+        
+        // Prendi l'ultima misurazione
+        const lastPoint = data.point[data.point.length - 1];
+        return {
+            systolic: lastPoint.value?.[0]?.fpVal || null, // Sistolica
+            diastolic: lastPoint.value?.[1]?.fpVal || null // Diastolica
+        };
+    }
+
+    /**
+     * Fetch glicemia
+     */
+    async fetchBloodGlucose(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('bloodGlucose', startTime, endTime);
+        const glucoseValues = data.point?.map(p => p.value?.[0]?.fpVal).filter(v => v) || [];
+        if (glucoseValues.length === 0) return null;
+        const avgGlucose = glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length;
+        return Math.round(avgGlucose); // mg/dL
+    }
+
+    /**
+     * Fetch saturazione ossigeno (SpO2)
+     */
+    async fetchOxygenSaturation(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('oxygenSaturation', startTime, endTime);
+        const spo2Values = data.point?.map(p => p.value?.[0]?.fpVal).filter(v => v) || [];
+        if (spo2Values.length === 0) return null;
+        const avgSpO2 = spo2Values.reduce((a, b) => a + b, 0) / spo2Values.length;
+        return Math.round(avgSpO2 * 10) / 10; // Percentuale con 1 decimale
     }
 
     /**
