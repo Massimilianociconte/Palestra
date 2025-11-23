@@ -185,8 +185,23 @@ class HealthConnectService {
             const errorText = await response.text();
             console.error(`Google Fit API error for ${dataType}:`, response.status, errorText);
             
-            // Se 403, potrebbe essere un problema di permessi o token scaduto
+            // Se 403, verifica se è un problema di permessi o token scaduto
             if (response.status === 403) {
+                // Prova a parsare l'errore per capire il tipo
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    const errorMessage = errorJson.error?.message || '';
+                    
+                    // Se è un errore di permessi (dato non disponibile), non fare retry
+                    if (errorMessage.includes('Cannot read data of type') || errorMessage.includes('PERMISSION_DENIED')) {
+                        console.warn(`Data type ${dataType} not available or not authorized`);
+                        throw new Error(`Data type not available: ${dataType}`);
+                    }
+                } catch (parseError) {
+                    // Se non riusciamo a parsare, proviamo il refresh
+                }
+                
+                // Altrimenti, potrebbe essere un token scaduto - prova il refresh
                 console.log('403 error - attempting token refresh');
                 try {
                     await this.refreshAccessToken();
@@ -266,7 +281,14 @@ class HealthConnectService {
             [steps, heartRate, weight, calories, distance, sleep].forEach((result, idx) => {
                 if (result.status === 'rejected') {
                     const names = ['steps', 'heartRate', 'weight', 'calories', 'distance', 'sleep'];
-                    console.error(`Failed to fetch ${names[idx]}:`, result.reason);
+                    const errorMsg = result.reason?.message || result.reason;
+                    
+                    // Distingui tra dato non disponibile e errore reale
+                    if (errorMsg.includes('Data type not available')) {
+                        console.warn(`⚠️ ${names[idx]}: dato non disponibile (normale se non hai questo tipo di dato)`);
+                    } else {
+                        console.error(`❌ Failed to fetch ${names[idx]}:`, result.reason);
+                    }
                 }
             });
             
