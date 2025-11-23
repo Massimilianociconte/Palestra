@@ -322,6 +322,57 @@ class HealthTOONEncoder {
         
         return `${typeName}: ${value} ${unit}`;
     }
+
+    /**
+     * Decodifica un record health da Firestore (con stringhe TOON) in oggetto semplice
+     * @param {object} healthRecord - Record da Firestore con stringhe TOON
+     * @returns {object} Oggetto con valori decodificati
+     */
+    decodeHealthData(healthRecord) {
+        const decoded = {
+            steps: null,
+            heartRate: null,
+            weight: null,
+            sleep: null,
+            calories: null,
+            distance: null,
+            activeMinutes: null,
+            syncTimestamp: healthRecord.syncTimestamp || null,
+            source: healthRecord.source || null
+        };
+
+        // Decodifica ogni campo TOON se presente
+        if (healthRecord.steps && this.isValidTOON(healthRecord.steps)) {
+            decoded.steps = this.decode(healthRecord.steps).value;
+        }
+
+        if (healthRecord.heartRate && this.isValidTOON(healthRecord.heartRate)) {
+            decoded.heartRate = this.decode(healthRecord.heartRate).value;
+        }
+
+        if (healthRecord.weight && this.isValidTOON(healthRecord.weight)) {
+            decoded.weight = this.decode(healthRecord.weight).value;
+        }
+
+        if (healthRecord.sleep && this.isValidTOON(healthRecord.sleep)) {
+            decoded.sleep = this.decode(healthRecord.sleep).value;
+        }
+
+        if (healthRecord.calories && this.isValidTOON(healthRecord.calories)) {
+            decoded.calories = this.decode(healthRecord.calories).value;
+        }
+
+        if (healthRecord.distance && this.isValidTOON(healthRecord.distance)) {
+            // Distance è salvata in km nel TOON, convertiamo in metri per consistenza
+            decoded.distance = this.decode(healthRecord.distance).value * 1000;
+        }
+
+        if (healthRecord.activeMinutes && this.isValidTOON(healthRecord.activeMinutes)) {
+            decoded.activeMinutes = this.decode(healthRecord.activeMinutes).value;
+        }
+
+        return decoded;
+    }
 }
 
 // Export singleton

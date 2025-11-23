@@ -120,6 +120,123 @@
             color: var(--color-text-main);
             border-radius: 4px;
         }
+
+        /* Health Data Cards */
+        .health-card {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.05) 0%, rgba(0,0,0,0.3) 100%);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .health-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--color-primary);
+            box-shadow: 0 8px 24px rgba(0, 243, 255, 0.15);
+        }
+
+        .health-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-primary), transparent);
+        }
+
+        .health-card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .health-card-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .health-card-value {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .health-card-unit {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            font-weight: 400;
+        }
+
+        .health-card-trend {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .health-card-trend.positive {
+            color: #10b981;
+        }
+
+        .health-card-trend.negative {
+            color: #ef4444;
+        }
+
+        .health-card.unavailable {
+            opacity: 0.5;
+            background: rgba(255,255,255,0.02);
+            border-color: var(--color-border);
+        }
+
+        .health-card.unavailable:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spinning {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .health-card {
+                padding: 1rem;
+            }
+            
+            .health-card-value {
+                font-size: 2rem;
+            }
+        }
     </style>
 </head>
 
@@ -146,6 +263,39 @@
                 <div class="container">
                     <h1 style="margin-bottom: var(--spacing-md);">Misure & <span class="text-primary">Progressi</span>
                     </h1>
+
+                    <!-- Google Fit Health Data Section -->
+                    <div id="healthDataSection" style="margin-bottom: 3rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h2 style="margin: 0;">Dati <span class="text-primary">Salute</span></h2>
+                                <p style="font-size: 0.85rem; color: var(--color-text-muted); margin: 0.25rem 0 0;">
+                                    Sincronizzati da Google Fit
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <span id="healthSyncStatus" style="font-size: 0.8rem; color: var(--color-text-muted);"></span>
+                                <button id="refreshHealthData" class="btn btn-outline btn-sm">
+                                    <span id="refreshIcon">🔄</span> Aggiorna
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Health Stats Grid -->
+                        <div id="healthStatsGrid" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                            <!-- Dynamic health cards -->
+                        </div>
+
+                        <!-- Not Connected Message -->
+                        <div id="healthNotConnected" style="display: none; text-align: center; padding: 3rem 1rem; background: rgba(255,255,255,0.02); border: 1px dashed var(--color-border); border-radius: var(--radius-md);">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🏥</div>
+                            <h3 style="margin-bottom: 0.5rem;">Connetti Google Fit</h3>
+                            <p style="color: var(--color-text-muted); margin-bottom: 1.5rem;">
+                                Sincronizza i tuoi dati fitness per un monitoraggio completo
+                            </p>
+                            <a href="user.html" class="btn btn-primary">Vai alle Impostazioni</a>
+                        </div>
+                    </div>
 
                     <!-- Chart Section -->
                     <div class="chart-container">
@@ -298,6 +448,8 @@
             <script type="module">
                 import { firestoreService } from './js/firestore-service.js';
                 import { authService } from './js/auth-service.js';
+                import { healthConnectService } from './js/health-connect-service.js';
+                import { healthTOONEncoder } from './js/health-toon-encoder.js';
 
                 document.addEventListener('DOMContentLoaded', () => {
                     // --- Elements ---
@@ -314,9 +466,17 @@
                     const photoGallery = document.getElementById('photoGallery');
                     const uploadStatus = document.getElementById('uploadStatus');
 
+                    // --- Health Data Elements ---
+                    const healthStatsGrid = document.getElementById('healthStatsGrid');
+                    const healthNotConnected = document.getElementById('healthNotConnected');
+                    const healthSyncStatus = document.getElementById('healthSyncStatus');
+                    const refreshHealthData = document.getElementById('refreshHealthData');
+                    const refreshIcon = document.getElementById('refreshIcon');
+
                     // --- State ---
                     let bodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
                     let photos = JSON.parse(localStorage.getItem('ironflow_photos') || '[]');
+                    let healthData = null;
 
                     // Initialize Services (UnitService is global, Firestore is module)
                     let unitService;
@@ -384,6 +544,199 @@
                         });
                     }
 
+                    // --- Health Data Functions ---
+                    async function loadHealthData() {
+                        try {
+                            // Check if connected
+                            const status = await healthConnectService.getStatus();
+                            
+                            if (!status.isConnected || !status.tokenValid) {
+                                healthStatsGrid.style.display = 'none';
+                                healthNotConnected.style.display = 'block';
+                                healthSyncStatus.textContent = '';
+                                return;
+                            }
+
+                            healthStatsGrid.style.display = 'grid';
+                            healthNotConnected.style.display = 'none';
+
+                            // Load health data from Firestore (last 7 days)
+                            const healthRecords = await firestoreService.getHealthData(7);
+                            
+                            if (!healthRecords || healthRecords.length === 0) {
+                                renderHealthCards(null);
+                                healthSyncStatus.textContent = 'Nessun dato disponibile';
+                                return;
+                            }
+
+                            // Get the most recent record
+                            const latestRecord = healthRecords[0];
+                            
+                            // Decode TOON data
+                            healthData = healthTOONEncoder.decodeHealthData(latestRecord);
+                            
+                            // Calculate trends (compare with previous record if available)
+                            let trends = {};
+                            if (healthRecords.length > 1) {
+                                const previousRecord = healthRecords[1];
+                                const previousData = healthTOONEncoder.decodeHealthData(previousRecord);
+                                trends = calculateTrends(healthData, previousData);
+                            }
+
+                            renderHealthCards(healthData, trends);
+                            
+                            // Update sync status
+                            if (latestRecord.syncTimestamp) {
+                                const syncDate = new Date(latestRecord.syncTimestamp);
+                                const now = new Date();
+                                const diffMinutes = Math.floor((now - syncDate) / 1000 / 60);
+                                
+                                if (diffMinutes < 1) {
+                                    healthSyncStatus.textContent = 'Aggiornato ora';
+                                } else if (diffMinutes < 60) {
+                                    healthSyncStatus.textContent = `Aggiornato ${diffMinutes}m fa`;
+                                } else {
+                                    const diffHours = Math.floor(diffMinutes / 60);
+                                    healthSyncStatus.textContent = `Aggiornato ${diffHours}h fa`;
+                                }
+                            }
+
+                        } catch (error) {
+                            console.error('Error loading health data:', error);
+                            healthSyncStatus.textContent = 'Errore caricamento dati';
+                        }
+                    }
+
+                    function calculateTrends(current, previous) {
+                        const trends = {};
+                        
+                        const metrics = ['steps', 'heartRate', 'weight', 'calories', 'distance', 'sleep'];
+                        
+                        metrics.forEach(metric => {
+                            if (current[metric] !== null && previous[metric] !== null) {
+                                const diff = current[metric] - previous[metric];
+                                const percentChange = (diff / previous[metric]) * 100;
+                                trends[metric] = {
+                                    diff: diff,
+                                    percent: percentChange,
+                                    direction: diff > 0 ? 'up' : diff < 0 ? 'down' : 'same'
+                                };
+                            }
+                        });
+                        
+                        return trends;
+                    }
+
+                    function renderHealthCards(data, trends = {}) {
+                        const cards = [
+                            {
+                                icon: '👟',
+                                label: 'Passi',
+                                value: data?.steps,
+                                unit: 'passi',
+                                format: (v) => v?.toLocaleString('it-IT'),
+                                trend: trends.steps
+                            },
+                            {
+                                icon: '❤️',
+                                label: 'Frequenza Cardiaca',
+                                value: data?.heartRate,
+                                unit: 'bpm',
+                                format: (v) => v,
+                                trend: trends.heartRate
+                            },
+                            {
+                                icon: '⚖️',
+                                label: 'Peso',
+                                value: data?.weight,
+                                unit: 'kg',
+                                format: (v) => v?.toFixed(1),
+                                trend: trends.weight
+                            },
+                            {
+                                icon: '🔥',
+                                label: 'Calorie',
+                                value: data?.calories,
+                                unit: 'kcal',
+                                format: (v) => v?.toLocaleString('it-IT'),
+                                trend: trends.calories
+                            },
+                            {
+                                icon: '📏',
+                                label: 'Distanza',
+                                value: data?.distance ? data.distance / 1000 : null, // Convert meters to km
+                                unit: 'km',
+                                format: (v) => v?.toFixed(2),
+                                trend: trends.distance
+                            },
+                            {
+                                icon: '😴',
+                                label: 'Sonno',
+                                value: data?.sleep,
+                                unit: 'ore',
+                                format: (v) => v?.toFixed(1),
+                                trend: trends.sleep
+                            }
+                        ];
+
+                        healthStatsGrid.innerHTML = cards.map(card => {
+                            const isAvailable = card.value !== null && card.value !== undefined;
+                            const displayValue = isAvailable ? card.format(card.value) : '-';
+                            const unavailableClass = !isAvailable ? 'unavailable' : '';
+                            
+                            let trendHtml = '';
+                            if (isAvailable && card.trend) {
+                                const trendClass = card.trend.direction === 'up' ? 'positive' : 
+                                                  card.trend.direction === 'down' ? 'negative' : '';
+                                const trendIcon = card.trend.direction === 'up' ? '↑' : 
+                                                 card.trend.direction === 'down' ? '↓' : '→';
+                                const trendText = Math.abs(card.trend.percent).toFixed(1);
+                                trendHtml = `<div class="health-card-trend ${trendClass}">
+                                    ${trendIcon} ${trendText}% vs precedente
+                                </div>`;
+                            }
+
+                            return `
+                                <div class="health-card ${unavailableClass}">
+                                    <span class="health-card-icon">${card.icon}</span>
+                                    <div class="health-card-label">${card.label}</div>
+                                    <div class="health-card-value">
+                                        ${displayValue}
+                                        <span class="health-card-unit">${isAvailable ? card.unit : ''}</span>
+                                    </div>
+                                    ${trendHtml}
+                                    ${!isAvailable ? '<div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.5rem;">Non disponibile</div>' : ''}
+                                </div>
+                            `;
+                        }).join('');
+                    }
+
+                    // Refresh health data button
+                    if (refreshHealthData) {
+                        refreshHealthData.addEventListener('click', async () => {
+                            try {
+                                refreshIcon.classList.add('spinning');
+                                refreshHealthData.disabled = true;
+                                healthSyncStatus.textContent = 'Sincronizzazione...';
+
+                                const result = await healthConnectService.syncAllData();
+                                
+                                if (result.success) {
+                                    await loadHealthData();
+                                    healthSyncStatus.textContent = 'Aggiornato ora';
+                                } else {
+                                    healthSyncStatus.textContent = 'Errore sincronizzazione';
+                                }
+                            } catch (error) {
+                                console.error('Error refreshing health data:', error);
+                                healthSyncStatus.textContent = 'Errore';
+                            } finally {
+                                refreshIcon.classList.remove('spinning');
+                                refreshHealthData.disabled = false;
+                            }
+                        });
+                    }
+
                     // Load Data from Cloud on Init
                     async function loadData() {
                          loadParams(); // Load local params immediately
@@ -405,7 +758,10 @@
                     
                     // Auth Listener to trigger load
                     authService.subscribe(user => {
-                        if(user) loadData();
+                        if(user) {
+                            loadData();
+                            loadHealthData();
+                        }
                     });
 
 
