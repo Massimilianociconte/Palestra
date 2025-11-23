@@ -1,3 +1,6 @@
+// Carica variabili d'ambiente dal file .env
+require('dotenv').config();
+
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { google } = require('googleapis');
