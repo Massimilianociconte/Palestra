@@ -246,6 +246,29 @@ const buildHeuristicSummary = (metrics = []) => {
     return `${positiveText}. ${negativeText}. Continua a registrare i dati per un monitoraggio più preciso.`;
 };
 
+const TREND_HISTORY_KEY = 'ironflow_trend_history';
+const MAX_HISTORY_ENTRIES = 50;
+
+const saveTrendSnapshot = (snapshot) => {
+    try {
+        const history = JSON.parse(localStorage.getItem(TREND_HISTORY_KEY) || '[]');
+        history.unshift(snapshot);
+        const trimmed = history.slice(0, MAX_HISTORY_ENTRIES);
+        localStorage.setItem(TREND_HISTORY_KEY, JSON.stringify(trimmed));
+    } catch (error) {
+        console.error('Error saving trend snapshot:', error);
+    }
+};
+
+const getTrendHistory = () => {
+    try {
+        return JSON.parse(localStorage.getItem(TREND_HISTORY_KEY) || '[]');
+    } catch (error) {
+        console.error('Error loading trend history:', error);
+        return [];
+    }
+};
+
 export const trendEngine = {
     evaluate({ logs = [], bodyStats = [], profile = {}, unit = 'metric' }) {
         const { recent: recentLogs, previous: prevLogs } = bucketizeLogs(logs);
@@ -355,13 +378,57 @@ export const trendEngine = {
 
         const domsInsights = computeDomsInsights(logs);
 
-        return {
+        const result = {
             metrics,
             digest,
             generatedAt: new Date().toISOString(),
             domsHotspots: domsInsights.hotspots,
-            domsReportCount: domsInsights.totalReports
+            domsReportCount: domsInsights.totalReports,
+            dataSnapshot: {
+                totalLogs: logs.length,
+                recentLogsCount: recentLogs.length,
+                previousLogsCount: prevLogs.length,
+                bodyStatsCount: bodyStats.length
+            }
         };
+
+        // Save snapshot to history for long-term tracking
+        const snapshot = {
+            timestamp: new Date().toISOString(),
+            metrics: metrics.map(m => ({
+                id: m.id,
+                label: m.label,
+                current: m.current,
+                previous: m.previous,
+                status: m.status,
+                sentiment: m.sentiment,
+                delta: m.delta,
+                pct: m.pct
+            })),
+            domsHotspots: domsInsights.hotspots.slice(0, 5).map(h => ({
+                muscle: h.muscle,
+                label: h.label,
+                occurrences: h.occurrences,
+                avgIntensity: h.avgIntensity,
+                avgRecoveryDays: h.avgRecoveryDays
+            }))
+        };
+        saveTrendSnapshot(snapshot);
+
+        return result;
+    },
+
+    getHistory() {
+        return getTrendHistory();
+    },
+
+    getHistoricalTrends(daysBack = 90) {
+        const history = getTrendHistory();
+        const cutoff = Date.now() - (daysBack * DAY_MS);
+        return history.filter(entry => {
+            const ts = new Date(entry.timestamp).getTime();
+            return !Number.isNaN(ts) && ts >= cutoff;
+        });
     }
 };
 

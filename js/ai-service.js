@@ -126,6 +126,37 @@ export class AIService {
                 return { lift: k, ...v };
             });
             const toonPrs = this.encodeToTOON(prList, 'personalRecords');
+            
+            // Historical PRs for progression tracking
+            const historicalPrList = data.historicalPrs ? Object.entries(data.historicalPrs).map(([k, v]) => {
+                if (typeof v === 'number') return { lift: k, '1rm': v };
+                return { lift: k, ...v };
+            }) : [];
+            const toonHistoricalPrs = historicalPrList.length > 0 
+                ? this.encodeToTOON(historicalPrList, 'historicalPRs')
+                : 'historicalPRs[0]{}';
+            
+            // Progression/Regression data
+            const progressionList = data.progressionData ? Object.entries(data.progressionData).map(([lift, prog]) => ({
+                lift,
+                current: prog.current,
+                historical: prog.historical,
+                change: prog.change,
+                changePercent: prog.changePercent,
+                status: prog.status
+            })) : [];
+            const toonProgressions = progressionList.length > 0
+                ? this.encodeToTOON(progressionList, 'progressionRegression')
+                : 'progressionRegression[0]{}';
+            
+            // Body stats for weight trend
+            const toonBodyStats = data.bodyStats && data.bodyStats.length > 0
+                ? this.encodeToTOON(data.bodyStats.map(s => ({
+                    date: s.date || s.recordedAt,
+                    weight: s.weight,
+                    fat: s.fat || null
+                })), 'bodyStats')
+                : 'bodyStats[0]{}';
 
             const wellnessBlock = data.wellness ? `
 **Recovery & Wellness (scala 1-10)**
@@ -159,11 +190,20 @@ Il tuo compito è analizzare i dati di allenamento di un atleta forniti in forma
 - Grasso Corporeo: ${data.bodyStats.length > 0 && data.bodyStats[0].fat ? data.bodyStats[0].fat + '%' : 'N/D'}
 - Sessioni (Ultimi 30gg): ${data.recentWorkoutCount}
 
-**Massimali Stimati (1RM, 5RM, 10RM):**
+**Massimali Stimati Attuali (1RM, 3RM, 5RM):**
 ${toonPrs}
 
-**Log Allenamenti Recenti:**
+**Massimali Storici (60-90 giorni fa):**
+${toonHistoricalPrs}
+
+**Progressioni/Regressioni per Esercizio:**
+${toonProgressions}
+
+**Log Allenamenti Recenti (30 giorni):**
 ${toonLogs}
+
+**Storico Peso Corporeo:**
+${toonBodyStats}
 
 ${wellnessBlock}
 ${domsBlock}
@@ -183,17 +223,24 @@ Analizza i dati sopra e genera un report strutturato seguendo rigorosamente ques
 - Analizza il trend del volume (sta aumentando, stallando o diminuendo?).
 - Identifica se c'è un sovraccarico progressivo evidente nei log.
 
-**3. ANALISI STRUTTURALE & BILANCIAMENTO**
+**3. ANALISI PROGRESSIONI/REGRESSIONI**
+- Usa i dati \`progressionRegression\` per identificare quali esercizi stanno migliorando e quali stanno regredendo.
+- Confronta \`personalRecords\` con \`historicalPRs\` per vedere l'evoluzione a lungo termine.
+- Identifica pattern: ci sono esercizi in stallo da settimane? Ci sono regressioni preoccupanti?
+
+**4. ANALISI STRUTTURALE & BILANCIAMENTO**
 - Osserva i \`exercises\` (struttura workout) e i \`personalRecords\`.
 - C'è equilibrio tra catena cinetica anteriore (es. Squat, Bench) e posteriore (es. Deadlift, Row)?
 - I massimali sono proporzionati?
 
-**4. PIANO D'AZIONE (PROSSIME 4 SETTIMANE)**
-- Fornisci 3 direttive tecniche specifiche.
+**5. PIANO D'AZIONE (PROSSIME 4 SETTIMANE)**
+- Fornisci 3 direttive tecniche specifiche basate su progressioni/regressioni identificate.
 - Suggerisci una variazione di intensità o volume basata sui dati e sull'età/recupero atteso.
+- Se ci sono regressioni, proponi strategie di recupero o deload.
 
-**5. RECUPERO & DOMS LOCALIZZATI**
+**6. RECUPERO & DOMS LOCALIZZATI**
 - Usa la mappa DOMS e l'età dell'atleta per stimare la capacità di recupero reale.
+- Identifica se i DOMS persistenti stanno influenzando le performance (correlazione con regressioni).
 
 ---
 
@@ -244,13 +291,23 @@ Evidenzia sempre come modulare i carichi sui gruppi attualmente stressati da DOM
             const genAI = new GoogleGenerativeAI(this.apiKey);
             const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" }); 
 
-            const toonLogs = this.encodeToTOON(data.recentLogs.slice(0, 5), 'lastWorkouts'); // Only last 5 needed
+            const toonLogs = this.encodeToTOON(data.recentLogs.slice(0, 10), 'lastWorkouts'); // Last 10 for better pattern detection
             const domsGuidance = buildRecentDomsBlock(data?.domsInsights?.hotspots || []);
             
             // Include existing workouts in TOON format
             const existingWorkoutsTOON = data.existingWorkouts && data.existingWorkouts.length > 0 
                 ? this.encodeToTOON(data.existingWorkouts, 'existingWorkoutPlans')
                 : 'existingWorkoutPlans: []';
+            
+            // Include progression data to guide exercise selection
+            const progressionList = data.progressionData ? Object.entries(data.progressionData).map(([lift, prog]) => ({
+                lift,
+                status: prog.status,
+                changePercent: prog.changePercent
+            })) : [];
+            const toonProgressions = progressionList.length > 0
+                ? this.encodeToTOON(progressionList, 'recentProgressions')
+                : 'recentProgressions[0]{}';
 
             const prompt = `
 Come Personal Trainer esperto, analizza gli ultimi allenamenti di questo atleta e suggerisci l'allenamento per OGGI.
@@ -260,8 +317,11 @@ Obiettivo: Bilanciamento muscolare e recupero.
 (Queste sono le schede che l'utente ha già configurato. Se appropriato, suggerisci di usare o modificare una di queste, oppure fanne una nuova se nessuna è adatta.)
 ${existingWorkoutsTOON}
 
-**Ultimi Allenamenti Svolti:**
+**Ultimi Allenamenti Svolti (TOON Format):**
 ${toonLogs}
+
+**Progressioni/Regressioni Recenti (TOON Format):**
+${toonProgressions}
 
 **Segnalazioni DOMS recenti (<=4 giorni):**
 ${domsGuidance}
@@ -271,6 +331,8 @@ ${domsGuidance}
 - Altezza: ${data.profile.athleteParams?.height || 'N/D'} cm
 - Livello Attività: ${data.profile.athleteParams?.activity || 'N/D'}
 - Peso Corporeo: ${data.bodyStats && data.bodyStats.length > 0 ? data.bodyStats[0].weight + ' kg' : 'N/D'}
+- Obiettivo: ${data.profile.goal || data.profile.objective || 'N/D'}
+- Sessioni Totali (30gg): ${data.recentWorkoutCount || 0}
 
 **ANALISI STILE E STRUTTURA:**
 1. Identifica la "Split" o lo stile abituale dell'utente guardando gli ultimi workout (es. fa Push/Pull/Legs? Upper/Lower? Full Body? O split per gruppi muscolari singoli?).
@@ -278,7 +340,11 @@ ${domsGuidance}
 
 **COMPITO:**
 Suggerisci un allenamento per OGGI.
-IMPORTANTE: Cerca di mantenere una struttura simile a quella a cui l'atleta è abituato (es. se fa solitamente 6 esercizi, non proporne 3 a caso; se usa schede specifiche, cerca di rimanere in quel solco), A MENO CHE non sia esplicitamente necessario cambiare per motivi di recupero o stallo.
+IMPORTANTE: 
+1. Cerca di mantenere una struttura simile a quella a cui l'atleta è abituato (es. se fa solitamente 6 esercizi, non proporne 3 a caso; se usa schede specifiche, cerca di rimanere in quel solco), A MENO CHE non sia esplicitamente necessario cambiare per motivi di recupero o stallo.
+2. Usa i dati \`recentProgressions\` per prioritizzare esercizi in progressione e variare/deload quelli in regressione.
+3. Evita gruppi muscolari con DOMS elevati (>7/10) negli ultimi 2 giorni.
+4. Se l'atleta ha un obiettivo specifico (bulk/cut/strength), adatta volume e intensità di conseguenza.
 
 Rispondi in formato JSON (senza markdown, solo JSON puro):
 {
@@ -307,6 +373,15 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
             const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" }); 
 
             const domsHotspots = payload?.domsHotspots || [];
+            
+            // Convert metrics to TOON format for token efficiency
+            const toonMetrics = this.encodeToTOON(payload.metrics, 'trendMetrics');
+            const toonDomsHotspots = this.encodeToTOON(domsHotspots, 'domsHotspots');
+            
+            // Include historical trend data if available
+            const toonHistoricalTrends = payload.historicalTrends 
+                ? this.encodeToTOON(payload.historicalTrends, 'historicalTrends')
+                : 'historicalTrends: []';
 
             const prompt = `
 Sei un Performance Coach di alto livello. Analizza le metriche qui sotto e genera un resoconto **solo in HTML valido** (niente Markdown, niente tag <html>/<body>). Usa esclusivamente questa struttura:
@@ -328,23 +403,27 @@ Sei un Performance Coach di alto livello. Analizza le metriche qui sotto e gener
   </ol>
 </div>
 
-Metriche JSON:
-${JSON.stringify(payload.metrics, null, 2)}
+**Metriche Trend Bisettimanali (TOON Format):**
+${toonMetrics}
 
-Profilo atleta:
-${JSON.stringify(payload.profile || {})}
+**Profilo Atleta:**
+Nome: ${payload.profile?.name || 'Atleta'}
+Età: ${payload.profile?.athleteParams?.age || 'N/D'}
+Altezza: ${payload.profile?.athleteParams?.height || 'N/D'} cm
+Peso: ${payload.profile?.athleteParams?.weight || 'N/D'} kg
+Livello: ${payload.profile?.athleteParams?.activity || 'N/D'}
+Obiettivo: ${payload.profile?.goal || payload.profile?.objective || 'N/D'}
 
-**Parametri Biometrici Atleta:**
-Età: ${payload.profile.athleteParams?.age || 'N/D'}
-Altezza: ${payload.profile.athleteParams?.height || 'N/D'} cm
-Livello: ${payload.profile.athleteParams?.activity || 'N/D'}
+**DOMS Hotspots (TOON Format):**
+${toonDomsHotspots}
 
-DOMS Hotspot JSON (usa questi dati per contestualizzare recupero e rischi specifici):
-${JSON.stringify(domsHotspots, null, 2)}
+**Storico Trend (TOON Format):**
+${toonHistoricalTrends}
 
 - Tono: professionale, motivante, conciso.
 - Se una sezione non ha punti rilevanti, scrivi "Nessun dato significativo" ma mantieni comunque la struttura.
 - Nella sezione "Rischi / Regressioni" cita eventuali distretti con DOMS persistenti e, se serve, richiamali anche nel focus dei prossimi 7 giorni.
+- Usa lo storico trend per identificare pattern a lungo termine (es. stallo prolungato, regressioni ricorrenti).
 `;
             const result = await model.generateContent(prompt);
             const text = result.response.text();

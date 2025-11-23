@@ -227,12 +227,23 @@ export class FirestoreService {
             const localBodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
             const localProfile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
 
-            // Filter last 30 days logs
+            // Filter last 30 days logs for recent analysis
             const now = new Date();
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(now.getDate() - 30);
 
             const recentLogs = localLogs.filter(log => new Date(log.date) >= thirtyDaysAgo);
+            
+            // Also get 60-90 days ago for progression/regression tracking
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(now.getDate() - 90);
+            const sixtyDaysAgo = new Date();
+            sixtyDaysAgo.setDate(now.getDate() - 60);
+            
+            const historicalLogs = localLogs.filter(log => {
+                const logDate = new Date(log.date);
+                return logDate >= ninetyDaysAgo && logDate < sixtyDaysAgo;
+            });
 
             // Calculate PRs locally to save tokens
             // Formula: Hybrid (Epley + Brzycki + Lombardi) average for stability
@@ -324,13 +335,60 @@ export class FirestoreService {
                     rpe: ex.rpe || 'N/D'
                 }))
             }));
+            
+            // Calculate historical PRs for progression/regression tracking
+            const historicalPrs = {};
+            historicalLogs.forEach(log => {
+                if (!log.exercises) return;
+                log.exercises.forEach(ex => {
+                    const name = ex.name.toLowerCase();
+                    ex.sets.forEach(set => {
+                        const w = parseFloat(set.weight);
+                        const r = parseFloat(set.reps);
+                        if (w > 0 && r > 0) {
+                            const oneRM = estimateOneRM(w, r);
+                            if (!historicalPrs[name] || oneRM > historicalPrs[name]['1rm']) {
+                                historicalPrs[name] = {
+                                    '1rm': Math.round(oneRM),
+                                    '3rm': Math.round(oneRM * 0.93),
+                                    '5rm': Math.round(oneRM * 0.87)
+                                };
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Calculate progression/regression for each lift
+            const progressionData = {};
+            Object.keys(topPrs).forEach(lift => {
+                const current = topPrs[lift]['1rm'];
+                const historical = historicalPrs[lift]?.['1rm'] || 0;
+                if (historical > 0) {
+                    const change = current - historical;
+                    const changePercent = ((change / historical) * 100).toFixed(1);
+                    progressionData[lift] = {
+                        current: current,
+                        historical: historical,
+                        change: change,
+                        changePercent: parseFloat(changePercent),
+                        status: change > 0 ? 'progressing' : change < 0 ? 'regressing' : 'stable'
+                    };
+                }
+            });
 
             return {
                 profile: localProfile,
-                bodyStats: localBodyStats.slice(0, 3), // Last 3 weigh-ins
+                bodyStats: localBodyStats.slice(0, 5), // Last 5 weigh-ins for trend
                 recentLogs: simplifiedLogs,
                 recentWorkoutCount: recentLogs.length,
+                historicalWorkoutCount: historicalLogs.length,
                 prs: topPrs,
+                historicalPrs: Object.entries(historicalPrs)
+                    .sort(([,a], [,b]) => b['1rm'] - a['1rm'])
+                    .slice(0, 10)
+                    .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {}),
+                progressionData: progressionData,
                 wellness: wellnessSummary,
                 domsInsights,
                 existingWorkouts

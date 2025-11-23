@@ -655,10 +655,16 @@
                     const statusColor = metric.status === 'improving' ? '#00ffb3'
                         : metric.status === 'declining' ? '#ff6b6b'
                             : '#ccc';
+                    
+                    // Format current value with proper unit
+                    const formattedValue = metric.formatter 
+                        ? metric.formatter(metric.current, { unit: unitServiceAvailable && unitService.getSystem() === 'imperial' ? 'imperial' : 'metric', profile })
+                        : metric.current.toFixed(1);
+                    
                     row.innerHTML = `
                         <div>
                             <strong>${metric.label}</strong>
-                            <div style="font-size:0.8rem; color: var(--color-text-muted);">${metric.summary}</div>
+                            <div style="font-size:0.8rem; color: var(--color-text-muted);">${formattedValue} ${metric.summary}</div>
                         </div>
                         <span style="color:${statusColor}; font-weight:600;">${metric.status === 'improving' ? '↑' : metric.status === 'declining' ? '↓' : '→'}</span>
                     `;
@@ -666,6 +672,27 @@
                 });
             };
             renderTrendMetrics();
+            
+            // Auto-refresh trend metrics when data changes
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'ironflow_logs' || event.key === 'ironflow_body_stats') {
+                    const newLogs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                    const newBodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
+                    const newProfile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+                    
+                    const newTrendResult = trendEngine.evaluate({
+                        logs: newLogs,
+                        bodyStats: newBodyStats,
+                        profile: newProfile,
+                        unit: unitServiceAvailable && unitService.getSystem() === 'imperial' ? 'imperial' : 'metric'
+                    });
+                    
+                    // Update global trendResult
+                    Object.assign(trendResult, newTrendResult);
+                    renderTrendMetrics();
+                    renderDomsHotspots();
+                }
+            });
 
             const renderDomsHotspots = () => {
                 if (!domsHotspotList) return;
@@ -756,11 +783,22 @@
                 let usedAI = false;
 
                 if (aiService.hasKey()) {
+                    // Get historical trends for long-term analysis
+                    const historicalTrends = trendEngine.getHistoricalTrends(90);
+                    
                     const response = await aiService.generateTrendDigest({
                         metrics: trendResult.metrics,
                         profile,
                         generatedAt: trendResult.generatedAt,
-                        domsHotspots: trendResult.domsHotspots
+                        domsHotspots: trendResult.domsHotspots,
+                        historicalTrends: historicalTrends.map(h => ({
+                            date: h.timestamp,
+                            metrics: h.metrics.map(m => ({
+                                id: m.id,
+                                value: m.current,
+                                status: m.status
+                            }))
+                        }))
                     });
                     if (response.success) {
                         summaryHTML = normalizeAiHtml(response.text);

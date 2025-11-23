@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test TOON Implementation</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #0a0a0a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .test-title {
+            color: #00ffff;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .success {
+            color: #00ff00;
+        }
+        .error {
+            color: #ff0000;
+        }
+        .warning {
+            color: #ffaa00;
+        }
+        pre {
+            background: #000;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test TOON Implementation & Trend Monitor</h1>
+    
+    <div class="test-section">
+        <div class="test-title">1. Test Formato TOON</div>
+        <button id="btn-test-toon">Esegui Test TOON</button>
+        <div id="toon-result"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">2. Test Trend Monitor Persistenza</div>
+        <button id="btn-test-trend">Esegui Test Persistenza</button>
+        <div id="trend-result"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">3. Test Dati Storici</div>
+        <button id="btn-test-historical">Esegui Test Dati Storici</button>
+        <div id="historical-result"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">4. Test Progressioni/Regressioni</div>
+        <button id="btn-test-progressions">Esegui Test Progressioni</button>
+        <div id="progression-result"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">5. Test Auto-Refresh</div>
+        <button id="btn-test-refresh">Esegui Test Auto-Refresh</button>
+        <div id="refresh-result"></div>
+    </div>
+
+    <script type="module">
+        import { aiService } from './js/ai-service.js';
+        import { trendEngine } from './js/trend-engine.js';
+        import { firestoreService } from './js/firestore-service.js';
+
+        // Test 1: TOON Format
+        const testTOONFormat = () => {
+            const result = document.getElementById('toon-result');
+            result.innerHTML = '<p class="warning">Testing...</p>';
+
+            try {
+                const testData = [
+                    { date: '2025-11-20', volume: 5000, exercises: 'Panca,Squat' },
+                    { date: '2025-11-18', volume: 4800, exercises: 'Stacco,Row' }
+                ];
+
+                const toonOutput = aiService.encodeToTOON(testData, 'testWorkouts');
+                
+                const jsonSize = JSON.stringify(testData).length;
+                const toonSize = toonOutput.length;
+                const savings = ((jsonSize - toonSize) / jsonSize * 100).toFixed(1);
+
+                result.innerHTML = `
+                    <p class="success">✅ Test TOON Format: PASSED</p>
+                    <p>JSON Size: ${jsonSize} chars</p>
+                    <p>TOON Size: ${toonSize} chars</p>
+                    <p>Risparmio: ${savings}%</p>
+                    <pre>${toonOutput}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Test FAILED: ${error.message}</p>`;
+            }
+        };
+
+        // Test 2: Trend Persistence
+        const testTrendPersistence = () => {
+            const result = document.getElementById('trend-result');
+            result.innerHTML = '<p class="warning">Testing...</p>';
+
+            try {
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                const bodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
+                const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+
+                // Run evaluation
+                const trendResult = trendEngine.evaluate({ logs, bodyStats, profile });
+
+                // Check if snapshot was saved
+                const history = trendEngine.getHistory();
+                const latestSnapshot = history[0];
+
+                if (!latestSnapshot) {
+                    throw new Error('Nessuno snapshot salvato');
+                }
+
+                result.innerHTML = `
+                    <p class="success">✅ Test Persistenza: PASSED</p>
+                    <p>Snapshot salvati: ${history.length}</p>
+                    <p>Ultimo snapshot: ${new Date(latestSnapshot.timestamp).toLocaleString('it-IT')}</p>
+                    <p>Metriche tracciate: ${latestSnapshot.metrics.length}</p>
+                    <p>DOMS hotspots: ${latestSnapshot.domsHotspots.length}</p>
+                    <pre>${JSON.stringify(latestSnapshot, null, 2).substring(0, 500)}...</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Test FAILED: ${error.message}</p>`;
+            }
+        };
+
+        // Test 3: Historical Data
+        const testHistoricalData = async () => {
+            const result = document.getElementById('historical-result');
+            result.innerHTML = '<p class="warning">Testing...</p>';
+
+            try {
+                const data = await firestoreService.gatherDataForAI();
+
+                if (!data) {
+                    throw new Error('Nessun dato raccolto');
+                }
+
+                const hasHistorical = data.historicalPrs && Object.keys(data.historicalPrs).length > 0;
+                const hasProgressions = data.progressionData && Object.keys(data.progressionData).length > 0;
+
+                result.innerHTML = `
+                    <p class="${hasHistorical && hasProgressions ? 'success' : 'warning'}">
+                        ${hasHistorical && hasProgressions ? '✅' : '⚠️'} Test Dati Storici: ${hasHistorical && hasProgressions ? 'PASSED' : 'PARTIAL'}
+                    </p>
+                    <p>Logs recenti: ${data.recentLogs.length}</p>
+                    <p>Logs storici disponibili: ${data.historicalWorkoutCount || 0}</p>
+                    <p>PRs attuali: ${Object.keys(data.prs).length}</p>
+                    <p>PRs storici: ${Object.keys(data.historicalPrs || {}).length}</p>
+                    <p>Progressioni tracciate: ${Object.keys(data.progressionData || {}).length}</p>
+                    ${hasProgressions ? `<pre>${JSON.stringify(data.progressionData, null, 2).substring(0, 500)}...</pre>` : ''}
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Test FAILED: ${error.message}</p>`;
+            }
+        };
+
+        // Test 4: Progressions/Regressions
+        const testProgressions = async () => {
+            const result = document.getElementById('progression-result');
+            result.innerHTML = '<p class="warning">Testing...</p>';
+
+            try {
+                const data = await firestoreService.gatherDataForAI();
+
+                if (!data.progressionData || Object.keys(data.progressionData).length === 0) {
+                    result.innerHTML = `<p class="warning">⚠️ Nessuna progressione disponibile (servono dati storici 60-90 giorni fa)</p>`;
+                    return;
+                }
+
+                const progressions = Object.entries(data.progressionData);
+                const progressing = progressions.filter(([, p]) => p.status === 'progressing');
+                const regressing = progressions.filter(([, p]) => p.status === 'regressing');
+                const stable = progressions.filter(([, p]) => p.status === 'stable');
+
+                let html = `
+                    <p class="success">✅ Test Progressioni: PASSED</p>
+                    <p>Totale esercizi tracciati: ${progressions.length}</p>
+                    <p class="success">In progressione: ${progressing.length}</p>
+                    <p class="error">In regressione: ${regressing.length}</p>
+                    <p>Stabili: ${stable.length}</p>
+                    <br>
+                `;
+
+                if (progressing.length > 0) {
+                    html += '<p><strong>Top Progressioni:</strong></p><ul>';
+                    progressing.slice(0, 3).forEach(([lift, prog]) => {
+                        html += `<li class="success">${lift}: ${prog.historical}kg → ${prog.current}kg (+${prog.changePercent}%)</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                if (regressing.length > 0) {
+                    html += '<p><strong>Regressioni:</strong></p><ul>';
+                    regressing.slice(0, 3).forEach(([lift, prog]) => {
+                        html += `<li class="error">${lift}: ${prog.historical}kg → ${prog.current}kg (${prog.changePercent}%)</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                result.innerHTML = html;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Test FAILED: ${error.message}</p>`;
+            }
+        };
+
+        // Test 5: Auto-Refresh
+        const testAutoRefresh = () => {
+            const result = document.getElementById('refresh-result');
+            result.innerHTML = '<p class="warning">Testing auto-refresh...</p>';
+
+            try {
+                // Simulate storage change
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                
+                // Add a test log
+                const testLog = {
+                    id: Date.now(),
+                    workoutName: 'Test Workout',
+                    date: new Date().toISOString(),
+                    duration: '60 min',
+                    totalVolume: 5000,
+                    exercises: [
+                        {
+                            name: 'Test Exercise',
+                            sets: [
+                                { weight: 100, reps: 10 }
+                            ]
+                        }
+                    ]
+                };
+
+                logs.unshift(testLog);
+                localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+
+                // Trigger storage event
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'ironflow_logs',
+                    newValue: JSON.stringify(logs)
+                }));
+
+                // Wait a bit and check if trend was updated
+                setTimeout(() => {
+                    const history = trendEngine.getHistory();
+                    const latestSnapshot = history[0];
+                    const timestamp = new Date(latestSnapshot.timestamp).getTime();
+                    const now = Date.now();
+                    const isRecent = (now - timestamp) < 5000; // Within 5 seconds
+
+                    // Remove test log
+                    logs.shift();
+                    localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+
+                    result.innerHTML = `
+                        <p class="${isRecent ? 'success' : 'warning'}">
+                            ${isRecent ? '✅' : '⚠️'} Test Auto-Refresh: ${isRecent ? 'PASSED' : 'PARTIAL'}
+                        </p>
+                        <p>Ultimo snapshot: ${new Date(timestamp).toLocaleString('it-IT')}</p>
+                        <p>Differenza: ${Math.round((now - timestamp) / 1000)}s fa</p>
+                        <p>${isRecent ? 'Il trend monitor si aggiorna automaticamente!' : 'Potrebbe esserci un ritardo nell\'aggiornamento'}</p>
+                    `;
+                }, 1000);
+
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Test FAILED: ${error.message}</p>`;
+            }
+        };
+
+        // Attach event listeners to buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 Test suite ready. Click buttons to run tests.');
+            
+            document.getElementById('btn-test-toon').addEventListener('click', testTOONFormat);
+            document.getElementById('btn-test-trend').addEventListener('click', testTrendPersistence);
+            document.getElementById('btn-test-historical').addEventListener('click', testHistoricalData);
+            document.getElementById('btn-test-progressions').addEventListener('click', testProgressions);
+            document.getElementById('btn-test-refresh').addEventListener('click', testAutoRefresh);
+        });
+    </script>
+</body>
+</html>
