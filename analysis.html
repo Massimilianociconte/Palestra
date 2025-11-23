@@ -196,6 +196,9 @@
                     <div id="aiResponseContent" class="markdown-content" style="max-width: 100%; overflow-x: hidden; word-wrap: break-word;">
                         <!-- Content goes here -->
                     </div>
+                    <button id="exportAiReportBtn" class="btn btn-outline" style="margin-top: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span>📤</span> Esporta Report
+                    </button>
                 </div>
             </div>
 
@@ -526,6 +529,9 @@
             <h3 style="margin-bottom:0.5rem; font-size:clamp(1rem, 4.5vw, 1.3rem); padding-right:40px; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">Resoconto <span class="text-primary">AI</span></h3>
             <small id="trendSummaryMeta" style="color: var(--color-text-muted); font-size:clamp(0.75rem, 2.8vw, 0.85rem); word-wrap:break-word; display:block; max-width:100%;"></small>
             <div id="trendSummaryContent" class="ai-summary" style="margin-top:1rem; line-height:1.6; max-width:100%; overflow-x:hidden; word-wrap:break-word;"></div>
+            <button id="exportTrendSummaryBtn" class="btn btn-outline" style="margin-top: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span>📤</span> Esporta Resoconto
+            </button>
         </div>
     </div>
 
@@ -545,6 +551,7 @@
         import { aiService } from './js/ai-service.js';
         import { heatmapService } from './js/heatmap-service.js';
         import { trendEngine } from './js/trend-engine.js';
+        import { exportService } from './js/export-service.js';
 
         // Mark services as available globally for mixed context if needed, though module scope is safer
 
@@ -772,6 +779,28 @@
                     pre.style.overflowX = 'auto';
                     pre.style.whiteSpace = 'pre-wrap';
                     pre.style.wordBreak = 'break-all';
+                });
+            }
+
+            // Export AI Report Button
+            const exportAiReportBtn = document.getElementById('exportAiReportBtn');
+            if (exportAiReportBtn) {
+                exportAiReportBtn.addEventListener('click', () => {
+                    const content = aiContent.innerHTML;
+                    if (content && content.trim() !== '') {
+                        exportService.showExportMenu(content, 'IronFlow - Coach AI Report');
+                    }
+                });
+            }
+
+            // Export Trend Summary Button
+            const exportTrendSummaryBtn = document.getElementById('exportTrendSummaryBtn');
+            if (exportTrendSummaryBtn) {
+                exportTrendSummaryBtn.addEventListener('click', () => {
+                    const content = document.getElementById('trendSummaryContent').innerHTML;
+                    if (content && content.trim() !== '') {
+                        exportService.showExportMenu(content, 'IronFlow - Resoconto Trend');
+                    }
                 });
             }
         });

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Export Service</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container" style="padding: 2rem;">
+        <h1>Test Export Service</h1>
+        <button id="testExportBtn" class="btn btn-primary">📤 Test Export Menu</button>
+        
+        <div id="sampleContent" style="display: none;">
+            <h3>Report di Allenamento</h3>
+            <p>Questo è un <strong>report di esempio</strong> con contenuto formattato.</p>
+            <ul>
+                <li>Workout completati: 12</li>
+                <li>Volume totale: 15,000 kg</li>
+                <li>PR raggiunti: 3</li>
+            </ul>
+            <h4>Massimali Stimati</h4>
+            <p><strong>Panca Piana:</strong> 100kg (1RM)</p>
+            <p><strong>Squat:</strong> 140kg (1RM)</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { exportService } from './js/export-service.js';
+
+        document.getElementById('testExportBtn').addEventListener('click', () => {
+            const content = document.getElementById('sampleContent').innerHTML;
+            exportService.showExportMenu(content, 'Test Report IronFlow');
+        });
+    </script>
+</body>
+</html>
