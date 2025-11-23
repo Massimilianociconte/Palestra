@@ -172,19 +172,19 @@ export class AIService {
 ${buildDomsSummaryBlock(domsHotspots)}
 `;
 
-            // Health Data from Google Fit (TOON format)
+            // Health Data from Google Fit (already decoded by gatherDataForAI)
             const healthBlock = data.healthData ? `
-**Dati Salute (Google Fit - Ultimi 7 giorni, TOON Format)**
-- Passi: ${data.healthData.steps || 'N/D'}
-- Frequenza Cardiaca Media: ${data.healthData.heartRate || 'N/D'} bpm
-- Peso (Google Fit): ${data.healthData.weight || 'N/D'} kg
-- Calorie Bruciate: ${data.healthData.calories || 'N/D'} kcal
-- Distanza Percorsa: ${data.healthData.distance || 'N/D'} km
-- Sonno: ${data.healthData.sleep || 'N/D'} ore
+**Dati Salute (Google Fit - Ultimi 7 giorni)**
+- Passi Totali: ${data.healthData.steps ? Math.round(data.healthData.steps).toLocaleString('it-IT') : 'N/D'}
+- Frequenza Cardiaca Media: ${data.healthData.heartRate ? Math.round(data.healthData.heartRate) : 'N/D'} bpm
+- Peso (Google Fit): ${data.healthData.weight ? data.healthData.weight.toFixed(1) : 'N/D'} kg
+- Calorie Bruciate: ${data.healthData.calories ? Math.round(data.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal
+- Distanza Percorsa: ${data.healthData.distance ? data.healthData.distance.toFixed(1) : 'N/D'} km
+- Sonno Medio: ${data.healthData.sleep ? data.healthData.sleep.toFixed(1) : 'N/D'} ore/notte
 - Fonte: ${data.healthData.source || 'google_fit'}
 - Ultimo Sync: ${data.healthData.syncTimestamp ? new Date(data.healthData.syncTimestamp).toLocaleString('it-IT') : 'N/D'}
 
-*Nota: Questi dati sono sincronizzati automaticamente da Google Fit e forniscono un quadro oggettivo dell'attività quotidiana e del recupero.*
+*Nota: Questi dati sono sincronizzati automaticamente da Google Fit e forniscono un quadro oggettivo dell'attività quotidiana e del recupero. Il sonno è particolarmente importante per valutare la capacità di recupero.*
 ` : '';
 
             const prompt = `
@@ -360,12 +360,12 @@ ${domsGuidance}
 
 **Dati Salute (Google Fit - Ultimi 7 giorni):**
 ${data.healthData ? `
-- Passi Medi: ${data.healthData.steps || 'N/D'}
-- Frequenza Cardiaca: ${data.healthData.heartRate || 'N/D'} bpm
-- Calorie Bruciate: ${data.healthData.calories || 'N/D'} kcal
-- Sonno: ${data.healthData.sleep || 'N/D'} ore
-- Distanza: ${data.healthData.distance || 'N/D'} km
-*Usa questi dati per valutare il livello di recupero e attività generale dell'atleta.*
+- Passi Totali: ${data.healthData.steps ? Math.round(data.healthData.steps).toLocaleString('it-IT') : 'N/D'}
+- Frequenza Cardiaca: ${data.healthData.heartRate ? Math.round(data.healthData.heartRate) : 'N/D'} bpm
+- Calorie Bruciate: ${data.healthData.calories ? Math.round(data.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal
+- Sonno Medio: ${data.healthData.sleep ? data.healthData.sleep.toFixed(1) : 'N/D'} ore/notte
+- Distanza: ${data.healthData.distance ? data.healthData.distance.toFixed(1) : 'N/D'} km
+*Usa questi dati per valutare il livello di recupero e attività generale dell'atleta. Il sonno è cruciale per decidere l'intensità dell'allenamento.*
 ` : '- Dati salute non disponibili'}
 
 **ANALISI STILE E STRUTTURA:**
@@ -456,13 +456,13 @@ ${toonHistoricalTrends}
 
 **Dati Salute (Google Fit - Ultimi 7 giorni):**
 ${payload.healthData ? `
-- Passi: ${payload.healthData.steps || 'N/D'}
-- Frequenza Cardiaca: ${payload.healthData.heartRate || 'N/D'} bpm
-- Peso: ${payload.healthData.weight || 'N/D'} kg
-- Calorie: ${payload.healthData.calories || 'N/D'} kcal
-- Sonno: ${payload.healthData.sleep || 'N/D'} ore
-- Distanza: ${payload.healthData.distance || 'N/D'} km
-*Considera questi dati oggettivi per valutare il recupero e l'attività generale.*
+- Passi: ${payload.healthData.steps ? Math.round(payload.healthData.steps).toLocaleString('it-IT') : 'N/D'}
+- Frequenza Cardiaca: ${payload.healthData.heartRate ? Math.round(payload.healthData.heartRate) : 'N/D'} bpm
+- Peso: ${payload.healthData.weight ? payload.healthData.weight.toFixed(1) : 'N/D'} kg
+- Calorie: ${payload.healthData.calories ? Math.round(payload.healthData.calories).toLocaleString('it-IT') : 'N/D'} kcal
+- Sonno: ${payload.healthData.sleep ? payload.healthData.sleep.toFixed(1) : 'N/D'} ore/notte
+- Distanza: ${payload.healthData.distance ? payload.healthData.distance.toFixed(1) : 'N/D'} km
+*Considera questi dati oggettivi per valutare il recupero e l'attività generale. Il sonno è un indicatore chiave della capacità di recupero.*
 ` : '- Dati salute non disponibili'}
 
 - Tono: professionale, motivante, conciso.

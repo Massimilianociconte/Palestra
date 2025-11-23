@@ -385,14 +385,22 @@ export class FirestoreService {
                     // Get the most recent record
                     const latestHealth = healthRecords[0];
                     
-                    // Keep in TOON format for AI (already encoded)
+                    // Decode TOON format to plain values for AI
+                    // Helper to decode TOON string
+                    const decodeTOON = (toonString) => {
+                        if (!toonString || typeof toonString !== 'string') return null;
+                        if (!toonString.includes('|')) return toonString; // Not TOON format
+                        const parts = toonString.split('|');
+                        return parseFloat(parts[1]);
+                    };
+                    
                     healthData = {
-                        steps: latestHealth.steps || null,
-                        heartRate: latestHealth.heartRate || null,
-                        weight: latestHealth.weight || null,
-                        calories: latestHealth.calories || null,
-                        distance: latestHealth.distance || null,
-                        sleep: latestHealth.sleep || null,
+                        steps: decodeTOON(latestHealth.steps),
+                        heartRate: decodeTOON(latestHealth.heartRate),
+                        weight: decodeTOON(latestHealth.weight),
+                        calories: decodeTOON(latestHealth.calories),
+                        distance: decodeTOON(latestHealth.distance),
+                        sleep: decodeTOON(latestHealth.sleep),
                         syncTimestamp: latestHealth.syncTimestamp || null,
                         source: latestHealth.source || 'google_fit'
                     };
