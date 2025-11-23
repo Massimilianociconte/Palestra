@@ -101,12 +101,12 @@ export class AIService {
         try {
             const genAI = new GoogleGenerativeAI(this.apiKey);
             
-            // Configuration for high-quality output
+            // Configuration for high-quality, comprehensive output
             const generationConfig = {
                 temperature: 0.7, // Creative but grounded
                 topP: 0.95,
                 topK: 40,
-                maxOutputTokens: 8192, // Increased to prevent truncation (Gemini 1.5/Flash support high limits)
+                maxOutputTokens: 16384, // Massimo per analisi approfondita e completa
             };
 
             // Use the most advanced model available
@@ -235,74 +235,273 @@ ${healthBlock}
 
 ---
 
-### 🧠 ANALISI RICHIESTA
+### 🧠 ANALISI RICHIESTA - REPORT COMPLETO E APPROFONDITO
 
-Analizza i dati sopra e genera un report strutturato seguendo rigorosamente questi passaggi logici:
-
-**1. CONTESTUALIZZAZIONE BIOMETRICA & LIVELLO**
-- Usa età, peso, altezza e sesso (se disponibili) per contestualizzare i carichi sollevati. (Es. 100kg di panca sono ottimi per un atleta di 70kg, normali per uno di 100kg).
-- Stima il livello dell'atleta (Principiante, Intermedio, Avanzato) basandoti sul rapporto Forza Relativa (1RM / Peso Corporeo).
-
-**2. ANALISI DEL CARICO & FREQUENZA**
-- Valuta la consistenza dell'atleta (frequenza settimanale) rispetto al suo livello di attività dichiarato.
-- Analizza il trend del volume (sta aumentando, stallando o diminuendo?).
-- Identifica se c'è un sovraccarico progressivo evidente nei log.
-
-**3. ANALISI PROGRESSIONI/REGRESSIONI**
-- Usa i dati \`progressionRegression\` per identificare quali esercizi stanno migliorando e quali stanno regredendo.
-- Confronta \`personalRecords\` con \`historicalPRs\` per vedere l'evoluzione a lungo termine.
-- Identifica pattern: ci sono esercizi in stallo da settimane? Ci sono regressioni preoccupanti?
-
-**4. ANALISI STRUTTURALE & BILANCIAMENTO**
-- Osserva i \`exercises\` (struttura workout) e i \`personalRecords\`.
-- C'è equilibrio tra catena cinetica anteriore (es. Squat, Bench) e posteriore (es. Deadlift, Row)?
-- I massimali sono proporzionati?
-
-**5. PIANO D'AZIONE (PROSSIME 4 SETTIMANE)**
-- Fornisci 3 direttive tecniche specifiche basate su progressioni/regressioni identificate.
-- Suggerisci una variazione di intensità o volume basata sui dati e sull'età/recupero atteso.
-- Se ci sono regressioni, proponi strategie di recupero o deload.
-
-**6. RECUPERO & DOMS LOCALIZZATI**
-- Usa la mappa DOMS e l'età dell'atleta per stimare la capacità di recupero reale.
-- Identifica se i DOMS persistenti stanno influenzando le performance (correlazione con regressioni).
-
-**7. ANALISI DATI SALUTE (Google Fit)**
-- Se disponibili, usa i dati di passi, calorie, sonno e frequenza cardiaca per valutare:
-  - Livello di attività generale (NEAT - Non-Exercise Activity Thermogenesis)
-  - Qualità del recupero (sonno oggettivo vs percepito)
-  - Stress cardiovascolare (frequenza cardiaca a riposo)
-  - Bilancio energetico (calorie bruciate vs obiettivo)
-- Correla questi dati con le performance in palestra (es. pochi passi + basso sonno = possibile overtraining o underrecovery)
+Genera un report **estremamente dettagliato e analitico** che copra TUTTI gli aspetti dei dati forniti. Non lasciare nulla di implicito: ogni osservazione deve essere esplicitata, quantificata e correlata con altri dati.
 
 ---
 
-### 📝 FORMATO RISPOSTA
+## SEZIONE 1: PROFILO ATLETA & CONTESTUALIZZAZIONE BIOMETRICA
 
-Rispondi in **Markdown** pulito.
-Usa un tono **Professionale, Tecnico ma Motivante**.
-Non inventare dati non presenti nel TOON.
-Se mancano dati critici (es. peso o altezza), fallo notare come suggerimento.
+**1.1 Analisi Antropometrica Completa**
+- Calcola e commenta BMI (peso/altezza²) e interpretalo nel contesto del bodybuilding/powerlifting
+- Valuta il rapporto peso/altezza rispetto agli standard per l'età e il sesso
+- Se disponibile grasso corporeo, calcola massa magra stimata e commenta la composizione
+- Contestualizza TUTTI i carichi sollevati rispetto al peso corporeo (es. "62kg di chest press = 0.78x BW, sotto la media per il tuo livello")
 
-**Struttura Output:**
-### 🛡️ Coach Insight per ${data.profile.name || 'Atleta'}
-> *Breve frase riassuntiva sullo stato attuale (es. "Dati i tuoi 25 anni e 80kg, i carichi sono promettenti, ma attenzione al volume").*
+**1.2 Classificazione Livello Tecnico**
+- Calcola forza relativa per OGNI esercizio principale (1RM / Peso Corporeo)
+- Confronta con standard internazionali (Principiante: <1.0x, Intermedio: 1.0-1.5x, Avanzato: >1.5x per panca)
+- Identifica punti di forza e debolezza specifici (es. "Squat forte ma panca debole")
+- Stima il potenziale di crescita basato su età e livello attuale
 
-#### 📉 Analisi Tecnica
-*   **Livello Stimato**: ... (basato su forza relativa)
-*   **Volume & Frequenza**: ...
-*   **Equilibrio Strutturale**: ...
-*   **Punti di Forza**: ...
+---
 
-#### 🎯 Focus Settimana
-1.  **[Azione 1]**: ...
-2.  **[Azione 2]**: ...
-3.  **[Azione 3]**: ...
+## SEZIONE 2: ANALISI VOLUME, FREQUENZA & INTENSITÀ
 
-Evidenzia sempre come modulare i carichi sui gruppi attualmente stressati da DOMS.
+**2.1 Frequenza di Allenamento**
+- Calcola frequenza settimanale media (sessioni/settimana negli ultimi 30 giorni)
+- Confronta con il livello di attività dichiarato e l'obiettivo
+- Identifica pattern temporali (es. "alleni più nei weekend", "cali a metà mese")
+- Valuta se la frequenza è ottimale per il tuo livello (Principiante: 3-4x, Intermedio: 4-5x, Avanzato: 5-6x)
 
-#### 💡 Tip Avanzato
-...
+**2.2 Volume di Allenamento**
+- Analizza volume totale settimanale (kg sollevati) e trend nel tempo
+- Calcola volume per gruppo muscolare (se identificabile dai log)
+- Identifica se il volume è in progressione, stallo o regressione
+- Confronta con raccomandazioni scientifiche (10-20 set/muscolo/settimana per ipertrofia)
+
+**2.3 Intensità & RPE**
+- Se disponibili dati RPE, analizza se ti alleni abbastanza vicino al cedimento
+- Valuta il rapporto intensità/volume (alto volume + bassa intensità = endurance, basso volume + alta intensità = forza)
+- Suggerisci aggiustamenti basati sull'obiettivo dichiarato
+
+**2.4 Sovraccarico Progressivo**
+- Verifica se c'è evidenza di progressione nei carichi settimana dopo settimana
+- Identifica esercizi dove il sovraccarico è assente (possibile stallo)
+- Suggerisci strategie specifiche per riprendere la progressione
+
+---
+
+## SEZIONE 3: ANALISI PROGRESSIONI/REGRESSIONI DETTAGLIATA
+
+**3.1 Progressioni (Esercizi in Miglioramento)**
+- Elenca TUTTI gli esercizi in progressione con percentuali esatte
+- Analizza la velocità di progressione (rapida, moderata, lenta)
+- Identifica i fattori che potrebbero spiegare il miglioramento (frequenza, volume, tecnica)
+- Suggerisci come mantenere e accelerare la progressione
+
+**3.2 Regressioni (Esercizi in Calo)**
+- Elenca TUTTI gli esercizi in regressione con percentuali esatte
+- Analizza possibili cause (overtraining, tecnica, infortuni, DOMS persistenti)
+- Correla con dati wellness e DOMS per identificare pattern
+- Proponi strategie di recupero specifiche per ogni esercizio
+
+**3.3 Stalli (Esercizi Piatti)**
+- Identifica esercizi senza progressione né regressione
+- Analizza da quanto tempo sono in stallo
+- Suggerisci varianti, tecniche avanzate o periodizzazione per sbloccare lo stallo
+
+**3.4 Confronto Storico (60-90 giorni fa vs Oggi)**
+- Se disponibili dati storici, confronta i massimali attuali con quelli di 2-3 mesi fa
+- Calcola il tasso di crescita mensile per ogni esercizio
+- Valuta se il tasso di crescita è sostenibile o se serve un deload
+
+---
+
+## SEZIONE 4: ANALISI STRUTTURALE & BILANCIAMENTO MUSCOLARE
+
+**4.1 Equilibrio Push/Pull**
+- Calcola il rapporto tra esercizi di spinta (panca, shoulder press) e trazione (rematore, trazioni)
+- Identifica squilibri (es. "fai 3x più push che pull → rischio postura anteriorizzata")
+- Suggerisci esercizi specifici per riequilibrare
+
+**4.2 Equilibrio Upper/Lower**
+- Calcola il rapporto tra volume upper body e lower body
+- Identifica se c'è neglect delle gambe (comune nei principianti)
+- Suggerisci split ottimale basato sull'obiettivo
+
+**4.3 Catena Cinetica Posteriore**
+- Valuta se ci sono abbastanza esercizi per dorsali, femorali, glutei, lombari
+- Identifica carenze specifiche (es. "mancano stacchi e good morning")
+- Spiega i rischi di neglect della catena posteriore (infortuni, postura)
+
+**4.4 Analisi Split di Allenamento**
+- Identifica lo split attuale dai log (PPL, Upper/Lower, Full Body, Bro Split)
+- Valuta se lo split è ottimale per frequenza e livello
+- Suggerisci split alternativi se necessario
+
+---
+
+## SEZIONE 5: RECUPERO, WELLNESS & DOMS
+
+**5.1 Analisi Wellness Soggettivo**
+- Analizza le medie di sonno percepito, energia, stress, dolore muscolare
+- Identifica trend (es. "energia in calo nelle ultime 2 settimane")
+- Correla wellness con performance (es. "nei giorni con energia <5, il volume cala del 20%")
+
+**5.2 DOMS Localizzati & Pattern di Recupero**
+- Elenca TUTTI i distretti muscolari con DOMS ricorrenti
+- Calcola intensità media e giorni di recupero per ogni distretto
+- Identifica se i DOMS stanno limitando la frequenza di allenamento
+- Suggerisci strategie di recupero attivo, stretching, foam rolling
+
+**5.3 Correlazione DOMS-Performance**
+- Verifica se esercizi in regressione coincidono con DOMS persistenti
+- Identifica se stai allenando muscoli non ancora recuperati
+- Suggerisci timing ottimale per allenare ogni gruppo muscolare
+
+**5.4 Capacità di Recupero Stimata**
+- Basandoti su età, wellness e DOMS, stima la capacità di recupero (alta, media, bassa)
+- Suggerisci frequenza ottimale per ogni gruppo muscolare
+- Proponi strategie per migliorare il recupero (sonno, nutrizione, stress management)
+
+---
+
+## SEZIONE 6: DATI SALUTE (Google Fit) & NEAT
+
+**6.1 Analisi Attività Quotidiana (NEAT)**
+- Analizza passi giornalieri medi e confronta con raccomandazioni (8-10k/giorno)
+- Valuta se il NEAT è sufficiente per il tuo obiettivo (cut: alto NEAT, bulk: moderato NEAT)
+- Identifica giorni con NEAT molto basso (possibile sedentarietà)
+
+**6.2 Bilancio Energetico**
+- Analizza calorie bruciate totali (BMR + NEAT + allenamento stimato)
+- Confronta con obiettivo dichiarato (bulk, cut, recomp)
+- Suggerisci aggiustamenti calorici basati su trend peso corporeo
+
+**6.3 Sonno Oggettivo**
+- Analizza ore di sonno medie e confronta con raccomandazioni (7-9h)
+- Correla sonno con performance (es. "con <6h sonno, forza cala del 10%")
+- Identifica pattern (es. "dormi meno nei weekend")
+- Suggerisci strategie per ottimizzare il sonno
+
+**6.4 Frequenza Cardiaca a Riposo**
+- Analizza FC media e valuta fitness cardiovascolare
+- Identifica se FC è elevata (possibile overtraining o stress)
+- Suggerisci cardio LISS o HIIT se necessario
+
+**6.5 Correlazione Salute-Performance**
+- Identifica giorni con basso sonno + alta FC + bassa energia → performance scadente
+- Suggerisci come usare i dati health per pianificare deload o giorni di recupero
+
+---
+
+## SEZIONE 7: COMPOSIZIONE CORPOREA & TREND PESO
+
+**7.1 Analisi Trend Peso**
+- Analizza ultimi 5 weigh-in e calcola trend (in aumento, stabile, in calo)
+- Valuta se il trend è coerente con l'obiettivo (bulk: +0.25-0.5kg/settimana, cut: -0.5-1kg/settimana)
+- Identifica fluttuazioni anomale (ritenzione idrica, disidratazione)
+
+**7.2 Composizione Corporea**
+- Se disponibile BF%, calcola massa magra e massa grassa
+- Valuta se stai guadagnando/perdendo massa magra o grassa
+- Suggerisci aggiustamenti nutrizionali per ottimizzare la ricomposizione
+
+**7.3 Correlazione Peso-Forza**
+- Verifica se l'aumento/calo di peso correla con aumento/calo di forza
+- Identifica se stai perdendo forza in cut (normale) o guadagnando forza in bulk (ottimale)
+
+---
+
+## SEZIONE 8: PIANO D'AZIONE DETTAGLIATO (4 SETTIMANE)
+
+**8.1 Priorità Immediate (Settimana 1-2)**
+- Elenca 3-5 azioni specifiche e misurabili (es. "Aggiungi 2 serie di rematore ogni sessione pull")
+- Specifica carichi, serie, reps, RPE per ogni azione
+- Identifica esercizi da deload o eliminare temporaneamente
+
+**8.2 Obiettivi a Medio Termine (Settimana 3-4)**
+- Definisci target di forza specifici (es. "Raggiungi 70kg 1RM panca entro 4 settimane")
+- Suggerisci progressioni lineari o ondulate
+- Proponi test di forza per validare i progressi
+
+**8.3 Aggiustamenti Nutrizionali**
+- Basandoti su bilancio energetico e obiettivo, suggerisci intake calorico target
+- Specifica macro (proteine: 1.6-2.2g/kg, grassi: 0.8-1g/kg, carbs: resto)
+- Suggerisci timing nutrizionale (pre/post workout)
+
+**8.4 Ottimizzazione Recupero**
+- Suggerisci target sonno specifico (es. "7.5h/notte minimo")
+- Proponi strategie di stress management (meditazione, breathing)
+- Suggerisci supplementi evidence-based (creatina, caffeina, beta-alanina)
+
+**8.5 Periodizzazione**
+- Se sei in stallo o overtraining, proponi un microciclo di deload (settimana 3)
+- Suggerisci come strutturare le prossime 4 settimane (es. "2 settimane accumulo + 1 deload + 1 intensificazione")
+
+---
+
+## SEZIONE 9: TIP AVANZATI & OTTIMIZZAZIONI
+
+**9.1 Tecniche Avanzate**
+- Suggerisci tecniche specifiche per esercizi in stallo (rest-pause, drop set, cluster set, tempo)
+- Spiega COME e QUANDO usarle (es. "usa rest-pause solo sull'ultimo set di panca")
+
+**9.2 Varianti Esercizi**
+- Proponi varianti per esercizi in stallo (es. "sostituisci panca piana con panca inclinata per 4 settimane")
+- Spiega il razionale biomeccanico
+
+**9.3 Ottimizzazione Tempo Sotto Tensione**
+- Suggerisci tempi eccentrici/concentrici specifici per ipertrofia (es. "3-1-1-0 su squat")
+
+**9.4 Periodizzazione Ondulata**
+- Se appropriato, suggerisci come alternare giorni pesanti/leggeri/medi nella stessa settimana
+
+---
+
+## FORMATO OUTPUT
+
+Usa Markdown con questa struttura OBBLIGATORIA:
+
+### 🛡️ Coach Insight per [Nome]
+> Paragrafo introduttivo contestualizzato (2-3 frasi)
+
+#### 📊 Profilo & Biometria
+*Analisi completa antropometrica e livello*
+
+#### 📈 Volume, Frequenza & Intensità
+*Analisi dettagliata carico di lavoro*
+
+#### 🎯 Progressioni & Regressioni
+*Analisi esercizio per esercizio*
+
+#### ⚖️ Bilanciamento Strutturale
+*Equilibrio muscolare e split*
+
+#### 💤 Recupero & Wellness
+*DOMS, sonno, energia, stress*
+
+#### 🏃 Dati Salute & NEAT
+*Google Fit: passi, calorie, sonno, FC*
+
+#### 📉 Composizione Corporea
+*Trend peso e BF%*
+
+#### 🎯 Piano d'Azione (4 Settimane)
+*Azioni specifiche e misurabili*
+
+#### 💡 Tip Avanzati
+*Tecniche e ottimizzazioni*
+
+---
+
+**REGOLE CRITICHE:**
+- NON inventare dati non presenti
+- QUANTIFICA tutto (percentuali, kg, reps, giorni)
+- CORRELA dati tra sezioni (es. basso sonno → regressione panca)
+- USA terminologia tecnica ma spiega i concetti
+- SII SPECIFICO: no "aumenta il volume", ma "aggiungi 2 serie di rematore"
+- MOTIVA ogni raccomandazione con i dati
+
+---
+
+**IMPORTANTE:**
+- Questo è un report COMPLETO e APPROFONDITO. Dedica almeno 2-3 paragrafi per ogni sezione.
+- Ogni affermazione deve essere supportata da dati specifici.
+- Usa tabelle Markdown se utile per confronti (es. progressioni/regressioni).
+- Il report finale dovrebbe essere di almeno 2000-3000 parole per essere veramente utile e analitico.
 `;
             console.log("Sending Advanced TOON Prompt size:", prompt.length);
 
