@@ -15,7 +15,7 @@ export class FirestoreService {
     }
 
     // --- GLOBAL CONFIG MANAGEMENT ---
-    
+
     async getGlobalConfig() {
         try {
             const docSnap = await getDoc(doc(db, 'config', 'global'));
@@ -48,7 +48,7 @@ export class FirestoreService {
         try {
             // Try to get global config
             let defaultKey = '';
-            
+
             try {
                 const config = await this.getGlobalConfig();
                 defaultKey = config?.defaultGeminiKey || '';
@@ -109,7 +109,7 @@ export class FirestoreService {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', quality)); 
+                resolve(canvas.toDataURL('image/jpeg', quality));
             };
         });
     }
@@ -124,7 +124,7 @@ export class FirestoreService {
             const localBodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
             // Sync Photos too (only metadata/Base64 if small enough, typically stored in separate collection or array)
             const localPhotos = JSON.parse(localStorage.getItem('ironflow_photos') || '[]');
-            
+
             const data = {
                 workouts: localWorkouts,
                 logs: localLogs,
@@ -156,7 +156,7 @@ export class FirestoreService {
                 if (data.profile) localStorage.setItem('ironflow_profile', JSON.stringify(data.profile));
                 if (data.bodyStats) localStorage.setItem('ironflow_body_stats', JSON.stringify(data.bodyStats));
                 if (data.photos) localStorage.setItem('ironflow_photos', JSON.stringify(data.photos)); // Load photos
-                
+
                 return { success: true, data };
             } else {
                 return { success: true, data: null, isNew: true };
@@ -167,11 +167,79 @@ export class FirestoreService {
         }
     }
 
-    // Upload Photo (Generic) - Returns Base64 string
+    // Set ImgBB API Key
+    async setImgBBKey(key) {
+        try {
+            await setDoc(doc(db, 'config', 'imgbb'), {
+                apiKey: key
+            }, { merge: true });
+            console.log("ImgBB API Key stored securely.");
+            return { success: true };
+        } catch (error) {
+            console.error("Error setting ImgBB key:", error);
+            return { success: false, message: error.message };
+        }
+    }
+
+    // Get ImgBB API Key
+    async getImgBBKey() {
+        try {
+            const docSnap = await getDoc(doc(db, 'config', 'imgbb'));
+            if (docSnap.exists()) {
+                return docSnap.data().apiKey;
+            }
+            return null;
+        } catch (error) {
+            console.warn("ImgBB config not found:", error);
+            return null;
+        }
+    }
+
+    // Upload to ImgBB
+    async uploadToImgBB(base64Image) {
+        try {
+            const apiKey = await this.getImgBBKey();
+            if (!apiKey) throw new Error("ImgBB API Key not found");
+
+            // Remove header if present (data:image/jpeg;base64,)
+            const base64Data = base64Image.split(',')[1] || base64Image;
+
+            const formData = new FormData();
+            formData.append('key', apiKey);
+            formData.append('image', base64Data);
+
+            const response = await fetch('https://api.imgbb.com/1/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                return { success: true, url: result.data.url, deleteUrl: result.data.delete_url };
+            } else {
+                throw new Error(result.error?.message || 'ImgBB Upload Failed');
+            }
+        } catch (error) {
+            console.error("ImgBB Upload Error:", error);
+            return { success: false, message: error.message };
+        }
+    }
+
+    // Upload Photo (Generic) - Returns URL (ImgBB) or Base64 (Fallback)
     async processPhotoForUpload(file, maxWidth = 600) {
         try {
             let base64 = await this.fileToBase64(file);
             base64 = await this.resizeImage(base64, maxWidth, 0.6);
+
+            // Try ImgBB first
+            const imgbbResult = await this.uploadToImgBB(base64);
+            if (imgbbResult.success) {
+                return { success: true, base64: imgbbResult.url, isUrl: true }; // Return URL in 'base64' field for compatibility
+            }
+
+            // Fallback to Base64 if ImgBB fails or no key
+            console.warn("ImgBB upload failed or not configured, using Base64 fallback.");
             return { success: true, base64 };
         } catch (error) {
             return { success: false, message: error.message };
@@ -233,13 +301,13 @@ export class FirestoreService {
             thirtyDaysAgo.setDate(now.getDate() - 30);
 
             const recentLogs = localLogs.filter(log => new Date(log.date) >= thirtyDaysAgo);
-            
+
             // Also get 60-90 days ago for progression/regression tracking
             const ninetyDaysAgo = new Date();
             ninetyDaysAgo.setDate(now.getDate() - 90);
             const sixtyDaysAgo = new Date();
             sixtyDaysAgo.setDate(now.getDate() - 60);
-            
+
             const historicalLogs = localLogs.filter(log => {
                 const logDate = new Date(log.date);
                 return logDate >= ninetyDaysAgo && logDate < sixtyDaysAgo;
@@ -284,7 +352,7 @@ export class FirestoreService {
 
             // Sort PRs to keep only top 5-10 relevant ones (by 1RM)
             const topPrs = Object.entries(prs)
-                .sort(([,a], [,b]) => b['1rm'] - a['1rm'])
+                .sort(([, a], [, b]) => b['1rm'] - a['1rm'])
                 .slice(0, 10)
                 .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {});
 
@@ -296,15 +364,15 @@ export class FirestoreService {
                     const rpeValues = e.sets
                         .map(s => s.rpe)
                         .filter(rpe => rpe && rpe > 0);
-                    const avgRpe = rpeValues.length > 0 
+                    const avgRpe = rpeValues.length > 0
                         ? (rpeValues.reduce((sum, val) => sum + val, 0) / rpeValues.length).toFixed(1)
                         : null;
-                    
-                    return avgRpe 
+
+                    return avgRpe
                         ? `${e.name} (${e.sets.length} sets @ RPE ${avgRpe})`
                         : `${e.name} (${e.sets.length} sets)`;
                 });
-                
+
                 // Calculate overall workout RPE average
                 const allRpeValues = log.exercises
                     .flatMap(e => e.sets.map(s => s.rpe))
@@ -312,7 +380,7 @@ export class FirestoreService {
                 const workoutAvgRpe = allRpeValues.length > 0
                     ? (allRpeValues.reduce((sum, val) => sum + val, 0) / allRpeValues.length).toFixed(1)
                     : null;
-                
+
                 return {
                     date: log.date.split('T')[0],
                     volume: log.totalVolume, // Total tonnage if calculated, or just rely on sets
@@ -356,7 +424,7 @@ export class FirestoreService {
                     rpe: ex.rpe || 'N/D'
                 }))
             }));
-            
+
             // Calculate historical PRs for progression/regression tracking
             const historicalPrs = {};
             historicalLogs.forEach(log => {
@@ -379,7 +447,7 @@ export class FirestoreService {
                     });
                 });
             });
-            
+
             // Calculate progression/regression for each lift
             const progressionData = {};
             Object.keys(topPrs).forEach(lift => {
@@ -405,7 +473,7 @@ export class FirestoreService {
                 if (healthRecords && healthRecords.length > 0) {
                     // Get the most recent record
                     const latestHealth = healthRecords[0];
-                    
+
                     // Decode TOON format to plain values for AI
                     // Helper to decode TOON string
                     const decodeTOON = (toonString) => {
@@ -414,7 +482,7 @@ export class FirestoreService {
                         const parts = toonString.split('|');
                         return parseFloat(parts[1]);
                     };
-                    
+
                     healthData = {
                         steps: decodeTOON(latestHealth.steps),
                         heartRate: decodeTOON(latestHealth.heartRate),
@@ -438,7 +506,7 @@ export class FirestoreService {
                 historicalWorkoutCount: historicalLogs.length,
                 prs: topPrs,
                 historicalPrs: Object.entries(historicalPrs)
-                    .sort(([,a], [,b]) => b['1rm'] - a['1rm'])
+                    .sort(([, a], [, b]) => b['1rm'] - a['1rm'])
                     .slice(0, 10)
                     .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {}),
                 progressionData: progressionData,
@@ -468,7 +536,7 @@ export class FirestoreService {
             await updateDoc(doc(db, this.collectionName, uid), {
                 aiHistory: arrayUnion(analysisEntry)
             });
-            
+
             return { success: true };
         } catch (error) {
             console.error("Error saving AI analysis:", error);
@@ -494,7 +562,7 @@ export class FirestoreService {
 
     // --- SHARED WORKOUTS (Legacy Support kept but main sharing is now URL-based) ---
     async getSharedWorkout(shareId) {
-         try {
+        try {
             const docSnap = await getDoc(doc(db, 'shared_workouts', shareId));
             if (docSnap.exists()) {
                 return { success: true, data: docSnap.data() };
@@ -507,14 +575,14 @@ export class FirestoreService {
     }
 
     // --- HEALTH DATA (Google Fit / Health Connect Integration) ---
-    
+
     /**
      * Salva dati health in formato TOON
      */
     async saveHealthData(toonHealthData) {
         const user = auth.currentUser;
         if (!user) throw new Error('User not authenticated');
-        
+
         try {
             const healthRef = doc(db, 'users', user.uid, 'health', new Date().toISOString().split('T')[0]);
             await setDoc(healthRef, {
@@ -522,7 +590,7 @@ export class FirestoreService {
                 syncTimestamp: Date.now(),
                 updatedAt: serverTimestamp()
             }, { merge: true });
-            
+
             return { success: true };
         } catch (error) {
             console.error('Error saving health data:', error);
@@ -536,18 +604,18 @@ export class FirestoreService {
     async getHealthData(days = 7) {
         const user = auth.currentUser;
         if (!user) return [];
-        
+
         try {
             const startDate = new Date();
             startDate.setDate(startDate.getDate() - days);
-            
+
             const healthRef = collection(db, 'users', user.uid, 'health');
             const q = query(
                 healthRef,
                 where('syncTimestamp', '>=', startDate.getTime()),
                 orderBy('syncTimestamp', 'desc')
             );
-            
+
             const snapshot = await getDocs(q);
             return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
@@ -562,14 +630,14 @@ export class FirestoreService {
     async saveHealthToken(tokenData) {
         const user = auth.currentUser;
         if (!user) throw new Error('User not authenticated');
-        
+
         try {
             const tokenRef = doc(db, 'users', user.uid, 'private', 'healthToken');
             await setDoc(tokenRef, {
                 ...tokenData,
                 updatedAt: serverTimestamp()
             });
-            
+
             return { success: true };
         } catch (error) {
             console.error('Error saving health token:', error);
@@ -583,11 +651,11 @@ export class FirestoreService {
     async getHealthToken() {
         const user = auth.currentUser;
         if (!user) return null;
-        
+
         try {
             const tokenRef = doc(db, 'users', user.uid, 'private', 'healthToken');
             const docSnap = await getDoc(tokenRef);
-            
+
             if (docSnap.exists()) {
                 return docSnap.data();
             }
@@ -604,7 +672,7 @@ export class FirestoreService {
     async removeHealthToken() {
         const user = auth.currentUser;
         if (!user) return;
-        
+
         try {
             const tokenRef = doc(db, 'users', user.uid, 'private', 'healthToken');
             await deleteDoc(tokenRef);
@@ -621,12 +689,12 @@ export class FirestoreService {
     async getLastHealthSync() {
         const user = auth.currentUser;
         if (!user) return null;
-        
+
         try {
             const healthRef = collection(db, 'users', user.uid, 'health');
             const q = query(healthRef, orderBy('syncTimestamp', 'desc'), limit(1));
             const snapshot = await getDocs(q);
-            
+
             if (!snapshot.empty) {
                 return snapshot.docs[0].data();
             }

@@ -11,7 +11,7 @@
         rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00f3ff">
-    
+
     <!-- iOS Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -79,7 +79,7 @@
         .setting-item:last-child {
             border-bottom: none;
         }
-        
+
         .setting-label {
             font-weight: 500;
             color: var(--color-text-main);
@@ -93,7 +93,7 @@
             flex-grow: 1;
             justify-content: flex-end;
         }
-        
+
         .input-compact {
             padding: 0.5rem;
             background: rgba(0, 0, 0, 0.3);
@@ -181,8 +181,8 @@
         }
 
         .doms-chip {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             color: #fff;
             border-radius: 999px;
             padding: 0.3rem 0.8rem;
@@ -192,10 +192,10 @@
         }
 
         .doms-chip.active {
-            background: rgba(0,243,255,0.25);
+            background: rgba(0, 243, 255, 0.25);
             color: #000;
-            border-color: rgba(0,243,255,0.6);
-            box-shadow: 0 0 10px rgba(0,243,255,0.3);
+            border-color: rgba(0, 243, 255, 0.6);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
         }
 
         .doms-chip:focus-visible {
@@ -218,18 +218,18 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .setting-control {
                 width: 100%;
                 justify-content: stretch;
             }
-            
-            .setting-control input, 
+
+            .setting-control input,
             .setting-control select,
             .setting-control button {
                 width: 100%;
             }
-            
+
             .setting-control form {
                 width: 100%;
             }
@@ -253,12 +253,15 @@
 
         /* Auth Forms */
         .auth-container {
-            display: none; /* Hidden by default */
+            display: none;
+            /* Hidden by default */
         }
+
         .profile-content {
-            display: none; /* Hidden by default */
+            display: none;
+            /* Hidden by default */
         }
-        
+
         .visible {
             display: block;
         }
@@ -266,12 +269,14 @@
         .form-group {
             margin-bottom: 1rem;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
             color: var(--color-text-muted);
         }
+
         .form-group input {
             width: 100%;
             padding: 0.8rem;
@@ -280,7 +285,11 @@
             border-radius: var(--radius-sm);
             color: var(--color-text);
         }
-        .text-center { text-align: center; }
+
+        .text-center {
+            text-align: center;
+        }
+
         .link-btn {
             background: none;
             border: none;
@@ -306,8 +315,8 @@
         }
 
         .ai-plan-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--radius-md);
             padding: clamp(0.75rem, 3vw, 1rem);
         }
@@ -370,7 +379,7 @@
             <!-- Auth Section (Login/Register) -->
             <div id="authSection" class="auth-container card" style="max-width: 400px; margin: 0 auto 2rem auto;">
                 <h3 id="authTitle" class="text-center" style="margin-bottom: 1.5rem;">Accedi</h3>
-                
+
                 <form id="authForm">
                     <div class="form-group" id="nameGroup" style="display: none;">
                         <label>Nome</label>
@@ -378,15 +387,17 @@
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="emailInput" required placeholder="email@esempio.com" autocomplete="email">
+                        <input type="email" id="emailInput" required placeholder="email@esempio.com"
+                            autocomplete="email">
                     </div>
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" id="passwordInput" required placeholder="******" autocomplete="current-password">
+                        <input type="password" id="passwordInput" required placeholder="******"
+                            autocomplete="current-password">
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Entra</button>
                 </form>
-                
+
                 <p class="text-center" style="margin-top: 1rem; font-size: 0.9rem;">
                     <span id="authSwitchText">Non hai un account?</span>
                     <button id="authSwitchBtn" class="link-btn">Registrati</button>
@@ -415,19 +426,25 @@
                     <!-- Saved Workouts -->
                     <div>
                         <!-- AI PREDICTOR WIDGET -->
-                        <div class="card" style="margin-bottom: 2rem; border-color: var(--color-primary-dim); background: linear-gradient(135deg, rgba(0, 243, 255, 0.05) 0%, rgba(0,0,0,0) 100%);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                        <div class="card"
+                            style="margin-bottom: 2rem; border-color: var(--color-primary-dim); background: linear-gradient(135deg, rgba(0, 243, 255, 0.05) 0%, rgba(0,0,0,0) 100%);">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
                                 <div>
                                     <h3 style="font-size: 1.2rem; margin: 0;">⚡ Prossima Sessione</h3>
-                                    <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0;">Suggerimenti personalizzati da Gemini AI</p>
+                                    <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0;">
+                                        Suggerimenti personalizzati da Gemini AI</p>
                                 </div>
                                 <div style="display: flex; gap: 0.5rem;">
-                                    <button id="aiPlanHistoryBtn" class="btn btn-outline btn-compact" style="font-size: 0.75rem;">📚 Storico</button>
-                                    <button id="refreshAiPredictor" class="btn btn-primary btn-compact" style="font-size: 0.75rem;">🤖 Genera</button>
+                                    <button id="aiPlanHistoryBtn" class="btn btn-outline btn-compact"
+                                        style="font-size: 0.75rem;">📚 Storico</button>
+                                    <button id="refreshAiPredictor" class="btn btn-primary btn-compact"
+                                        style="font-size: 0.75rem;">🤖 Genera</button>
                                 </div>
                             </div>
                             <div id="aiPredictorContent">
-                                <p style="color: var(--color-text-muted); font-size: 0.9rem;">Chiedi all'IA cosa allenare oggi in base al tuo storico.</p>
+                                <p style="color: var(--color-text-muted); font-size: 0.9rem;">Chiedi all'IA cosa
+                                    allenare oggi in base al tuo storico.</p>
                             </div>
                         </div>
 
@@ -441,12 +458,15 @@
 
                     <!-- Settings -->
                     <div class="card">
-                        <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">Impostazioni</h3>
+                        <h3
+                            style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">
+                            Impostazioni</h3>
 
                         <div class="setting-item">
                             <span class="setting-label">Nome Visualizzato</span>
                             <div class="setting-control">
-                                <input type="text" id="profileNameInput" class="input-compact" style="width: 100%; max-width: 200px;">
+                                <input type="text" id="profileNameInput" class="input-compact"
+                                    style="width: 100%; max-width: 200px;">
                             </div>
                         </div>
 
@@ -465,56 +485,95 @@
                             <div style="width: 100%; display: flex; flex-direction: column; gap: 0.5rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <span class="setting-label">Gemini AI Key</span>
-                                    <a href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size: 0.75rem; color: var(--color-primary); text-decoration: underline;">Ottieni Key</a>
+                                    <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                                        style="font-size: 0.75rem; color: var(--color-primary); text-decoration: underline;">Ottieni
+                                        Key</a>
                                 </div>
                                 <form style="display: flex; gap: 0.5rem; width: 100%;" onsubmit="return false;">
-                                    <input type="password" id="aiKeyInput" placeholder="Incolla qui la tua API Key" autocomplete="off" class="input-compact" style="flex: 1;">
-                                    <button id="saveAiKeyBtn" type="button" class="btn btn-outline btn-compact">Salva</button>
+                                    <input type="password" id="aiKeyInput" placeholder="Incolla qui la tua API Key"
+                                        autocomplete="off" class="input-compact" style="flex: 1;">
+                                    <button id="saveAiKeyBtn" type="button"
+                                        class="btn btn-outline btn-compact">Salva</button>
                                 </form>
-                                <p id="aiKeyStatus" style="font-size: 0.7rem; color: var(--color-text-muted); text-align: right; margin: 0; min-height: 1em;"></p>
+                                <p id="aiKeyStatus"
+                                    style="font-size: 0.7rem; color: var(--color-text-muted); text-align: right; margin: 0; min-height: 1em;">
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- IMGBB CONFIG SECTION -->
+                        <div class="setting-item">
+                            <div style="width: 100%; display: flex; flex-direction: column; gap: 0.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="setting-label">ImgBB API Key</span>
+                                    <a href="https://api.imgbb.com/" target="_blank"
+                                        style="font-size: 0.75rem; color: var(--color-primary); text-decoration: underline;">Ottieni
+                                        Key</a>
+                                </div>
+                                <form style="display: flex; gap: 0.5rem; width: 100%;" onsubmit="return false;">
+                                    <input type="password" id="imgbbKeyInput" placeholder="Incolla qui la tua API Key"
+                                        autocomplete="off" class="input-compact" style="flex: 1;">
+                                    <button id="saveImgbbKeyBtn" type="button"
+                                        class="btn btn-outline btn-compact">Salva</button>
+                                </form>
+                                <p id="imgbbKeyStatus"
+                                    style="font-size: 0.7rem; color: var(--color-text-muted); text-align: right; margin: 0; min-height: 1em;">
+                                </p>
                             </div>
                         </div>
 
                         <!-- Health Connect Section -->
-                        <div class="setting-item" style="border-left: 3px solid var(--color-primary); padding-left: 1rem;">
+                        <div class="setting-item"
+                            style="border-left: 3px solid var(--color-primary); padding-left: 1rem;">
                             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                                 <span style="font-size: 1.5rem;">🏥</span>
-                                <span class="setting-label" style="font-size: 1rem; font-weight: 600;">Connessione Salute</span>
+                                <span class="setting-label" style="font-size: 1rem; font-weight: 600;">Connessione
+                                    Salute</span>
                             </div>
-                            <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 1rem; line-height: 1.4;">
-                                Sincronizza automaticamente i tuoi dati fitness da Google Fit per analisi AI più complete.
+                            <p
+                                style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 1rem; line-height: 1.4;">
+                                Sincronizza automaticamente i tuoi dati fitness da Google Fit per analisi AI più
+                                complete.
                             </p>
-                            
-                            <div id="healthConnectStatus" style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
-                                <p id="healthStatusText" style="font-size: 0.9rem; color: var(--color-text-muted); margin: 0;">
+
+                            <div id="healthConnectStatus"
+                                style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                                <p id="healthStatusText"
+                                    style="font-size: 0.9rem; color: var(--color-text-muted); margin: 0;">
                                     Non connesso
                                 </p>
-                                <small id="healthLastSync" style="font-size: 0.75rem; color: var(--color-text-muted); display: none; margin-top: 0.25rem;">
+                                <small id="healthLastSync"
+                                    style="font-size: 0.75rem; color: var(--color-text-muted); display: none; margin-top: 0.25rem;">
                                     Ultimo sync: <span id="lastSyncTime"></span>
                                 </small>
                             </div>
-                            
+
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <button id="connectHealthBtn" class="btn btn-primary btn-compact" style="display: flex; align-items: center; gap: 6px;">
+                                <button id="connectHealthBtn" class="btn btn-primary btn-compact"
+                                    style="display: flex; align-items: center; gap: 6px;">
                                     <span>🔗</span> Connetti Google Fit
                                 </button>
                                 <button id="syncHealthBtn" class="btn btn-outline btn-compact" style="display: none;">
                                     <span>🔄</span> Sincronizza Ora
                                 </button>
-                                <button id="disconnectHealthBtn" class="btn btn-outline btn-compact" style="display: none; color: #ef4444; border-color: #ef4444;">
+                                <button id="disconnectHealthBtn" class="btn btn-outline btn-compact"
+                                    style="display: none; color: #ef4444; border-color: #ef4444;">
                                     <span>❌</span> Disconnetti
                                 </button>
                             </div>
                         </div>
 
                         <div class="setting-item">
-                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 0.5rem;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 0.5rem;">
                                 <span class="setting-label">Sincronizzazione</span>
                                 <div class="setting-control" style="width: auto; justify-content: flex-end;">
-                                     <button id="syncBtn" class="btn btn-outline btn-compact">Sincronizza Ora</button>
+                                    <button id="syncBtn" class="btn btn-outline btn-compact">Sincronizza Ora</button>
                                 </div>
                             </div>
-                            <p id="syncStatus" style="font-size: 0.75rem; color: var(--color-text-muted); width: 100%; text-align: right; margin-top: 0.25rem;"></p>
+                            <p id="syncStatus"
+                                style="font-size: 0.75rem; color: var(--color-text-muted); width: 100%; text-align: right; margin-top: 0.25rem;">
+                            </p>
                         </div>
 
                         <div class="setting-item">
@@ -525,7 +584,8 @@
                         </div>
 
                         <div class="setting-item" style="border-bottom: none; margin-top: 1rem;">
-                            <button id="logoutBtn" class="btn btn-primary" style="width: 100%; background: #ff4444; border-color: #ff4444; color: white;">Esci</button>
+                            <button id="logoutBtn" class="btn btn-primary"
+                                style="width: 100%; background: #ff4444; border-color: #ff4444; color: white;">Esci</button>
                         </div>
                     </div>
                 </div>
@@ -534,10 +594,14 @@
     </section>
 
     <!-- AI Plan History Modal -->
-    <div id="aiPlanHistoryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; padding: clamp(0.5rem, 2vw, 1rem); overflow-y: auto;">
-        <div class="card" style="max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; margin: auto;">
-            <button id="closeAiPlanHistory" style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px;">&times;</button>
-            <h3 style="margin-bottom: 1rem; font-size: clamp(1.1rem, 4vw, 1.3rem); padding-right: 40px;">Storico Sessioni <span class="text-primary">AI</span></h3>
+    <div id="aiPlanHistoryModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; padding: clamp(0.5rem, 2vw, 1rem); overflow-y: auto;">
+        <div class="card"
+            style="max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; margin: auto;">
+            <button id="closeAiPlanHistory"
+                style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px;">&times;</button>
+            <h3 style="margin-bottom: 1rem; font-size: clamp(1.1rem, 4vw, 1.3rem); padding-right: 40px;">Storico
+                Sessioni <span class="text-primary">AI</span></h3>
             <div id="aiPlanHistoryList" style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <!-- history items -->
             </div>
@@ -545,33 +609,44 @@
     </div>
 
     <!-- Wellness Prompt Modal -->
-    <div id="wellnessPromptModal" class="wellness-modal" role="dialog" aria-modal="true" aria-labelledby="wellnessPromptTitle" style="display:none;">
+    <div id="wellnessPromptModal" class="wellness-modal" role="dialog" aria-modal="true"
+        aria-labelledby="wellnessPromptTitle" style="display:none;">
         <div class="card wellness-modal-card">
             <h3 id="wellnessPromptTitle" style="margin-bottom:0.5rem;">Come ti senti oggi?</h3>
-            <p style="color: var(--color-text-muted); font-size:0.85rem; margin-bottom:1rem;">Valuta il tuo stato prima di iniziare la sessione. Scala 1‑10.</p>
+            <p style="color: var(--color-text-muted); font-size:0.85rem; margin-bottom:1rem;">Valuta il tuo stato prima
+                di iniziare la sessione. Scala 1‑10.</p>
             <form id="wellnessForm" style="display:flex; flex-direction:column; gap:0.75rem;">
                 <label>Qualità del Sonno
-                    <input type="number" id="sleepQualityInput" min="1" max="10" value="7" required class="input-compact" style="width:100%;">
+                    <input type="number" id="sleepQualityInput" min="1" max="10" value="7" required
+                        class="input-compact" style="width:100%;">
                 </label>
                 <label>Energia / Vigore Attuale
-                    <input type="number" id="energyLevelInput" min="1" max="10" value="7" required class="input-compact" style="width:100%;">
+                    <input type="number" id="energyLevelInput" min="1" max="10" value="7" required class="input-compact"
+                        style="width:100%;">
                 </label>
                 <label>Stress percepito
-                    <input type="number" id="stressLevelInput" min="1" max="10" value="4" required class="input-compact" style="width:100%;">
+                    <input type="number" id="stressLevelInput" min="1" max="10" value="4" required class="input-compact"
+                        style="width:100%;">
                 </label>
                 <label>Dolore Muscolare / DOMS
-                    <input type="number" id="sorenessLevelInput" min="1" max="10" value="3" required class="input-compact" style="width:100%;">
+                    <input type="number" id="sorenessLevelInput" min="1" max="10" value="3" required
+                        class="input-compact" style="width:100%;">
                 </label>
                 <label>Gruppi Muscolari con DOMS
-                    <span style="display:block; font-size:0.75rem; color:var(--color-text-muted); margin-top:0.25rem;">Seleziona uno o più distretti che senti ancora doloranti per guidare il monitoraggio del recupero.</span>
-                    <div id="sorenessMusclePicker" class="doms-chip-grid" role="listbox" aria-multiselectable="true"></div>
+                    <span
+                        style="display:block; font-size:0.75rem; color:var(--color-text-muted); margin-top:0.25rem;">Seleziona
+                        uno o più distretti che senti ancora doloranti per guidare il monitoraggio del recupero.</span>
+                    <div id="sorenessMusclePicker" class="doms-chip-grid" role="listbox" aria-multiselectable="true">
+                    </div>
                 </label>
                 <div class="doms-chip-info">
                     <small id="sorenessMuscleHint">Nessun distretto selezionato</small>
-                    <button type="button" id="clearSorenessSelection" class="link-btn" style="font-size:0.75rem;">Azzera</button>
+                    <button type="button" id="clearSorenessSelection" class="link-btn"
+                        style="font-size:0.75rem;">Azzera</button>
                 </div>
                 <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
-                    <button type="button" id="cancelWellnessBtn" class="btn btn-outline" style="flex:1;">Annulla</button>
+                    <button type="button" id="cancelWellnessBtn" class="btn btn-outline"
+                        style="flex:1;">Annulla</button>
                     <button type="submit" class="btn btn-primary" style="flex:1;">Inizia Focus Mode</button>
                 </div>
             </form>
@@ -579,23 +654,29 @@
     </div>
 
     <!-- Focus Mode Overlay -->
-    <div id="focusModeOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; flex-direction: column; padding: 1.5rem;">
+    <div id="focusModeOverlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; flex-direction: column; padding: 1.5rem;">
         <!-- Top Bar -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <div style="display:flex; flex-direction:column;">
-                <div style="font-family: var(--font-display); font-size: 1.2rem; color: var(--color-primary);">FOCUS FLOW</div>
+                <div style="font-family: var(--font-display); font-size: 1.2rem; color: var(--color-primary);">FOCUS
+                    FLOW</div>
                 <div id="focusWorkoutTitle" style="font-size: 0.8rem; color: var(--color-text-muted);">Workout</div>
             </div>
-            <button id="exitFocusMode" style="background: none; border: 1px solid #333; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;">✕</button>
+            <button id="exitFocusMode"
+                style="background: none; border: 1px solid #333; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;">✕</button>
         </div>
 
         <!-- Main Content -->
-        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 500px; margin: 0 auto;">
-            
+        <div
+            style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 500px; margin: 0 auto;">
+
             <!-- Exercise Info -->
             <div style="text-align: center; margin-bottom: 2rem; width: 100%;">
-                <h2 id="focusExerciseName" style="font-size: 2rem; margin-bottom: 0.5rem; line-height: 1.1;">Esercizio</h2>
-                <div style="font-size: 1.1rem; color: var(--color-text-muted); display: flex; justify-content: center; gap: 1rem;">
+                <h2 id="focusExerciseName" style="font-size: 2rem; margin-bottom: 0.5rem; line-height: 1.1;">Esercizio
+                </h2>
+                <div
+                    style="font-size: 1.1rem; color: var(--color-text-muted); display: flex; justify-content: center; gap: 1rem;">
                     <span id="focusSetCounter">Set 1 / 3</span>
                 </div>
             </div>
@@ -603,17 +684,29 @@
             <!-- Active Inputs Area -->
             <div id="focusActiveArea" style="width: 100%; margin-bottom: 2rem;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                    <div style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
-                        <label style="display: block; color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;">KG</label>
-                        <input type="number" id="focusWeightInput" style="width: 100%; background: transparent; border: none; color: white; font-size: 2.5rem; text-align: center; font-weight: bold; font-family: var(--font-display);" value="">
+                    <div
+                        style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
+                        <label
+                            style="display: block; color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;">KG</label>
+                        <input type="number" id="focusWeightInput"
+                            style="width: 100%; background: transparent; border: none; color: white; font-size: 2.5rem; text-align: center; font-weight: bold; font-family: var(--font-display);"
+                            value="">
                     </div>
-                    <div style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
-                        <label style="display: block; color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;">REPS</label>
-                        <input type="text" id="focusRepsInput" style="width: 100%; background: transparent; border: none; color: white; font-size: 2.5rem; text-align: center; font-weight: bold; font-family: var(--font-display);" value="">
+                    <div
+                        style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
+                        <label
+                            style="display: block; color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;">REPS</label>
+                        <input type="text" id="focusRepsInput"
+                            style="width: 100%; background: transparent; border: none; color: white; font-size: 2.5rem; text-align: center; font-weight: bold; font-family: var(--font-display);"
+                            value="">
                     </div>
-                    <div style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
-                        <label style="display: block; color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;">RPE</label>
-                        <input type="number" id="focusRpeInput" min="1" max="10" step="0.5" style="width: 100%; background: transparent; border: none; color: white; font-size: 2.5rem; text-align: center; font-weight: bold; font-family: var(--font-display);" value="" placeholder="1-10">
+                    <div
+                        style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
+                        <label
+                            style="display: block; color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;">RPE</label>
+                        <input type="number" id="focusRpeInput" min="1" max="10" step="0.5"
+                            style="width: 100%; background: transparent; border: none; color: white; font-size: 2.5rem; text-align: center; font-weight: bold; font-family: var(--font-display);"
+                            value="" placeholder="1-10">
                     </div>
                 </div>
             </div>
@@ -621,7 +714,9 @@
             <!-- Timer Area (Hidden by default) -->
             <div id="focusTimerArea" style="display: none; text-align: center; margin-bottom: 2rem; width: 100%;">
                 <div style="color: var(--color-text-muted); margin-bottom: 0.5rem;">RECUPERO</div>
-                <div id="focusTimer" style="font-family: monospace; font-size: 4.5rem; color: white; line-height: 1; margin-bottom: 1rem;">00:00</div>
+                <div id="focusTimer"
+                    style="font-family: monospace; font-size: 4.5rem; color: white; line-height: 1; margin-bottom: 1rem;">
+                    00:00</div>
                 <div style="display: flex; gap: 1rem; justify-content: center;">
                     <button class="btn-timer-adjust" onclick="adjustTimer(-10)">-10s</button>
                     <button class="btn-timer-adjust" onclick="adjustTimer(+10)">+10s</button>
@@ -630,12 +725,14 @@
             </div>
 
             <!-- Action Button -->
-            <button id="focusActionBtn" class="btn btn-primary" style="width: 100%; height: 70px; font-size: 1.4rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">
+            <button id="focusActionBtn" class="btn btn-primary"
+                style="width: 100%; height: 70px; font-size: 1.4rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">
                 FATTO
             </button>
 
             <!-- Log History for Current Exercise -->
-            <div id="focusHistoryList" style="margin-top: 2rem; width: 100%; max-height: 100px; overflow-y: auto; font-size: 0.8rem; color: #666; text-align: left; border-top: 1px solid #222; padding-top: 1rem;">
+            <div id="focusHistoryList"
+                style="margin-top: 2rem; width: 100%; max-height: 100px; overflow-y: auto; font-size: 0.8rem; color: #666; text-align: left; border-top: 1px solid #222; padding-top: 1rem;">
                 <!-- Previous sets show here -->
             </div>
 
@@ -643,51 +740,61 @@
 
         <!-- Bottom Progress -->
         <div style="margin-top: auto; width: 100%;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.8rem; color: #666;">
+            <div
+                style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.8rem; color: #666;">
                 <span>Progresso</span>
                 <span id="focusProgressText">0%</span>
             </div>
             <div style="height: 6px; background: #222; border-radius: 3px; overflow: hidden;">
-                <div id="focusProgressBar" style="height: 100%; width: 0%; background: var(--color-primary); transition: width 0.3s ease;"></div>
+                <div id="focusProgressBar"
+                    style="height: 100%; width: 0%; background: var(--color-primary); transition: width 0.3s ease;">
+                </div>
             </div>
         </div>
     </div>
 
     <style>
         .btn-timer-adjust {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
             padding: 0.5rem 1rem;
             border-radius: 20px;
             cursor: pointer;
         }
+
         .btn-timer-adjust:hover {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 
     <script src="js/main.js"></script>
-    
+
     <!-- Share Modal -->
-    <div id="shareModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
-        <div style="background: var(--color-surface); padding: 2rem; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--color-border);">
+    <div id="shareModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+        <div
+            style="background: var(--color-surface); padding: 2rem; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--color-border);">
             <h3 style="margin-bottom: 1.5rem;">Condividi Scheda</h3>
-            
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                <a id="shareWhatsapp" href="#" target="_blank" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <a id="shareWhatsapp" href="#" target="_blank"
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
                     <span style="font-size: 2rem;">💚</span>
                     <span>WhatsApp</span>
                 </a>
-                <a id="shareTelegram" href="#" target="_blank" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <a id="shareTelegram" href="#" target="_blank"
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
                     <span style="font-size: 2rem;">✈️</span>
                     <span>Telegram</span>
                 </a>
-                <a id="shareEmail" href="#" target="_blank" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <a id="shareEmail" href="#" target="_blank"
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
                     <span style="font-size: 2rem;">📧</span>
                     <span>Email</span>
                 </a>
-                <button id="shareCopy" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; font-family: inherit;">
+                <button id="shareCopy"
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; font-family: inherit;">
                     <span style="font-size: 2rem;">📋</span>
                     <span>Copia Link</span>
                 </button>
@@ -706,7 +813,7 @@
         import { notificationManager } from './js/notification-manager.js';
 
         document.addEventListener('DOMContentLoaded', () => {
-            
+
             // Elements
             const authSection = document.getElementById('authSection');
             const profileContent = document.getElementById('profileContent');
@@ -715,7 +822,7 @@
             const nameGroup = document.getElementById('nameGroup');
             const authTitle = document.getElementById('authTitle');
             const authError = document.getElementById('authError');
-            
+
             const profileAvatar = document.getElementById('profileAvatar');
             const avatarContainer = document.getElementById('avatarContainer');
             const photoInput = document.getElementById('photoInput');
@@ -766,10 +873,10 @@
 
                 if (!result.success) {
                     let msg = result.message;
-                    if(msg.includes('auth/invalid-email')) msg = 'Email non valida.';
-                    if(msg.includes('auth/wrong-password')) msg = 'Password errata.';
-                    if(msg.includes('auth/user-not-found')) msg = 'Utente non trovato.';
-                    if(msg.includes('auth/email-already-in-use')) msg = 'Email già in uso.';
+                    if (msg.includes('auth/invalid-email')) msg = 'Email non valida.';
+                    if (msg.includes('auth/wrong-password')) msg = 'Password errata.';
+                    if (msg.includes('auth/user-not-found')) msg = 'Utente non trovato.';
+                    if (msg.includes('auth/email-already-in-use')) msg = 'Email già in uso.';
                     authError.textContent = msg;
                 }
                 // Success is handled by auth state listener
@@ -789,7 +896,7 @@
                     // Logged In
                     authSection.classList.remove('visible');
                     profileContent.classList.add('visible');
-                    
+
                     profileEmailDisplay.textContent = user.email;
                     profileNameDisplay.innerHTML = user.displayName || 'Atleta <span class="text-primary">Pro</span>';
                     profileNameInput.value = user.displayName || '';
@@ -800,11 +907,11 @@
                         profileAvatar.style.backgroundImage = `url('${localProfile.photoUrl}')`;
                         profileAvatar.textContent = '';
                     } else {
-                         // Fallback to user photoURL from Auth if exists
-                         if (user.photoURL) {
+                        // Fallback to user photoURL from Auth if exists
+                        if (user.photoURL) {
                             profileAvatar.style.backgroundImage = `url('${user.photoURL}')`;
                             profileAvatar.textContent = '';
-                         }
+                        }
                     }
 
                     // Load Workouts from Cloud
@@ -825,11 +932,11 @@
                     const shareId = urlParams.get('shareId'); // Fallback (Legacy)
 
                     if (shareData) {
-                         if (confirm('È stato rilevato un link di condivisione. Vuoi importare la scheda?')) {
+                        if (confirm('È stato rilevato un link di condivisione. Vuoi importare la scheda?')) {
                             try {
                                 const json = decodeURIComponent(atob(shareData));
                                 const newWorkout = JSON.parse(json);
-                                
+
                                 // Validation
                                 if (!newWorkout || !newWorkout.name || !Array.isArray(newWorkout.exercises)) {
                                     throw new Error("Dati scheda non validi");
@@ -844,7 +951,7 @@
                                 currentWorkouts.unshift(newWorkout);
                                 localStorage.setItem('ironflow_workouts', JSON.stringify(currentWorkouts));
                                 renderWorkouts();
-                                
+
                                 await firestoreService.syncToCloud();
 
                                 window.history.replaceState({}, document.title, window.location.pathname);
@@ -892,11 +999,11 @@
 
             // Photo Upload
             avatarContainer.addEventListener('click', () => photoInput.click());
-            
+
             photoInput.addEventListener('change', async (e) => {
                 if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
-                    
+
                     // Optimistic UI update
                     const reader = new FileReader();
                     reader.onload = (e) => {
@@ -1078,7 +1185,7 @@
                 }
 
                 aiPredictorContent.innerHTML = '<p style="color: var(--color-text-muted);">Generazione allenamento in corso...</p>';
-                
+
                 const data = await firestoreService.gatherDataForAI();
                 const result = await aiService.predictNextSession(data);
 
@@ -1093,6 +1200,47 @@
                     aiPredictorContent.innerHTML = `<p style="color: #ff4444;">Errore: ${result.message}</p>`;
                 }
             });
+
+            // --- ImgBB Key Logic ---
+            const imgbbKeyInput = document.getElementById('imgbbKeyInput');
+            const saveImgbbKeyBtn = document.getElementById('saveImgbbKeyBtn');
+            const imgbbKeyStatus = document.getElementById('imgbbKeyStatus');
+
+            // Load Key
+            const loadImgbbKey = async () => {
+                const key = await firestoreService.getImgBBKey();
+                if (key) {
+                    imgbbKeyInput.value = key;
+                    imgbbKeyStatus.textContent = 'Key salvata';
+                }
+            };
+            // Call load only if elements exist (user might be logged out initially, but this runs on DOMContentLoaded)
+            if (imgbbKeyInput) loadImgbbKey();
+
+            // Save Key
+            if (saveImgbbKeyBtn) {
+                saveImgbbKeyBtn.addEventListener('click', async () => {
+                    const key = imgbbKeyInput.value.trim();
+                    if (!key) return;
+
+                    saveImgbbKeyBtn.disabled = true;
+                    saveImgbbKeyBtn.textContent = '...';
+
+                    const result = await firestoreService.setImgBBKey(key);
+
+                    saveImgbbKeyBtn.disabled = false;
+                    saveImgbbKeyBtn.textContent = 'Salva';
+
+                    if (result.success) {
+                        imgbbKeyStatus.textContent = 'Key salvata con successo!';
+                        imgbbKeyStatus.style.color = 'var(--color-primary)';
+                        setTimeout(() => imgbbKeyStatus.textContent = '', 3000);
+                    } else {
+                        imgbbKeyStatus.textContent = 'Errore: ' + result.message;
+                        imgbbKeyStatus.style.color = '#ff4444';
+                    }
+                });
+            }
 
             aiPlanHistoryBtn.addEventListener('click', () => {
                 renderAiPlanHistoryList();
@@ -1113,7 +1261,7 @@
             const focusOverlay = document.getElementById('focusModeOverlay');
             const exitFocusModeBtn = document.getElementById('exitFocusMode');
             const focusActionBtn = document.getElementById('focusActionBtn');
-            
+
             // New Elements
             const focusTimer = document.getElementById('focusTimer');
             const focusTimerArea = document.getElementById('focusTimerArea');
@@ -1137,7 +1285,7 @@
             const sorenessMusclePicker = document.getElementById('sorenessMusclePicker');
             const sorenessMuscleHint = document.getElementById('sorenessMuscleHint');
             const clearSorenessSelectionBtn = document.getElementById('clearSorenessSelection');
-            
+
             let currentWorkout = null;
             let currentExerciseIndex = 0;
             let currentSetIndex = 0;
@@ -1294,11 +1442,11 @@
 
             window.showShareModal = (title, url) => {
                 const text = `Guarda la mia scheda "${title}" su IronFlow!`;
-                
+
                 shareWhatsapp.href = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
                 shareTelegram.href = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
                 shareEmail.href = `mailto:?subject=${encodeURIComponent('Scheda Allenamento IronFlow')}&body=${encodeURIComponent(text + '\n\n' + url)}`;
-                
+
                 shareCopy.onclick = async () => {
                     await navigator.clipboard.writeText(url);
                     shareCopy.innerHTML = '<span style="font-size: 2rem;">✅</span><span>Copiato!</span>';
@@ -1329,7 +1477,7 @@
                     alert("Funzione non disponibile senza supporto Web Worker.");
                 }
             };
-            
+
             window.skipRest = () => {
                 stopTimer();
                 isResting = false;
@@ -1546,7 +1694,7 @@
                         if (repsInputRaw) activeSet.reps = repsInputRaw;
                         if (loggedRpe > 0) activeSet.rpe = loggedRpe;
                     }
-                    
+
                     const historyItem = document.createElement('div');
                     const repsDisplay = loggedReps || '—';
                     const weightDisplay = loggedWeight ? loggedWeight : '—';
@@ -1563,14 +1711,14 @@
                     finishWorkout(true);
                     return;
                 }
-                
+
                 if (currentExerciseIndex >= currentWorkout.exercises.length) {
                     finishWorkout();
                     return;
                 }
 
                 const ex = currentWorkout.exercises[currentExerciseIndex];
-                
+
                 // Ensure sets exists
                 if (!ex.sets || ex.sets.length === 0) {
                     // Skip exercise if empty
@@ -1585,7 +1733,7 @@
                 const targetLabel = set?.target || ex.reps || '';
                 const baseCounter = `Set ${currentSetIndex + 1} / ${ex.sets.length}`;
                 focusSetCounter.textContent = targetLabel ? `${baseCounter} • Target ${targetLabel}` : baseCounter;
-                
+
                 // Pre-fill inputs
                 if (set.weight && set.weight > 0) {
                     focusWeightInput.value = set.weight;
@@ -1617,14 +1765,14 @@
                 focusActionBtn.className = 'btn btn-primary';
                 focusActionBtn.style.background = 'var(--color-primary)';
                 focusActionBtn.style.color = 'black';
-                
+
                 // Update Progress Bar
                 const totalSets = currentWorkout.exercises.reduce((acc, e) => acc + (e.sets ? e.sets.length : 0), 0);
                 // Calc completed
                 let completed = 0;
-                for(let i=0; i<currentExerciseIndex; i++) completed += currentWorkout.exercises[i].sets.length;
+                for (let i = 0; i < currentExerciseIndex; i++) completed += currentWorkout.exercises[i].sets.length;
                 completed += currentSetIndex;
-                
+
                 const percent = Math.round((completed / totalSets) * 100);
                 focusProgressBar.style.width = percent + '%';
                 focusProgressText.textContent = percent + '%';
@@ -1634,7 +1782,7 @@
 
             if (window.Worker) {
                 timerWorker = new Worker('js/timer.worker.js');
-                timerWorker.onmessage = function(e) {
+                timerWorker.onmessage = function (e) {
                     if (e.data.action === 'tick') {
                         updateTimerDisplay(e.data.remaining);
                     } else if (e.data.action === 'complete') {
@@ -1648,24 +1796,24 @@
             function startRest() {
                 notificationManager.unlockAudio();
                 isResting = true;
-                
+
                 // Hide inputs, show timer
                 focusActiveArea.style.display = 'none';
                 focusTimerArea.style.display = 'block';
-                
+
                 // Determine Rest Time
                 let restTime = 90; // Default
                 const exName = currentWorkout.exercises[currentExerciseIndex].name.toLowerCase();
-                
+
                 // Intelligent Timer Logic
                 if (exName.includes('squat') || exName.includes('stacco') || exName.includes('deadlift') || exName.includes('panca') || exName.includes('bench')) {
                     restTime = 180; // Compounds
                 } else if (exName.includes('curl') || exName.includes('alzate') || exName.includes('polpacci') || exName.includes('abs')) {
                     restTime = 60; // Isolation
                 }
-                
+
                 updateTimerDisplay(restTime);
-                
+
                 focusActionBtn.textContent = "SALTA REST";
                 focusActionBtn.style.background = 'transparent';
                 focusActionBtn.style.border = '1px solid #333';
@@ -1740,7 +1888,7 @@
                 focusActionBtn.style.border = 'none';
                 focusActionBtn.style.color = 'black';
                 focusHistoryList.innerHTML = '';
-                
+
                 if (empty) {
                     focusExerciseName.textContent = "Nessun esercizio disponibile";
                     focusSetCounter.textContent = "Aggiorna la scheda per iniziare.";
@@ -1824,11 +1972,11 @@
                 const key = aiKeyInput.value;
                 if (key) {
                     aiService.saveKey(key);
-                    
+
                     // Persist to Firestore (Profile)
                     aiKeyStatus.textContent = 'Salvataggio...';
                     const result = await firestoreService.updateProfileField('geminiKey', key);
-                    
+
                     if (result.success) {
                         aiKeyStatus.textContent = 'Key salvata e sincronizzata!';
                         aiKeyStatus.style.color = 'var(--color-primary)';
@@ -1838,7 +1986,7 @@
                     setTimeout(() => aiKeyStatus.textContent = '', 2000);
                 }
             });
-            
+
             // Export Data (Existing logic adapted)
             const exportBtn = document.getElementById('exportBtn');
             if (exportBtn) {
@@ -1949,19 +2097,19 @@
                             const stored = getStoredWorkouts();
                             const workout = stored[idx];
                             if (!workout) return;
-                            
+
                             e.target.textContent = '⏳';
                             try {
                                 // URL-based sharing (No Database required)
                                 const json = JSON.stringify(workout);
                                 const encoded = btoa(encodeURIComponent(json));
-                                
+
                                 const url = new URL(window.location.href);
                                 url.searchParams.set('shareData', encoded);
                                 url.searchParams.delete('shareId');
-                                
+
                                 const shareUrl = url.toString();
-                                
+
                                 if (shareUrl.length > 8000) {
                                     alert('Scheda troppo grande per la condivisione via link.');
                                     return;
@@ -2009,19 +2157,19 @@
                     });
                 }
             }
-            
+
             // Initial render
             renderWorkouts();
 
             // Unit toggle (Existing)
             if (window.unitService) {
-                 const unitSelect = document.querySelectorAll('.setting-item select')[0];
-                 unitSelect.value = window.unitService.getSystem() === 'imperial' ? 'Imperiale (lbs/in)' : 'Metrico (kg/cm)';
-                 unitSelect.addEventListener('change', (e) => {
+                const unitSelect = document.querySelectorAll('.setting-item select')[0];
+                unitSelect.value = window.unitService.getSystem() === 'imperial' ? 'Imperiale (lbs/in)' : 'Metrico (kg/cm)';
+                unitSelect.addEventListener('change', (e) => {
                     const val = e.target.value;
                     if (val.includes('Imperiale')) window.unitService.toggleSystem('imperial');
                     else window.unitService.toggleSystem('metric');
-                 });
+                });
             }
         });
     </script>
@@ -2030,29 +2178,29 @@
     <script type="module">
         import { healthConnectService } from './js/health-connect-service.js';
         import { firestoreService } from './js/firestore-service.js';
-        
+
         const connectBtn = document.getElementById('connectHealthBtn');
         const syncBtn = document.getElementById('syncHealthBtn');
         const disconnectBtn = document.getElementById('disconnectHealthBtn');
         const statusText = document.getElementById('healthStatusText');
         const lastSyncEl = document.getElementById('healthLastSync');
         const lastSyncTime = document.getElementById('lastSyncTime');
-        
+
         // Carica status
         async function updateStatus() {
             try {
                 // Aspetta che il servizio carichi i token
                 const status = await healthConnectService.getStatus();
-                
+
                 console.log('Health Connect Status:', status);
-                
+
                 if (status.isConnected && status.tokenValid) {
                     statusText.textContent = '✅ Connesso a Google Fit';
                     statusText.style.color = '#10b981';
                     connectBtn.style.display = 'none';
                     syncBtn.style.display = 'flex';
                     disconnectBtn.style.display = 'flex';
-                    
+
                     // Mostra ultimo sync
                     const lastSync = await firestoreService.getLastHealthSync();
                     if (lastSync && lastSync.syncTimestamp) {
@@ -2083,15 +2231,15 @@
                 statusText.style.color = '#ef4444';
             }
         }
-        
+
         // Connect
         connectBtn.addEventListener('click', async () => {
             try {
                 connectBtn.disabled = true;
                 connectBtn.innerHTML = '⏳ Connessione...';
-                
+
                 await healthConnectService.connect();
-                
+
                 alert('✅ Connesso con successo! I tuoi dati verranno sincronizzati automaticamente.');
                 await updateStatus();
             } catch (error) {
@@ -2102,15 +2250,15 @@
                 connectBtn.innerHTML = '<span>🔗</span> Connetti Google Fit';
             }
         });
-        
+
         // Sync
         syncBtn.addEventListener('click', async () => {
             try {
                 syncBtn.disabled = true;
                 syncBtn.innerHTML = '⏳ Sincronizzazione...';
-                
+
                 const result = await healthConnectService.syncAllData();
-                
+
                 if (result.success) {
                     alert('✅ Dati sincronizzati con successo!');
                     await updateStatus();
@@ -2125,11 +2273,11 @@
                 syncBtn.innerHTML = '<span>🔄</span> Sincronizza Ora';
             }
         });
-        
+
         // Disconnect
         disconnectBtn.addEventListener('click', async () => {
             if (!confirm('Sei sicuro di voler disconnettere Google Fit?')) return;
-            
+
             try {
                 await healthConnectService.disconnect();
                 alert('✅ Disconnesso con successo');
@@ -2139,18 +2287,18 @@
                 alert('❌ Errore: ' + error.message);
             }
         });
-        
+
         // Carica status iniziale quando la pagina è pronta
         document.addEventListener('DOMContentLoaded', () => {
             // Aspetta un momento per assicurarsi che l'autenticazione sia completa
             setTimeout(() => updateStatus(), 500);
         });
-        
+
         // Aggiorna status anche se già caricato
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             setTimeout(() => updateStatus(), 500);
         }
-        
+
         // Ascolta i cambiamenti di autenticazione per aggiornare lo stato
         import('./js/auth-service.js').then(({ authService }) => {
             authService.subscribe((user) => {
