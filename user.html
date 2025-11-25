@@ -1634,6 +1634,13 @@
                 currentWorkoutId = hydrated.id || source?.id || null;
                 sessionStartTime = Date.now();
                 sessionLogSaved = false;
+                
+                // Expose variables globally for session recovery
+                window.currentFocusWorkout = currentWorkout;
+                window.focusModeStartTime = sessionStartTime;
+                window.focusModeWellnessData = currentWellnessSnapshot;
+                window.focusModeSessionCompleted = false;
+                
                 focusOverlay.style.display = 'flex';
             }
 
@@ -1668,14 +1675,35 @@
             });
 
             exitFocusModeBtn.addEventListener('click', () => {
-                if (confirm('Uscire dal Focus Mode? I progressi non salvati andranno persi.')) {
-                    stopTimer();
-                    focusOverlay.style.display = 'none';
+                // Check if there's progress to save
+                const hasProgress = currentExerciseIndex > 0 || currentSetIndex > 0;
+                
+                if (hasProgress) {
+                    // Offer to save progress
+                    const choice = confirm('Vuoi salvare i progressi per continuare dopo?\n\nOK = Salva e esci\nAnnulla = Esci senza salvare');
+                    
+                    if (choice) {
+                        // User wants to save - session will be saved by recovery manager
+                        console.log('💾 Saving session before exit...');
+                        // Don't mark as completed so recovery manager keeps the session
+                        window.focusModeSessionCompleted = false;
+                    } else {
+                        // User doesn't want to save - mark as completed to clear session
+                        window.focusModeSessionCompleted = true;
+                    }
+                } else {
+                    // No progress, just exit
+                    window.focusModeSessionCompleted = true;
                 }
+                
+                stopTimer();
+                focusOverlay.style.display = 'none';
             });
 
             focusActionBtn.addEventListener('click', () => {
                 if (sessionCompleted) {
+                    // Session completed normally - clear recovery data
+                    window.focusModeSessionCompleted = true;
                     stopTimer();
                     focusOverlay.style.display = 'none';
                     return;
@@ -1886,6 +1914,10 @@
 
             function finishWorkout(empty = false) {
                 sessionCompleted = true;
+                
+                // Mark session as completed for recovery manager
+                window.focusModeSessionCompleted = true;
+                
                 focusActiveArea.style.display = 'none';
                 focusTimerArea.style.display = 'none';
                 focusActionBtn.textContent = "CHIUDI";

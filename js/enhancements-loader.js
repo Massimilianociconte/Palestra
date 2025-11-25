@@ -26,6 +26,9 @@ async function init() {
     // Initialize media session
     mediaSessionManager.init();
 
+    // Initialize session recovery manager FIRST
+    await setupSessionRecovery();
+
     // Initialize workout sharing
     const workoutSharingHandler = new WorkoutSharingHandler(firestoreService);
 
@@ -49,7 +52,245 @@ async function init() {
     // Setup Media Session Integration (Timer & Audio)
     setupMediaSessionIntegration();
 
+    // Setup Focus Mode Session Tracking
+    setupFocusModeTracking();
+
     console.log('✅ All enhancements loaded');
+}
+
+// Setup Session Recovery - Check for interrupted sessions and offer recovery
+async function setupSessionRecovery() {
+    try {
+        const savedSession = await sessionRecoveryManager.init();
+        
+        if (savedSession) {
+            console.log('🔄 Found interrupted session, showing recovery modal...');
+            
+            // Show recovery modal
+            sessionRecoveryManager.showRecoveryModal(
+                savedSession,
+                // On Continue - restore the session
+                (sessionState) => {
+                    console.log('▶️ Continuing interrupted session...');
+                    restoreSession(sessionState);
+                },
+                // On Start Fresh - clear and let user start new
+                () => {
+                    console.log('🔄 Starting fresh...');
+                }
+            );
+        }
+    } catch (error) {
+        console.error('Session recovery init error:', error);
+    }
+}
+
+// Restore a saved session
+function restoreSession(sessionState) {
+    try {
+        // Store the session state for the focus mode to pick up
+        window.pendingSessionRestore = sessionState;
+        
+        // Find and click the start button for the workout
+        const workoutId = sessionState.workoutId;
+        const workoutName = sessionState.workout?.name;
+        
+        // Try to find the workout in the list and start it
+        const workoutItems = document.querySelectorAll('.workout-list-item');
+        let found = false;
+        
+        workoutItems.forEach((item, index) => {
+            const nameEl = item.querySelector('strong');
+            if (nameEl && nameEl.textContent.includes(workoutName)) {
+                // Found the workout, click its start button
+                const startBtn = item.querySelector('.start-workout');
+                if (startBtn) {
+                    // Set a flag so focus mode knows to restore
+                    startBtn.dataset.restoreSession = 'true';
+                    startBtn.click();
+                    found = true;
+                }
+            }
+        });
+        
+        if (!found) {
+            // Workout not found in list, show error
+            alert(`Impossibile trovare la scheda "${workoutName}". Potrebbe essere stata eliminata.`);
+            sessionRecoveryManager.clearSession();
+        }
+    } catch (error) {
+        console.error('Error restoring session:', error);
+        alert('Errore nel ripristino della sessione. Riprova.');
+    }
+}
+
+// Setup Focus Mode Tracking - Monitor focus mode state and save sessions
+function setupFocusModeTracking() {
+    // Track when focus mode opens
+    const focusModal = document.getElementById('focusModeModal');
+    if (!focusModal) {
+        console.warn('Focus mode modal not found for tracking');
+        return;
+    }
+
+    // Observer for focus mode visibility
+    const modalObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                const isVisible = focusModal.style.display !== 'none';
+                
+                if (isVisible) {
+                    // Focus mode opened - start tracking
+                    startSessionTracking();
+                } else {
+                    // Focus mode closed - check if session should be saved or cleared
+                    handleFocusModeClose();
+                }
+            }
+        });
+    });
+    
+    modalObserver.observe(focusModal, { attributes: true, attributeFilter: ['style'] });
+    console.log('📊 Focus mode tracking initialized');
+}
+
+// Start tracking the current session
+function startSessionTracking() {
+    console.log('🎯 Focus mode opened - starting session tracking');
+    
+    // Give the focus mode a moment to initialize
+    setTimeout(() => {
+        // Create a state getter function that reads from the DOM
+        const getStateCallback = () => {
+            try {
+                // Get current workout from window (set by focus mode)
+                const currentWorkout = window.currentFocusWorkout;
+                if (!currentWorkout) return null;
+                
+                // Get current exercise and set indices
+                const exerciseNameEl = document.getElementById('focusExerciseName');
+                const setCounterEl = document.getElementById('focusSetCounter');
+                const timerAreaEl = document.getElementById('focusTimerArea');
+                const timerEl = document.getElementById('focusTimer');
+                
+                // Parse set counter (e.g., "Set 2/4")
+                let currentSetIndex = 0;
+                if (setCounterEl) {
+                    const match = setCounterEl.textContent.match(/Set (\d+)\/(\d+)/);
+                    if (match) {
+                        currentSetIndex = parseInt(match[1]) - 1;
+                    }
+                }
+                
+                // Find current exercise index
+                let currentExerciseIndex = 0;
+                if (exerciseNameEl && currentWorkout.exercises) {
+                    const currentName = exerciseNameEl.textContent.trim();
+                    currentExerciseIndex = currentWorkout.exercises.findIndex(
+                        ex => ex.name.trim() === currentName
+                    );
+                    if (currentExerciseIndex === -1) currentExerciseIndex = 0;
+                }
+                
+                // Check if resting
+                const isResting = timerAreaEl && timerAreaEl.style.display !== 'none';
+                
+                // Get remaining rest time
+                let remainingRestTime = 0;
+                if (isResting && timerEl) {
+                    const timerText = timerEl.textContent;
+                    if (timerText && timerText.includes(':')) {
+                        const [min, sec] = timerText.split(':').map(Number);
+                        remainingRestTime = (min * 60) + sec;
+                    }
+                }
+                
+                // Get completed sets from history
+                const historyItems = document.querySelectorAll('#focusHistoryList .history-item');
+                const completedSets = Array.from(historyItems).map(item => {
+                    const text = item.textContent;
+                    // Parse "Set 1: 50kg × 10 @ RPE 8"
+                    const match = text.match(/Set (\d+):\s*(\d+(?:\.\d+)?)\s*kg\s*×\s*(\d+)/);
+                    if (match) {
+                        return {
+                            set: parseInt(match[1]),
+                            weight: parseFloat(match[2]),
+                            reps: parseInt(match[3])
+                        };
+                    }
+                    return null;
+                }).filter(Boolean);
+                
+                return {
+                    workout: currentWorkout,
+                    workoutId: currentWorkout.id,
+                    currentExerciseIndex,
+                    currentSetIndex,
+                    completedSets,
+                    isResting,
+                    remainingRestTime,
+                    sessionStartTime: window.focusModeStartTime || Date.now(),
+                    wellnessData: window.focusModeWellnessData || null
+                };
+            } catch (error) {
+                console.error('Error getting session state:', error);
+                return null;
+            }
+        };
+        
+        // Start auto-save with the state getter
+        sessionRecoveryManager.startAutoSave(getStateCallback);
+        
+        // Also trigger critical saves on important events
+        setupCriticalSaveTriggers();
+        
+    }, 1000); // Wait 1 second for focus mode to initialize
+}
+
+// Setup triggers for critical saves (on important state changes)
+function setupCriticalSaveTriggers() {
+    // Save on action button click (completing a set)
+    const actionBtn = document.getElementById('focusActionBtn');
+    if (actionBtn) {
+        actionBtn.addEventListener('click', () => {
+            sessionRecoveryManager.criticalSave();
+        });
+    }
+    
+    // Save on weight/reps input change
+    const weightInput = document.getElementById('focusWeightInput');
+    const repsInput = document.getElementById('focusRepsInput');
+    
+    if (weightInput) {
+        weightInput.addEventListener('change', () => {
+            sessionRecoveryManager.criticalSave();
+        });
+    }
+    
+    if (repsInput) {
+        repsInput.addEventListener('change', () => {
+            sessionRecoveryManager.criticalSave();
+        });
+    }
+    
+    console.log('💾 Critical save triggers installed');
+}
+
+// Handle focus mode close
+function handleFocusModeClose() {
+    // Check if session was completed normally
+    const sessionCompleted = window.focusModeSessionCompleted;
+    
+    if (sessionCompleted) {
+        // Session completed normally - clear saved session
+        console.log('✅ Session completed normally - clearing saved state');
+        sessionRecoveryManager.clearSession();
+    } else {
+        // Session interrupted - keep the saved state for recovery
+        console.log('⚠️ Session interrupted - keeping saved state for recovery');
+        // Do one final save
+        sessionRecoveryManager.emergencySave('focus-mode-closed');
+    }
 }
 
 // Setup Media Session Integration (Timer Observer & Audio Trigger)
