@@ -279,7 +279,9 @@ class HealthTOONEncoder {
         }
         
         if (googleFitData.sleep) {
-            toonData.sleep = this.encode('SLEEP', googleFitData.sleep, timestamp, 'hours');
+            // Mantieni 2 decimali per precisione
+            const sleepValue = Math.round(googleFitData.sleep * 100) / 100;
+            toonData.sleep = this.encode('SLEEP', sleepValue, timestamp, 'hours');
         }
         
         if (googleFitData.calories) {
@@ -287,7 +289,9 @@ class HealthTOONEncoder {
         }
         
         if (googleFitData.distance) {
-            toonData.distance = this.encode('DISTANCE', googleFitData.distance / 1000, timestamp, 'km');
+            // Converti in km con 2 decimali per precisione
+            const distanceKm = Math.round((googleFitData.distance / 1000) * 100) / 100;
+            toonData.distance = this.encode('DISTANCE', distanceKm, timestamp, 'km');
         }
         
         // Dati aggiuntivi

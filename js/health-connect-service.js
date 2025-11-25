@@ -556,35 +556,113 @@ class HealthConnectService {
     }
 
     /**
-     * Fetch peso
+     * Fetch peso - ULTRA PRECISO
+     * Restituisce l'ultimo peso registrato con precisione a 1 decimale
      */
     async fetchWeight(startTime, endTime) {
         const data = await this.fetchGoogleFitData('weight', startTime, endTime);
-        const weights = data.point?.map(p => p.value?.[0]?.fpVal).filter(v => v) || [];
-        if (weights.length === 0) return null;
-        return weights[weights.length - 1]; // Ultimo peso registrato
+        
+        if (!data.point || data.point.length === 0) {
+            console.log('No weight data available');
+            return null;
+        }
+
+        // Ordina per timestamp per ottenere l'ultimo valore
+        const sortedPoints = data.point
+            .filter(p => p.value?.[0]?.fpVal > 0)
+            .sort((a, b) => {
+                const timeA = parseInt(a.endTimeNanos || a.startTimeNanos);
+                const timeB = parseInt(b.endTimeNanos || b.startTimeNanos);
+                return timeB - timeA; // Più recente prima
+            });
+
+        if (sortedPoints.length === 0) {
+            console.log('No valid weight values found');
+            return null;
+        }
+
+        // Prendi l'ultimo peso con precisione a 1 decimale
+        const latestWeight = Math.round(sortedPoints[0].value[0].fpVal * 10) / 10;
+        const timestamp = new Date(parseInt(sortedPoints[0].endTimeNanos || sortedPoints[0].startTimeNanos) / 1000000);
+        
+        console.log(`Latest weight: ${latestWeight} kg (recorded: ${timestamp.toLocaleString()})`);
+        
+        return latestWeight;
     }
 
     /**
-     * Fetch calorie
+     * Fetch calorie - ULTRA PRECISO
+     * Gestisce duplicati da diverse fonti (phone, watch, etc.)
      */
     async fetchCalories(startTime, endTime) {
         const data = await this.fetchGoogleFitData('calories', startTime, endTime);
-        const totalCalories = data.point?.reduce((sum, point) => {
-            return sum + (point.value?.[0]?.fpVal || 0);
-        }, 0) || 0;
+        
+        if (!data.point || data.point.length === 0) {
+            console.log('No calories data available');
+            return 0;
+        }
+
+        // Gestisci duplicati come per i passi
+        const caloriesByTimestamp = new Map();
+
+        data.point.forEach(point => {
+            const calories = point.value?.[0]?.fpVal || 0;
+            const startNanos = point.startTimeNanos;
+            const endNanos = point.endTimeNanos;
+            const key = `${startNanos}-${endNanos}`;
+
+            if (caloriesByTimestamp.has(key)) {
+                const existing = caloriesByTimestamp.get(key);
+                caloriesByTimestamp.set(key, Math.max(existing, calories));
+            } else {
+                caloriesByTimestamp.set(key, calories);
+            }
+        });
+
+        const totalCalories = Array.from(caloriesByTimestamp.values()).reduce((sum, cal) => sum + cal, 0);
+        
+        console.log(`Total calories: ${Math.round(totalCalories).toLocaleString()} kcal (${caloriesByTimestamp.size} unique intervals)`);
+        
         return Math.round(totalCalories);
     }
 
     /**
-     * Fetch distanza
+     * Fetch distanza - ULTRA PRECISO
+     * Gestisce duplicati da diverse fonti
      */
     async fetchDistance(startTime, endTime) {
         const data = await this.fetchGoogleFitData('distance', startTime, endTime);
-        const totalDistance = data.point?.reduce((sum, point) => {
-            return sum + (point.value?.[0]?.fpVal || 0);
-        }, 0) || 0;
-        return totalDistance; // In metri
+        
+        if (!data.point || data.point.length === 0) {
+            console.log('No distance data available');
+            return 0;
+        }
+
+        // Gestisci duplicati
+        const distanceByTimestamp = new Map();
+
+        data.point.forEach(point => {
+            const distance = point.value?.[0]?.fpVal || 0;
+            const startNanos = point.startTimeNanos;
+            const endNanos = point.endTimeNanos;
+            const key = `${startNanos}-${endNanos}`;
+
+            if (distanceByTimestamp.has(key)) {
+                const existing = distanceByTimestamp.get(key);
+                distanceByTimestamp.set(key, Math.max(existing, distance));
+            } else {
+                distanceByTimestamp.set(key, distance);
+            }
+        });
+
+        const totalDistance = Array.from(distanceByTimestamp.values()).reduce((sum, dist) => sum + dist, 0);
+        
+        // Arrotonda a 2 decimali per precisione
+        const roundedDistance = Math.round(totalDistance * 100) / 100;
+        
+        console.log(`Total distance: ${(roundedDistance / 1000).toFixed(2)} km (${distanceByTimestamp.size} unique intervals)`);
+        
+        return roundedDistance; // In metri con 2 decimali
     }
 
     /**
@@ -668,9 +746,12 @@ class HealthConnectService {
         const avgMinutes = totalMinutes / days.length;
         const avgHours = avgMinutes / 60;
 
-        console.log(`Sleep average: ${avgHours.toFixed(1)} hours/night (${days.length} days with data)`);
+        // Precisione a 2 decimali per maggiore accuratezza
+        const preciseAvgHours = Math.round(avgHours * 100) / 100;
+        
+        console.log(`Sleep average: ${preciseAvgHours.toFixed(2)} hours/night (${days.length} days with data, ${totalMinutes.toFixed(0)} total minutes)`);
 
-        return Math.round(avgHours * 10) / 10; // Ore con 1 decimale
+        return preciseAvgHours; // Ore con 2 decimali per precisione
     }
 
     /**
