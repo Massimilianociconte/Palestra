@@ -1646,6 +1646,8 @@
 
             window.initFocusMode = (workout) => {
                 notificationManager.requestPermission();
+                // Start silent audio loop to keep audio active in background (critical for iOS)
+                notificationManager.startSilentLoop();
                 openWellnessModal(workout);
             };
 
@@ -1917,6 +1919,10 @@
                 
                 // Mark session as completed for recovery manager
                 window.focusModeSessionCompleted = true;
+                
+                // Stop silent audio loop and release wake lock
+                notificationManager.stopSilentLoop();
+                notificationManager.releaseWakeLock();
                 
                 focusActiveArea.style.display = 'none';
                 focusTimerArea.style.display = 'none';
