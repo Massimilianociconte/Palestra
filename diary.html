@@ -698,6 +698,7 @@
 
                     div.innerHTML = `
         <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 10px;">
+            <button class="share-log-btn" data-index="${index}" title="Condividi" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">🔗</button>
             <button class="edit-log-btn" data-index="${index}" title="Modifica" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✏️</button>
             <button class="delete-log-btn" data-index="${index}" title="Elimina" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#ff4444;">×</button>
         </div>
@@ -726,6 +727,13 @@
                         editLog(index);
                     });
                 });
+
+                document.querySelectorAll('.share-log-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const index = e.target.closest('button').dataset.index;
+                        await shareLog(index);
+                    });
+                });
             }
 
             window.addEventListener('storage', (event) => {
@@ -749,7 +757,224 @@
                 }
             });
 
-            // 7. Delete Log
+            // 7. Share Log
+            async function shareLog(index) {
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                const log = logs[index];
+                if (!log) return;
+
+                const btn = document.querySelector(`.share-log-btn[data-index="${index}"]`);
+                const originalText = btn.textContent;
+                btn.textContent = '⏳';
+                btn.disabled = true;
+
+                try {
+                    const shortId = await firestoreService.createSharedWorkoutLog(log);
+                    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+                    const shareUrl = `${baseUrl}?log=${shortId}`;
+
+                    showShareLogModal(log.workoutName, log.date, shareUrl);
+                } catch (error) {
+                    console.error('Error sharing log:', error);
+                    alert('Errore durante la condivisione: ' + error.message);
+                } finally {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            }
+
+            // Show share modal for logs
+            function showShareLogModal(workoutName, date, shareUrl) {
+                const formattedDate = new Date(date).toLocaleDateString('it-IT', { 
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+                });
+
+                const modalHTML = `
+                    <div id="shareLogModal" style="
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.95);
+                        z-index: 3000;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 1rem;
+                    ">
+                        <div class="card" style="max-width: 500px; width: 100%;">
+                            <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
+                                🔗 Condividi Allenamento
+                            </h3>
+                            
+                            <p style="margin-bottom: 0.5rem; color: var(--color-text-muted);">
+                                Condividi <strong style="color: var(--color-text);">${workoutName}</strong>
+                            </p>
+                            <p style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--color-text-muted);">
+                                📅 ${formattedDate}
+                            </p>
+                            
+                            <div style="
+                                background: rgba(255,255,255,0.05);
+                                padding: 1rem;
+                                border-radius: var(--radius-sm);
+                                border: 1px solid var(--color-border);
+                                margin-bottom: 1rem;
+                                word-break: break-all;
+                                font-family: monospace;
+                                font-size: 0.85rem;
+                                color: var(--color-primary);
+                            ">
+                                ${shareUrl}
+                            </div>
+                            
+                            <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+                                Chi riceve questo link potrà importare l'allenamento nel proprio diario.
+                            </p>
+                            
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button id="shareLogModalClose" class="btn btn-outline" style="flex: 1;">
+                                    Chiudi
+                                </button>
+                                <button id="shareLogModalCopy" class="btn btn-primary" style="flex: 1;">
+                                    📋 Copia Link
+                                </button>
+                            </div>
+                            
+                            <p id="shareLogCopyFeedback" style="
+                                text-align: center;
+                                margin-top: 1rem;
+                                margin-bottom: 0;
+                                font-size: 0.85rem;
+                                color: var(--color-primary);
+                                min-height: 1.5em;
+                            "></p>
+                        </div>
+                    </div>
+                `;
+
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                const modal = document.getElementById('shareLogModal');
+                const closeBtn = document.getElementById('shareLogModalClose');
+                const copyBtn = document.getElementById('shareLogModalCopy');
+                const feedback = document.getElementById('shareLogCopyFeedback');
+
+                closeBtn.addEventListener('click', () => modal.remove());
+
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(shareUrl);
+                        feedback.textContent = '✅ Link copiato negli appunti!';
+                        copyBtn.textContent = '✅ Copiato!';
+                        setTimeout(() => {
+                            copyBtn.textContent = '📋 Copia Link';
+                        }, 2000);
+                    } catch (error) {
+                        feedback.textContent = '📋 Seleziona e copia manualmente';
+                    }
+                });
+            }
+
+            // Check for shared log on page load
+            async function checkForSharedLog() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const logId = urlParams.get('log');
+
+                if (logId) {
+                    console.log('Shared log detected:', logId);
+                    
+                    try {
+                        const logData = await firestoreService.getSharedWorkoutLog(logId);
+                        
+                        if (logData) {
+                            // Generate new local ID and import
+                            const importedLog = {
+                                ...logData,
+                                importedFrom: logId,
+                                importedAt: new Date().toISOString()
+                            };
+
+                            // Save to local storage
+                            const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                            logs.unshift(importedLog);
+                            localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+
+                            // Sync to cloud
+                            await syncLogsToCloud();
+
+                            // Clean URL
+                            window.history.replaceState({}, document.title, window.location.pathname);
+
+                            // Show success notification
+                            showImportNotification(logData.workoutName, true);
+
+                            // Re-render
+                            renderLogs();
+                        }
+                    } catch (error) {
+                        console.error('Error importing shared log:', error);
+                        showImportNotification(error.message, false);
+                        
+                        // Clean URL
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                }
+            }
+
+            // Show import notification
+            function showImportNotification(message, success) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 100px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--color-surface);
+                    border: 1px solid ${success ? 'var(--color-primary)' : '#ff4444'};
+                    padding: 1rem 1.5rem;
+                    border-radius: var(--radius-md);
+                    z-index: 4000;
+                    box-shadow: 0 4px 12px ${success ? 'rgba(0, 243, 255, 0.3)' : 'rgba(255, 68, 68, 0.3)'};
+                    animation: slideDown 0.3s ease-out;
+                `;
+
+                notification.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">${success ? '✅' : '❌'}</span>
+                        <div>
+                            <strong style="color: ${success ? 'var(--color-primary)' : '#ff4444'};">
+                                ${success ? 'Allenamento Importato!' : 'Errore Importazione'}
+                            </strong>
+                            <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                                ${message}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add animation styles if not present
+                if (!document.getElementById('importAnimStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'importAnimStyle';
+                    style.textContent = `
+                        @keyframes slideDown {
+                            from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+                            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 4000);
+            }
+
+            // Check for shared log on init
+            checkForSharedLog();
+
+            // 8. Delete Log
             async function deleteLog(index) {
                 if (confirm('Sei sicuro di voler eliminare questo allenamento dal diario?')) {
                     const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');

@@ -573,12 +573,17 @@ export class FirestoreService {
     }
 
     // Generate unique short ID with collision check
-    async generateUniqueShortId(maxRetries = 5) {
+    // @param {string} prefix - Optional prefix for the ID (e.g., 'L' for logs)
+    async generateUniqueShortId(prefix = '', maxRetries = 5) {
+        // Determine which collection to check based on prefix
+        const collection = prefix === 'L' ? 'shared_logs' : 'shared_workouts';
+        
         for (let i = 0; i < maxRetries; i++) {
-            const shortId = this.generateShortId();
+            const baseId = this.generateShortId();
+            const shortId = prefix ? `${prefix}${baseId}` : baseId;
 
             // Check if ID already exists
-            const docRef = doc(db, 'shared_workouts', shortId);
+            const docRef = doc(db, collection, shortId);
             const docSnap = await getDoc(docRef);
 
             if (!docSnap.exists()) {
@@ -642,6 +647,62 @@ export class FirestoreService {
             }
         } catch (error) {
             console.error("Error getting shared workout:", error);
+            throw error;
+        }
+    }
+
+    // --- SHARED WORKOUT LOGS (Diary Sharing) ---
+
+    /**
+     * Create a shared workout log (from diary) with short link
+     * @param {Object} logData - The workout log data to share
+     * @returns {string} - The short ID for the share link
+     */
+    async createSharedWorkoutLog(logData) {
+        try {
+            // Clean data before saving
+            const cleanData = JSON.parse(JSON.stringify(logData));
+            
+            // Generate unique short ID (different prefix for logs)
+            const shortId = await this.generateUniqueShortId('L'); // L prefix for logs
+
+            // Use short ID as document ID
+            await setDoc(doc(db, 'shared_logs', shortId), {
+                logData: cleanData,
+                createdAt: serverTimestamp(),
+                createdBy: this.getUid() || 'anonymous',
+                shortId: shortId,
+                type: 'workout_log'
+            });
+
+            return shortId;
+        } catch (error) {
+            console.error("Error creating shared workout log:", error);
+            throw new Error(`Impossibile creare link di condivisione: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get shared workout log by short ID
+     * @param {string} shareId - The short ID
+     * @returns {Object} - The workout log data
+     */
+    async getSharedWorkoutLog(shareId) {
+        try {
+            if (!shareId || shareId.length < 6) {
+                throw new Error('ID condivisione non valido');
+            }
+
+            const docSnap = await getDoc(doc(db, 'shared_logs', shareId));
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                return data.logData;
+            } else {
+                throw new Error('Link di condivisione non valido o scaduto');
+            }
+        } catch (error) {
+            console.error("Error getting shared workout log:", error);
             throw error;
         }
     }

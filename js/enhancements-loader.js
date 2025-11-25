@@ -616,18 +616,54 @@ function setupAIGenerationInterception() {
                     </div>
                 `;
 
-                const createWorkoutObj = () => ({
-                    id: Date.now(),
-                    name: suggestion.suggestion,
-                    exercises: suggestion.exercises ? suggestion.exercises.map(ex => ({
-                        name: ex.name,
-                        sets: Array(parseInt(ex.sets) || 3).fill({ weight: 0, reps: ex.reps || '10', rpe: 8 }),
-                        rest: 90,
-                        notes: ex.notes || ''
-                    })) : [],
-                    aiGenerated: true,
-                    createdAt: new Date().toISOString()
-                });
+                const createWorkoutObj = () => {
+                    // Parse reps from AI format (could be "8-10", "12", etc.)
+                    const parseReps = (repsStr) => {
+                        if (!repsStr) return '10';
+                        const str = String(repsStr);
+                        // If it's a range like "8-10", take the first number
+                        if (str.includes('-')) {
+                            return str.split('-')[0].trim();
+                        }
+                        // If it's a number, return as string
+                        return str.trim();
+                    };
+                    
+                    // Parse sets count from AI format
+                    const parseSetsCount = (setsStr) => {
+                        const num = parseInt(setsStr);
+                        return isNaN(num) || num < 1 ? 3 : num;
+                    };
+                    
+                    return {
+                        id: Date.now(),
+                        name: suggestion.suggestion || 'Allenamento AI',
+                        exercises: suggestion.exercises ? suggestion.exercises.map(ex => {
+                            const setsCount = parseSetsCount(ex.sets);
+                            const repsValue = parseReps(ex.reps);
+                            
+                            // Create individual set objects (not references to same object)
+                            const setsArray = [];
+                            for (let i = 0; i < setsCount; i++) {
+                                setsArray.push({
+                                    weight: 0,
+                                    reps: repsValue,
+                                    rpe: 8,
+                                    target: repsValue // Also set target for display
+                                });
+                            }
+                            
+                            return {
+                                name: ex.name || 'Esercizio',
+                                sets: setsArray,
+                                rest: 90,
+                                notes: ex.notes || ''
+                            };
+                        }) : [],
+                        aiGenerated: true,
+                        createdAt: new Date().toISOString()
+                    };
+                };
 
                 // Handle Save
                 document.getElementById('saveAiWorkout').addEventListener('click', async () => {
