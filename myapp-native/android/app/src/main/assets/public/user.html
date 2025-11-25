@@ -1148,11 +1148,79 @@
 
             const renderAiPlan = (plan) => {
                 latestAiPlan = plan;
+                console.log('📋 renderAiPlan chiamato con:', JSON.stringify(plan, null, 2));
                 const date = new Date(plan.createdAt || Date.now()).toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                 const isPersonalized = plan.isPersonalized || plan.aiPersonalized;
                 const badgeHtml = isPersonalized 
                     ? '<span class="ai-badge" style="background: linear-gradient(135deg, rgba(0,243,255,0.3), rgba(156,39,176,0.3)); border-color: #9c27b0;">AI+</span>'
                     : '<span class="ai-badge">AI</span>';
+                
+                // Supporta sia il formato nuovo (exercises) che legacy (warmup/main_lifts)
+                // PRIORITÀ: exercises > warmup/main_lifts
+                const exercises = plan.exercises;
+                const hasExercises = exercises && Array.isArray(exercises) && exercises.length > 0;
+                const warmupArr = plan.warmup && Array.isArray(plan.warmup) ? plan.warmup : [];
+                const mainLiftsArr = plan.main_lifts && Array.isArray(plan.main_lifts) ? plan.main_lifts : [];
+                const hasLegacyFormat = warmupArr.length > 0 || mainLiftsArr.length > 0;
+                
+                console.log('📋 Plan data:', { 
+                    exercises: exercises, 
+                    hasExercises: hasExercises, 
+                    warmup: plan.warmup, 
+                    main_lifts: plan.main_lifts,
+                    hasLegacyFormat: hasLegacyFormat 
+                });
+                
+                let exercisesHtml = '';
+                if (hasExercises) {
+                    // Nuovo formato: exercises è un array di oggetti {name, sets, reps, notes}
+                    exercisesHtml = `
+                        <div class="ai-plan-section">
+                            <h5>Esercizi Suggeriti</h5>
+                            <ul>
+                                ${exercises.map(ex => {
+                                    const name = ex.name || ex.exercise || 'Esercizio';
+                                    const details = [];
+                                    if (ex.sets) details.push(`${ex.sets} serie`);
+                                    if (ex.reps) details.push(`${ex.reps} reps`);
+                                    const detailStr = details.length ? ` (${details.join(' x ')})` : '';
+                                    const notesStr = ex.notes ? `<br><small style="color: var(--color-text-muted);">${ex.notes}</small>` : '';
+                                    return `<li><strong>${name}</strong>${detailStr}${notesStr}</li>`;
+                                }).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else if (hasLegacyFormat) {
+                    // Formato legacy: warmup e main_lifts sono array di stringhe
+                    exercisesHtml = `
+                        ${warmupArr.length > 0 ? `
+                        <div class="ai-plan-section">
+                            <h5>Warmup</h5>
+                            <ul>${formatList(warmupArr)}</ul>
+                        </div>` : ''}
+                        ${mainLiftsArr.length > 0 ? `
+                        <div class="ai-plan-section">
+                            <h5>Main Lifts</h5>
+                            <ul>${formatList(mainLiftsArr)}</ul>
+                        </div>` : ''}
+                    `;
+                } else {
+                    // Nessun formato riconosciuto - mostra messaggio di debug
+                    exercisesHtml = `
+                        <div class="ai-plan-section">
+                            <p style="color: var(--color-text-muted);">⚠️ Formato dati non riconosciuto. Controlla la console per debug.</p>
+                            <small style="color: #666;">Keys disponibili: ${Object.keys(plan).join(', ')}</small>
+                        </div>
+                    `;
+                }
+                
+                // Mostra reasoning se disponibile
+                const reasoningHtml = plan.reasoning ? `
+                    <div class="ai-plan-section" style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,243,255,0.05); border-radius: 6px;">
+                        <small style="color: var(--color-text-muted);"><strong>💡 Ragionamento:</strong> ${plan.reasoning}</small>
+                    </div>
+                ` : '';
+                
                 aiPredictorContent.innerHTML = `
                     <div class="ai-plan-card">
                         <div style="display:flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
@@ -1163,17 +1231,8 @@
                             ${badgeHtml}
                         </div>
                         <p style="margin: 0.75rem 0; color: #ddd;">${plan.focus || ''}</p>
-
-                        <div class="ai-plan-section">
-                            <h5>Warmup</h5>
-                            <ul>${formatList(plan.warmup)}</ul>
-                        </div>
-
-                        <div class="ai-plan-section">
-                            <h5>Main Lifts</h5>
-                            <ul>${formatList(plan.main_lifts)}</ul>
-                        </div>
-
+                        ${exercisesHtml}
+                        ${reasoningHtml}
                         <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                             <button id="saveAiPlanBtn" class="btn btn-primary" style="flex:1;">Salva come scheda</button>
                         </div>
@@ -1192,20 +1251,37 @@
                 buttonEl.textContent = 'Salvataggio...';
 
                 const workouts = getStoredWorkouts();
-                const newWorkout = {
-                    id: generateWorkoutId(),
-                    name: plan.suggestion || `Sessione AI ${new Date().toLocaleDateString('it-IT')}`,
-                    description: plan.focus || 'Allenamento generato da Gemini AI',
-                    exercises: (plan.main_lifts || []).map((lift, idx) => ({
+                
+                // Supporta sia il formato nuovo (exercises) che legacy (main_lifts/warmup)
+                let exercisesForWorkout = [];
+                if (plan.exercises && Array.isArray(plan.exercises) && plan.exercises.length > 0) {
+                    // Nuovo formato: exercises è già un array di oggetti
+                    exercisesForWorkout = plan.exercises.map(ex => ({
+                        name: ex.name || 'Esercizio',
+                        sets: ex.sets || '4',
+                        reps: ex.reps || '8-10',
+                        notes: ex.notes || ''
+                    }));
+                } else if (plan.main_lifts && Array.isArray(plan.main_lifts)) {
+                    // Formato legacy: main_lifts è un array di stringhe
+                    exercisesForWorkout = plan.main_lifts.map((lift, idx) => ({
                         name: lift,
                         sets: '4',
                         reps: '8-10',
                         notes: idx < (plan.warmup || []).length ? `Warmup: ${(plan.warmup || [])[idx]}` : ''
-                    })),
+                    }));
+                }
+                
+                const newWorkout = {
+                    id: generateWorkoutId(),
+                    name: plan.suggestion || `Sessione AI ${new Date().toLocaleDateString('it-IT')}`,
+                    description: plan.focus || 'Allenamento generato da Gemini AI',
+                    exercises: exercisesForWorkout,
                     warmup: plan.warmup,
                     fromAI: true,
                     aiMeta: {
                         focus: plan.focus,
+                        reasoning: plan.reasoning,
                         createdAt: plan.createdAt || new Date().toISOString(),
                         source: 'predictor'
                     },

@@ -17,8 +17,14 @@ export class WorkoutSharingHandler {
             // Create share via firestore service (returns short ID)
             const shortId = await this.firestoreService.createSharedWorkout(workout);
 
-            // Build clean share URL
-            const baseUrl = `${window.location.origin}${window.location.pathname}`;
+            // Build clean share URL - use production URL, not localhost
+            let baseUrl;
+            if (window.location.origin.includes('localhost') || window.location.origin.includes('capacitor')) {
+                // APK nativo o localhost - usa l'URL di produzione
+                baseUrl = 'https://atomiksnip3r04.github.io/Palestra/user.html';
+            } else {
+                baseUrl = `${window.location.origin}${window.location.pathname}`;
+            }
             const shareUrl = `${baseUrl}?s=${shortId}`;
 
             return {

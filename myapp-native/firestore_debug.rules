@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // DEBUG RULES - VERY PERMISSIVE
+    // Allow everything to everyone for testing
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

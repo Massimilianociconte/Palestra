@@ -770,7 +770,14 @@
 
                 try {
                     const shortId = await firestoreService.createSharedWorkoutLog(log);
-                    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+                    // Build clean share URL - use production URL, not localhost
+                    let baseUrl;
+                    if (window.location.origin.includes('localhost') || window.location.origin.includes('capacitor')) {
+                        // APK nativo o localhost - usa l'URL di produzione
+                        baseUrl = 'https://atomiksnip3r04.github.io/Palestra/diary.html';
+                    } else {
+                        baseUrl = `${window.location.origin}${window.location.pathname}`;
+                    }
                     const shareUrl = `${baseUrl}?log=${shortId}`;
 
                     showShareLogModal(log.workoutName, log.date, shareUrl);

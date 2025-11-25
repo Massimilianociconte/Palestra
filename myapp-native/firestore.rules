@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // User profiles: Users can read/write only their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Private subcollection (health tokens, etc.)
+      match /private/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Health data subcollection
+      match /health/{healthId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Config: Public read (for global API key if needed), Admin write only
+    match /config/global {
+      allow read: if true;
+      allow write: if false; // Admin only via Console
+    }
+    
+    // Terra API Config: Read for authenticated users, Admin write only
+    match /config/terra {
+      allow read: if request.auth != null;
+      allow write: if false; // Admin only via Console
+    }
+    
+    // Shared Workouts: 
+    // - Write: Any authenticated user can create/update a shared workout
+    // - Read: Publicly readable (so anyone with the link can import it)
+    match /shared_workouts/{shareId} {
+      allow write: if request.auth != null;
+      allow read: if true; 
+    }
+    
+    // Shared Workout Logs (Diary entries):
+    // - Write: Any authenticated user can create/update a shared log
+    // - Read: Publicly readable (so anyone with the link can import it)
+    match /shared_logs/{shareId} {
+      allow write: if request.auth != null;
+      allow read: if true; 
+    }
+  }
+}
