@@ -568,22 +568,17 @@ function setupAIGenerationInterception() {
             const user = authService.getCurrentUser();
             if (!user) throw new Error("Utente non autenticato");
 
-            // 1. Get Profile
-            const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
-
-            // 2. Get Existing Workouts
-            const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-
-            // 3. Construct Payload
+            // Use gatherDataForAI to get complete data including recent logs, PRs, health data
+            const baseData = await firestoreService.gatherDataForAI();
+            
+            // Add user request to the gathered data
             const payload = {
-                profile: profile,
-                recentLogs: [],
-                existingWorkouts: workouts,
-                userRequest: userRequest,
-                recentWorkoutCount: workouts.length,
-                progressionData: {},
-                healthData: {}
+                ...baseData,
+                userRequest: userRequest
             };
+            
+            // Track if this is a personalized request
+            const isPersonalized = !!(userRequest.style || userRequest.customText);
 
             // Import AI Service dynamically
             const { aiService } = await import('./ai-service.js');
@@ -592,6 +587,22 @@ function setupAIGenerationInterception() {
             if (result.success) {
                 // Render result
                 const suggestion = result.data;
+                
+                // Save to AI plan history (for storico)
+                const plan = {
+                    ...suggestion,
+                    isPersonalized: isPersonalized,
+                    createdAt: new Date().toISOString()
+                };
+                try {
+                    const history = JSON.parse(localStorage.getItem('ironflow_ai_plan_history') || '[]');
+                    history.unshift(plan);
+                    const trimmed = history.slice(0, 20);
+                    localStorage.setItem('ironflow_ai_plan_history', JSON.stringify(trimmed));
+                    console.log('📚 AI plan saved to history');
+                } catch (e) {
+                    console.warn('Could not save AI plan to history:', e);
+                }
 
                 aiContent.innerHTML = `
                     <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid var(--color-primary); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
@@ -671,6 +682,8 @@ function setupAIGenerationInterception() {
                             };
                         }) : [],
                         aiGenerated: true,
+                        aiPersonalized: isPersonalized, // Distingue AI classico da personalizzato
+                        fromAI: true, // Compatibilità con renderWorkouts
                         createdAt: new Date().toISOString()
                     };
                 };

@@ -373,7 +373,7 @@
         </div>
     </header>
 
-    <section class="section" style="padding-top: 120px;">
+    <section class="section" style="padding-top: 160px;">
         <div class="container">
 
             <!-- Auth Section (Login/Register) -->
@@ -1092,11 +1092,20 @@
                 }
             };
 
-            const saveAiPlanHistory = (plan) => {
+            const saveAiPlanHistory = async (plan) => {
                 const history = loadAiPlanHistory();
                 history.unshift(plan);
                 const trimmed = history.slice(0, 20);
                 localStorage.setItem(AI_PLAN_HISTORY_KEY, JSON.stringify(trimmed));
+                
+                // Sync to Firestore for persistence across devices
+                try {
+                    if (authService.getCurrentUser()) {
+                        await firestoreService.syncToCloud();
+                    }
+                } catch (e) {
+                    console.warn('Could not sync AI history to cloud:', e);
+                }
             };
 
             const formatList = (items = []) => {
@@ -1109,6 +1118,10 @@
             const renderAiPlan = (plan) => {
                 latestAiPlan = plan;
                 const date = new Date(plan.createdAt || Date.now()).toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                const isPersonalized = plan.isPersonalized || plan.aiPersonalized;
+                const badgeHtml = isPersonalized 
+                    ? '<span class="ai-badge" style="background: linear-gradient(135deg, rgba(0,243,255,0.3), rgba(156,39,176,0.3)); border-color: #9c27b0;">AI+</span>'
+                    : '<span class="ai-badge">AI</span>';
                 aiPredictorContent.innerHTML = `
                     <div class="ai-plan-card">
                         <div style="display:flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
@@ -1116,7 +1129,7 @@
                                 <h4 style="margin:0;">${plan.suggestion || 'Allenamento AI'}</h4>
                                 <small style="color: var(--color-text-muted);">${date}</small>
                             </div>
-                            <span class="ai-badge">AI</span>
+                            ${badgeHtml}
                         </div>
                         <p style="margin: 0.75rem 0; color: #ddd;">${plan.focus || ''}</p>
 
@@ -1191,6 +1204,10 @@
                 aiPlanHistoryList.innerHTML = '';
                 history.forEach((plan, index) => {
                     const date = new Date(plan.createdAt || Date.now()).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                    const isPersonalized = plan.isPersonalized || plan.aiPersonalized;
+                    const badgeHtml = isPersonalized 
+                        ? '<span class="ai-badge" style="background: linear-gradient(135deg, rgba(0,243,255,0.3), rgba(156,39,176,0.3)); border-color: #9c27b0;">AI+</span>'
+                        : '<span class="ai-badge">AI</span>';
                     const div = document.createElement('div');
                     div.style.cssText = 'padding: 0.75rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; background: rgba(255,255,255,0.02);';
                     div.innerHTML = `
@@ -1199,7 +1216,7 @@
                                 <strong>${plan.suggestion || 'Allenamento AI'}</strong>
                                 <div style="font-size:0.75rem; color: var(--color-text-muted);">${date}</div>
                             </div>
-                            <span class="ai-badge">AI</span>
+                            ${badgeHtml}
                         </div>
                         <p style="font-size: 0.8rem; color: #ccc; margin: 0.5rem 0 0;">${plan.focus || ''}</p>
                     `;
@@ -1226,6 +1243,7 @@
                     if (result.success) {
                         const plan = {
                             ...result.data,
+                            isPersonalized: false, // AI classico senza personalizzazione
                             createdAt: new Date().toISOString()
                         };
                         saveAiPlanHistory(plan);
@@ -2233,7 +2251,17 @@
                         const workoutIdAttr = w.id ? `data-id="${w.id}"` : '';
                         const workoutName = w.name || 'Workout senza nome';
                         const exercisesCount = Array.isArray(w.exercises) ? w.exercises.length : 0;
-                        const aiBadge = w.fromAI ? '<span class="ai-badge">AI</span>' : '';
+                        // Distingui AI classico da AI personalizzato
+                        const isAI = w.fromAI || w.aiGenerated;
+                        const isPersonalized = w.aiPersonalized;
+                        let aiBadge = '';
+                        if (isAI) {
+                            if (isPersonalized) {
+                                aiBadge = '<span class="ai-badge" style="background: linear-gradient(135deg, rgba(0,243,255,0.3), rgba(156,39,176,0.3)); border-color: #9c27b0;">AI+</span>';
+                            } else {
+                                aiBadge = '<span class="ai-badge">AI</span>';
+                            }
+                        }
                         div.innerHTML = `
                             <div style="flex: 1;">
                                 <strong>${workoutName} ${aiBadge}</strong>

@@ -124,6 +124,8 @@ export class FirestoreService {
             const localBodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
             // Sync Photos too (only metadata/Base64 if small enough, typically stored in separate collection or array)
             const localPhotos = JSON.parse(localStorage.getItem('ironflow_photos') || '[]');
+            // Sync AI Plan History for persistence across devices
+            const localAiPlanHistory = JSON.parse(localStorage.getItem('ironflow_ai_plan_history') || '[]');
 
             const data = {
                 workouts: localWorkouts,
@@ -131,6 +133,7 @@ export class FirestoreService {
                 profile: localProfile,
                 bodyStats: localBodyStats,
                 photos: localPhotos, // Added photos sync
+                aiPlanHistory: localAiPlanHistory, // AI workout generation history
                 lastUpdated: new Date().toISOString()
             };
 
@@ -156,6 +159,7 @@ export class FirestoreService {
                 if (data.profile) localStorage.setItem('ironflow_profile', JSON.stringify(data.profile));
                 if (data.bodyStats) localStorage.setItem('ironflow_body_stats', JSON.stringify(data.bodyStats));
                 if (data.photos) localStorage.setItem('ironflow_photos', JSON.stringify(data.photos)); // Load photos
+                if (data.aiPlanHistory) localStorage.setItem('ironflow_ai_plan_history', JSON.stringify(data.aiPlanHistory)); // Load AI history
 
                 return { success: true, data };
             } else {
