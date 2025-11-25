@@ -7,6 +7,7 @@ import { sessionRecoveryManager } from './session-recovery-manager.js';
 import { aiTargetingHandler, AITargetingHandler } from './ai-targeting-handler.js';
 import { WorkoutSharingHandler } from './workout-sharing-handler.js';
 import { firestoreService } from './firestore-service.js';
+import { authService } from './auth-service.js';
 
 console.log('🚀 Loading Focus Mode Enhancements...');
 
@@ -141,60 +142,33 @@ function setupAIGenerationInterception() {
 
             console.log('🧠 AI Request:', userRequest);
 
-            // Get necessary data from global scope or services
-            // We need to reconstruct the data object expected by aiService
-            // Since we can't easily access the internal 'data' object of user.html, 
-            // we'll rely on aiService to fetch fresh data if possible, OR we need to expose a data gatherer.
-            // BUT, aiService.predictNextSession expects a full data object.
-
-            // WORKAROUND: We will manually gather the data here using the services we have access to
-            // This duplicates some logic from user.html but ensures we have control
-
-            const user = firebase.auth().currentUser;
+            // Use authService instead of global firebase
+            const user = authService.getCurrentUser();
             if (!user) throw new Error("Utente non autenticato");
 
             // 1. Get Profile
             const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
 
-            // 2. Get Recent Logs (from Firestore or Local)
-            // We'll use firestoreService if available, or fallback to empty if we can't access logs easily
-            // Actually, we can try to read from the UI or just pass what we have.
-            // Let's try to use the firestoreService to get recent logs if method exists, otherwise empty.
-            let recentLogs = [];
-            // Assuming firestoreService has a method or we can't easily get them without it.
-            // Let's assume for now we pass basic info and let AI know we are in "Enhanced Mode"
-
-            // BETTER APPROACH: We can't easily reconstruct all data without duplicating massive logic.
-            // Instead, let's try to modify the 'data' object that user.html uses.
-            // We can't.
-
-            // ALTERNATIVE: We use the existing 'gatherDataForAI' function if it's exposed? No.
-
-            // OK, we will rebuild a minimal valid payload.
+            // 2. Get Existing Workouts
             const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
 
+            // 3. Construct Payload
             const payload = {
                 profile: profile,
-                recentLogs: [], // We might miss this if we don't query firestore
+                recentLogs: [],
                 existingWorkouts: workouts,
-                userRequest: userRequest, // THIS IS THE KEY PART
-                recentWorkoutCount: 0, // Placeholder
-                progressionData: {}, // Placeholder
-                healthData: {} // Placeholder
+                userRequest: userRequest,
+                recentWorkoutCount: workouts.length,
+                progressionData: {},
+                healthData: {}
             };
 
-            // Try to get logs from firestore if possible
-            // This is a limitation of the "external module" approach without exposing internal functions.
-            // However, we can try to find the original function in the window object if exposed? No.
-
-            // Let's try to fetch logs directly since we have firestoreService
-            // We need to import the logic or just do a quick fetch
-            // For now, let's send the request. The AI might be less context-aware but will respect the target.
-
-            const result = await import('./ai-service.js').then(m => m.aiService.predictNextSession(payload));
+            // Import AI Service dynamically
+            const { aiService } = await import('./ai-service.js');
+            const result = await aiService.predictNextSession(payload);
 
             if (result.success) {
-                // Render result (We need to duplicate render logic or inject HTML)
+                // Render result
                 const suggestion = JSON.parse(result.data);
 
                 aiContent.innerHTML = `
