@@ -562,21 +562,19 @@
             <div class="card">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="margin: 0;">Record Personali</h3>
+                    <h3 style="margin: 0;">Record Personali <span style="font-size: 0.7rem; color: var(--color-text-muted);">(Pesi Reali)</span></h3>
                     <div class="rm-selector"
                         style="display: flex; gap: clamp(2px, 1vw, 5px); background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; flex-wrap: nowrap; overflow-x: auto;">
-                        <button class="btn-rm active" data-rm="1rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">1RM</button>
-                        <button class="btn-rm" data-rm="3rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">3RM</button>
+                        <button class="btn-rm active" data-rm="max"
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">Max</button>
                         <button class="btn-rm" data-rm="5rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">5RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">4-6</button>
                         <button class="btn-rm" data-rm="8rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">8RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">7-9</button>
                         <button class="btn-rm" data-rm="10rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">10RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">9-11</button>
                         <button class="btn-rm" data-rm="12rm"
-                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">12RM</button>
+                            style="border: none; background: transparent; color: #ccc; padding: 5px clamp(6px, 2vw, 10px); border-radius: 6px; cursor: pointer; font-size: clamp(0.7rem, 2.5vw, 0.85rem); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">11-15</button>
                     </div>
                 </div>
 
@@ -795,7 +793,7 @@
                 
                 if (uniqueExercises.length > 0) {
                     strengthSelect.innerHTML = uniqueExercises.slice(0, 15).map((ex, i) => 
-                        `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name} (${ex.maxRM}kg)</option>`
+                        `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name} (${ex.maxWeight}kg)</option>`
                     ).join('');
                 } else {
                     strengthSelect.innerHTML = '<option value="">Nessun esercizio registrato</option>';
@@ -1798,20 +1796,8 @@
             // Formula: Weight * (1 + Reps/30) for base, then NSCA percentages
             const prs = {};
 
-            const calculateMultiRM = (weight, reps) => {
-                const oneRM = estimateOneRM(weight, reps);
-                // NSCA Load Coefficients: 1RM=100%, 3RM=93%, 5RM=87%, 8RM=80%, 10RM=75%, 12RM=70%
-                // This is a standard, robust way to derive N-RM from a calculated 1RM
-                return {
-                    '1rm': oneRM,
-                    '3rm': oneRM * 0.93,
-                    '5rm': oneRM * 0.87,
-                    '8rm': oneRM * 0.80,
-                    '10rm': oneRM * 0.75,
-                    '12rm': oneRM * 0.70
-                };
-            };
-
+            // Calcola il PESO REALE MASSIMO sollevato (non stimato)
+            // Traccia anche il miglior set per diverse rep ranges
             logs.forEach(log => {
                 if (!log.exercises) return;
                 log.exercises.forEach(ex => {
@@ -1820,50 +1806,73 @@
                         const w = parseFloat(set.weight);
                         const r = parseFloat(set.reps);
                         if (w > 0 && r > 0) {
-                            const estimates = calculateMultiRM(w, r);
-                            // We track based on highest 1RM, which implies highest 3RM/5RM in this model
-                            if (!prs[name] || estimates['1rm'] > prs[name]['1rm']) {
+                            if (!prs[name]) {
                                 prs[name] = {
-                                    ...estimates,
+                                    maxWeight: 0,        // Peso massimo reale sollevato
+                                    maxWeightReps: 0,    // Reps fatte con quel peso
+                                    maxWeightDate: null,
+                                    // Anche i migliori set per rep range (peso reale)
+                                    best1rep: 0,
+                                    best3rep: 0,
+                                    best5rep: 0,
+                                    best8rep: 0,
+                                    best10rep: 0,
+                                    best12rep: 0,
                                     date: log.date,
                                     display: name
                                 };
                             }
+                            
+                            // Aggiorna peso massimo reale
+                            if (w > prs[name].maxWeight) {
+                                prs[name].maxWeight = w;
+                                prs[name].maxWeightReps = r;
+                                prs[name].maxWeightDate = log.date;
+                                prs[name].date = log.date;
+                            }
+                            
+                            // Aggiorna migliori set per rep range (peso reale per quel range)
+                            if (r === 1 && w > prs[name].best1rep) prs[name].best1rep = w;
+                            if (r >= 2 && r <= 4 && w > prs[name].best3rep) prs[name].best3rep = w;
+                            if (r >= 4 && r <= 6 && w > prs[name].best5rep) prs[name].best5rep = w;
+                            if (r >= 7 && r <= 9 && w > prs[name].best8rep) prs[name].best8rep = w;
+                            if (r >= 9 && r <= 11 && w > prs[name].best10rep) prs[name].best10rep = w;
+                            if (r >= 11 && r <= 15 && w > prs[name].best12rep) prs[name].best12rep = w;
                         }
                     });
                 });
             });
 
-            // Update Stats Cards with TOP 2 actual lifts from user's data
+            // Update Stats Cards with TOP 2 actual lifts from user's data (PESO REALE)
             function updateTopLiftsCards() {
-                // Ordina i PR per 1RM decrescente
+                // Ordina i PR per peso massimo reale decrescente
                 const sortedPRs = Object.entries(prs)
-                    .filter(([_, data]) => data['1rm'] > 0)
-                    .sort((a, b) => b[1]['1rm'] - a[1]['1rm']);
+                    .filter(([_, data]) => data.maxWeight > 0)
+                    .sort((a, b) => b[1].maxWeight - a[1].maxWeight);
                 
-                // Top Lift #1
+                // Top Lift #1 (PESO REALE MASSIMO)
                 if (sortedPRs.length >= 1) {
                     const [name, data] = sortedPRs[0];
                     const displayName = name.length > 15 ? name.substring(0, 12) + '...' : name;
                     document.getElementById('topLift1Value').textContent = unitService 
-                        ? unitService.formatWeight(data['1rm']) 
-                        : Math.round(data['1rm']) + ' kg';
+                        ? unitService.formatWeight(data.maxWeight) 
+                        : Math.round(data.maxWeight) + ' kg';
                     document.getElementById('topLift1Label').textContent = displayName;
-                    document.getElementById('topLift1Label').title = name; // Tooltip con nome completo
+                    document.getElementById('topLift1Label').title = `${name} (${data.maxWeightReps} reps)`;
                 } else {
                     document.getElementById('topLift1Value').textContent = '-';
                     document.getElementById('topLift1Label').textContent = 'Nessun PR';
                 }
                 
-                // Top Lift #2
+                // Top Lift #2 (PESO REALE MASSIMO)
                 if (sortedPRs.length >= 2) {
                     const [name, data] = sortedPRs[1];
                     const displayName = name.length > 15 ? name.substring(0, 12) + '...' : name;
                     document.getElementById('topLift2Value').textContent = unitService 
-                        ? unitService.formatWeight(data['1rm']) 
-                        : Math.round(data['1rm']) + ' kg';
+                        ? unitService.formatWeight(data.maxWeight) 
+                        : Math.round(data.maxWeight) + ' kg';
                     document.getElementById('topLift2Label').textContent = displayName;
-                    document.getElementById('topLift2Label').title = name;
+                    document.getElementById('topLift2Label').title = `${name} (${data.maxWeightReps} reps)`;
                 } else {
                     document.getElementById('topLift2Value').textContent = '-';
                     document.getElementById('topLift2Label').textContent = 'Nessun PR';
@@ -1872,17 +1881,38 @@
 
             updateTopLiftsCards();
 
-            // Update Table Logic with Selector
+            // Update Table Logic with Selector - USA PESI REALI
             const prTableBody = document.getElementById('prTableBody');
             const rmHeader = document.getElementById('rmHeader');
             const rmButtons = document.querySelectorAll('.btn-rm');
-            let currentView = '1rm';
+            let currentView = 'max'; // Default: peso massimo reale
+
+            // Mappa view -> campo dati
+            const viewToField = {
+                'max': 'maxWeight',
+                '1rm': 'best1rep',
+                '3rm': 'best3rep',
+                '5rm': 'best5rep',
+                '8rm': 'best8rep',
+                '10rm': 'best10rep',
+                '12rm': 'best12rep'
+            };
+
+            const viewLabels = {
+                'max': 'Max (Reale)',
+                '1rm': '1 Rep',
+                '3rm': '2-4 Reps',
+                '5rm': '4-6 Reps',
+                '8rm': '7-9 Reps',
+                '10rm': '9-11 Reps',
+                '12rm': '11-15 Reps'
+            };
 
             const renderTable = () => {
                 prTableBody.innerHTML = '';
 
                 // Update Header Text
-                rmHeader.textContent = currentView.toUpperCase() + ' (Stima)';
+                rmHeader.textContent = viewLabels[currentView] || 'Peso Reale';
 
                 // Update Buttons State
                 rmButtons.forEach(btn => {
@@ -1899,23 +1929,36 @@
                     }
                 });
 
-                // Sort by current view metric
+                // Ottieni il campo corretto per la view
+                const field = viewToField[currentView] || 'maxWeight';
+
+                // Sort by current view metric (PESO REALE)
                 const sortedPRs = Object.entries(prs)
-                    .sort((a, b) => b[1][currentView] - a[1][currentView])
+                    .filter(([_, data]) => data[field] > 0)
+                    .sort((a, b) => b[1][field] - a[1][field])
                     .slice(0, 5); // Top 5
+
+                if (sortedPRs.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="3" style="padding: 20px; text-align: center; color: var(--color-text-muted);">Nessun dato per questo range di reps</td>`;
+                    prTableBody.appendChild(tr);
+                    return;
+                }
 
                 sortedPRs.forEach(([name, data]) => {
                     const date = new Date(data.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+                    const weight = data[field];
+                    const repsInfo = currentView === 'max' ? ` (${data.maxWeightReps} reps)` : '';
 
-                    let weightDisplay = Math.round(data[currentView]) + ' kg';
+                    let weightDisplay = Math.round(weight) + ' kg';
                     if (unitService) {
-                        weightDisplay = unitService.formatWeight(data[currentView]);
+                        weightDisplay = unitService.formatWeight(weight);
                     }
 
                     const tr = document.createElement('tr');
                     tr.style.borderBottom = '1px solid var(--color-border)';
                     tr.innerHTML = `
-<td style="padding: 10px; text-transform: capitalize;">${name}</td>
+<td style="padding: 10px; text-transform: capitalize;">${name}${repsInfo}</td>
 <td style="padding: 10px; color: var(--color-primary); font-weight: bold;">${weightDisplay}</td>
 <td style="padding: 10px; font-size: 0.8rem;">${date}</td>
 `;

@@ -313,18 +313,7 @@ export class FirestoreService {
                 return logDate >= ninetyDaysAgo && logDate < sixtyDaysAgo;
             });
 
-            // Calculate PRs locally to save tokens
-            // Formula: Hybrid (Epley + Brzycki + Lombardi) average for stability
-            const estimateOneRM = (weight, reps) => {
-                if (!weight || !reps) return 0;
-                const epley = weight * (1 + reps / 30);
-                const brzycki = (reps < 37) ? weight * (36 / (37 - reps)) : 0;
-                const lombardi = weight * Math.pow(reps, 0.10);
-                const estimates = [epley, brzycki, lombardi].filter(val => Number.isFinite(val) && val > 0);
-                if (!estimates.length) return 0;
-                return estimates.reduce((sum, val) => sum + val, 0) / estimates.length;
-            };
-
+            // Calculate PRs locally - USA PESI REALI (non stime)
             const prs = {};
             localLogs.forEach(log => {
                 if (!log.exercises) return;
@@ -334,25 +323,39 @@ export class FirestoreService {
                         const w = parseFloat(set.weight);
                         const r = parseFloat(set.reps);
                         if (w > 0 && r > 0) {
-                            const oneRM = estimateOneRM(w, r);
-                            if (!prs[name] || oneRM > prs[name]['1rm']) {
+                            if (!prs[name]) {
                                 prs[name] = {
-                                    '1rm': Math.round(oneRM),
-                                    '3rm': Math.round(oneRM * 0.93),
-                                    '5rm': Math.round(oneRM * 0.87),
-                                    '8rm': Math.round(oneRM * 0.80),
-                                    '10rm': Math.round(oneRM * 0.75),
-                                    '12rm': Math.round(oneRM * 0.70)
+                                    maxWeight: 0,      // Peso reale massimo
+                                    maxWeightReps: 0,  // Reps con quel peso
+                                    totalSets: 0,
+                                    avgWeight: 0,
+                                    weightSum: 0
                                 };
                             }
+                            
+                            // Aggiorna peso massimo reale
+                            if (w > prs[name].maxWeight) {
+                                prs[name].maxWeight = w;
+                                prs[name].maxWeightReps = r;
+                            }
+                            
+                            // Calcola media pesi
+                            prs[name].weightSum += w;
+                            prs[name].totalSets++;
                         }
                     });
                 });
             });
 
-            // Sort PRs to keep only top 5-10 relevant ones (by 1RM)
+            // Calcola medie e formatta per AI
+            Object.keys(prs).forEach(name => {
+                prs[name].avgWeight = Math.round(prs[name].weightSum / prs[name].totalSets);
+                delete prs[name].weightSum;
+            });
+
+            // Sort PRs by max weight (PESO REALE) and keep top 10
             const topPrs = Object.entries(prs)
-                .sort(([, a], [, b]) => b['1rm'] - a['1rm'])
+                .sort(([, a], [, b]) => b.maxWeight - a.maxWeight)
                 .slice(0, 10)
                 .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {});
 
@@ -487,7 +490,7 @@ export class FirestoreService {
                 })
             }));
 
-            // Calculate historical PRs for progression/regression tracking
+            // Calculate historical PRs for progression/regression tracking (PESI REALI)
             const historicalPrs = {};
             historicalLogs.forEach(log => {
                 if (!log.exercises) return;
@@ -496,13 +499,11 @@ export class FirestoreService {
                     ex.sets.forEach(set => {
                         const w = parseFloat(set.weight);
                         const r = parseFloat(set.reps);
-                        if (w > 0 && r > 0) {
-                            const oneRM = estimateOneRM(w, r);
-                            if (!historicalPrs[name] || oneRM > historicalPrs[name]['1rm']) {
+                        if (w > 0) {
+                            if (!historicalPrs[name] || w > historicalPrs[name].maxWeight) {
                                 historicalPrs[name] = {
-                                    '1rm': Math.round(oneRM),
-                                    '3rm': Math.round(oneRM * 0.93),
-                                    '5rm': Math.round(oneRM * 0.87)
+                                    maxWeight: w,
+                                    reps: r
                                 };
                             }
                         }
@@ -510,11 +511,11 @@ export class FirestoreService {
                 });
             });
 
-            // Calculate progression/regression for each lift
+            // Calculate progression/regression for each lift (PESI REALI)
             const progressionData = {};
             Object.keys(topPrs).forEach(lift => {
-                const current = topPrs[lift]['1rm'];
-                const historical = historicalPrs[lift]?.['1rm'] || 0;
+                const current = topPrs[lift].maxWeight;
+                const historical = historicalPrs[lift]?.maxWeight || 0;
                 if (historical > 0) {
                     const change = current - historical;
                     const changePercent = ((change / historical) * 100).toFixed(1);
@@ -586,16 +587,19 @@ export class FirestoreService {
                 recentLogs: simplifiedLogs,
                 recentWorkoutCount: recentLogs.length,
                 historicalWorkoutCount: historicalLogs.length,
+                // PR con PESI REALI (non stime)
                 prs: topPrs,
                 historicalPrs: Object.entries(historicalPrs)
-                    .sort(([, a], [, b]) => b['1rm'] - a['1rm'])
+                    .sort(([, a], [, b]) => b.maxWeight - a.maxWeight)
                     .slice(0, 10)
                     .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {}),
                 progressionData: progressionData,
                 wellness: wellnessSummary,
                 domsInsights,
                 existingWorkouts,
-                healthData: healthData // Add health data in TOON format
+                healthData: healthData, // Health data in TOON format
+                // Nota per AI: i pesi nei PR sono REALI, non stime 1RM
+                prNote: 'I pesi nei PR sono i massimi REALI sollevati, non stime 1RM'
             };
 
         } catch (e) {

@@ -240,11 +240,12 @@ export class AdvancedMetricsEngine {
 
     /**
      * 4. GET UNIQUE EXERCISES FROM LOGS
-     * Estrae tutti gli esercizi unici dai log con almeno 2 occorrenze
+     * Estrae tutti gli esercizi unici dai log con almeno minOccurrences
+     * USA PESO REALE MASSIMO (non stimato)
      */
-    getUniqueExercises(minOccurrences = 2) {
+    getUniqueExercises(minOccurrences = 1) {
         const exerciseCounts = {};
-        const exerciseMaxRM = {};
+        const exerciseMaxWeight = {}; // PESO REALE MASSIMO
 
         this.logs.forEach(log => {
             (log.exercises || []).forEach(ex => {
@@ -254,35 +255,34 @@ export class AdvancedMetricsEngine {
                 // Conta occorrenze
                 exerciseCounts[name] = (exerciseCounts[name] || 0) + 1;
 
-                // Calcola max 1RM per questo esercizio
+                // Trova il PESO REALE MASSIMO sollevato (non stimato)
                 (ex.sets || []).forEach(set => {
                     const w = parseFloat(set.weight) || 0;
-                    const r = parseFloat(set.reps) || 0;
-                    if (w > 0 && r > 0) {
-                        const estimate = this.estimate1RM(w, r);
-                        if (!exerciseMaxRM[name] || estimate > exerciseMaxRM[name]) {
-                            exerciseMaxRM[name] = estimate;
+                    if (w > 0) {
+                        if (!exerciseMaxWeight[name] || w > exerciseMaxWeight[name]) {
+                            exerciseMaxWeight[name] = w;
                         }
                     }
                 });
             });
         });
 
-        // Filtra esercizi con almeno minOccurrences e ordina per 1RM
+        // Filtra esercizi con almeno minOccurrences e ordina per peso reale massimo
         return Object.entries(exerciseCounts)
             .filter(([_, count]) => count >= minOccurrences)
+            .filter(([name]) => exerciseMaxWeight[name] > 0)
             .map(([name, count]) => ({
                 name,
                 count,
-                maxRM: Math.round(exerciseMaxRM[name] || 0)
+                maxWeight: Math.round(exerciseMaxWeight[name] || 0) // PESO REALE
             }))
-            .sort((a, b) => b.maxRM - a.maxRM);
+            .sort((a, b) => b.maxWeight - a.maxWeight);
     }
 
     /**
      * 5. STRENGTH PROGRESSION
-     * Traccia progressione 1RM nel tempo per esercizi principali
-     * SOLO per esercizi che esistono realmente nei log
+     * Traccia progressione PESO REALE MASSIMO nel tempo
+     * NON usa stime 1RM, solo il peso effettivamente sollevato
      */
     calculateStrengthProgression(exerciseName, months = 3) {
         const cutoff = Date.now() - (months * 30 * DAY_MS);
@@ -300,21 +300,26 @@ export class AdvancedMetricsEngine {
                 // Match esatto o contenuto
                 if (exName === searchTerm || exName.includes(searchTerm)) {
                     exerciseFound = true;
-                    let maxEstimate = 0;
+                    
+                    // Trova il PESO REALE MASSIMO in questa sessione (non stimato)
+                    let maxWeight = 0;
+                    let maxWeightReps = 0;
                     (ex.sets || []).forEach(set => {
                         const w = parseFloat(set.weight) || 0;
                         const r = parseFloat(set.reps) || 0;
-                        if (w > 0 && r > 0) {
-                            const estimate = this.estimate1RM(w, r);
-                            if (estimate > maxEstimate) maxEstimate = estimate;
+                        if (w > 0 && w > maxWeight) {
+                            maxWeight = w;
+                            maxWeightReps = r;
                         }
                     });
-                    if (maxEstimate > 0) {
+                    
+                    if (maxWeight > 0) {
                         dataPoints.push({
                             date: log.date.split('T')[0],
-                            value: Math.round(maxEstimate),
+                            value: Math.round(maxWeight), // PESO REALE
+                            reps: maxWeightReps,
                             timestamp: new Date(log.date).getTime(),
-                            exerciseName: ex.name // Nome originale
+                            exerciseName: ex.name
                         });
                     }
                 }
