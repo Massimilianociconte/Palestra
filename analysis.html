@@ -21,6 +21,7 @@
 
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/advanced-charts.css">
     <!-- Markdown Parser Library -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -424,6 +425,102 @@
                 </div>
             </div>
 
+            <!-- ===== ADVANCED METRICS SECTION ===== -->
+            
+            <!-- Training Load & Recovery Gauges -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Training Load & <span class="text-primary">Recovery</span></h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; align-items: start;">
+                    <div>
+                        <div id="trainingLoadGauge"></div>
+                        <div id="trainingLoadDetails" style="text-align: center; margin-top: 0.5rem;"></div>
+                    </div>
+                    <div>
+                        <div id="recoveryGauge"></div>
+                        <div id="recoveryDetails" style="text-align: center; margin-top: 0.5rem;"></div>
+                    </div>
+                </div>
+                <div id="recoveryRecommendation" class="insight-box" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Weekly Summary Cards -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Riepilogo <span class="text-primary">Settimanale</span></h3>
+                <div class="metric-card-grid" id="weeklySummaryGrid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Muscle Balance Radar -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Bilanciamento <span class="text-primary">Muscolare</span></h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center;">
+                    <div id="muscleRadarChart"></div>
+                    <div id="muscleDonutChart"></div>
+                </div>
+                <div id="muscleImbalances" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Strength Progression Chart -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0;">Progressione <span class="text-primary">Forza</span></h3>
+                    <select id="strengthExerciseSelect" style="background: var(--color-surface); border: 1px solid var(--color-border); color: white; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;">
+                        <option value="panca">Panca Piana</option>
+                        <option value="squat">Squat</option>
+                        <option value="stacco">Stacco</option>
+                        <option value="military">Military Press</option>
+                        <option value="rematore">Rematore</option>
+                    </select>
+                </div>
+                <div id="strengthProgressChart"></div>
+                <div id="strengthProgressStats" style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;"></div>
+            </div>
+
+            <!-- Consistency Calendar -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Calendario <span class="text-primary">Costanza</span></h3>
+                <div id="consistencyCalendar"></div>
+            </div>
+
+            <!-- Sleep-Performance Correlation -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Correlazione Sonno <span class="text-primary">↔ Performance</span></h3>
+                <div id="sleepPerformanceScatter"></div>
+                <div id="correlationInsight" class="insight-box" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- RPE Distribution -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Distribuzione <span class="text-primary">Intensità (RPE)</span></h3>
+                <div id="rpeDistribution" style="display: flex; gap: 0.5rem; height: 120px; align-items: flex-end; padding: 1rem 0;"></div>
+                <div id="rpeAssessment" class="insight-box" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Volume Trend -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Trend Volume <span class="text-primary">8 Settimane</span></h3>
+                <div id="volumeTrendChart"></div>
+                <div id="volumeTrendStats" style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;"></div>
+            </div>
+
+            <!-- Variety Score -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Varietà <span class="text-primary">Allenamento</span></h3>
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: center;">
+                    <div id="varietyGauge"></div>
+                    <div id="varietyStats"></div>
+                </div>
+            </div>
+
+            <!-- PR Timeline -->
+            <div class="card" style="margin-bottom: var(--spacing-md);">
+                <h3 style="margin-bottom: 1rem;">Timeline <span class="text-primary">Personal Records</span></h3>
+                <div id="prTimeline" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- ===== END ADVANCED METRICS ===== -->
+
             <!-- Volume Chart -->
             <div class="chart-container">
                 <h3 style="margin-bottom: 1rem;">Volume Settimanale (Ultimi 7 giorni)</h3>
@@ -551,6 +648,8 @@
         import { firestoreService } from './js/firestore-service.js';
         import { aiService } from './js/ai-service.js';
         import { heatmapService } from './js/heatmap-service.js';
+        import { advancedMetrics } from './js/advanced-metrics.js';
+        import ChartRenderer from './js/chart-renderer.js';
         import { trendEngine } from './js/trend-engine.js';
         import { exportService } from './js/export-service.js';
 
@@ -572,6 +671,318 @@
                 heatmapService.renderSVG('muscleHeatmapContainer');
             };
             renderHeatmap();
+
+            // ===== ADVANCED METRICS INITIALIZATION =====
+            const initAdvancedMetrics = () => {
+                advancedMetrics.loadData();
+
+                // 1. Training Load Gauge
+                const trainingLoad = advancedMetrics.calculateTrainingLoad(7);
+                ChartRenderer.renderGauge('trainingLoadGauge', trainingLoad.score, 100, {
+                    label: 'Training Load',
+                    colorStops: [
+                        { stop: 30, color: '#ff6b6b' },
+                        { stop: 70, color: '#00f3ff' },
+                        { stop: 100, color: '#00ff88' }
+                    ]
+                });
+                document.getElementById('trainingLoadDetails').innerHTML = `
+                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                        ${trainingLoad.sessions} sessioni • ${Math.round(trainingLoad.totalVolume/1000)}k vol
+                        <span class="metric-trend ${trainingLoad.trend === 'increasing' ? 'up' : trainingLoad.trend === 'decreasing' ? 'down' : 'stable'}">
+                            ${trainingLoad.trend === 'increasing' ? '↑' : trainingLoad.trend === 'decreasing' ? '↓' : '→'}
+                        </span>
+                    </div>
+                `;
+
+                // 2. Recovery Gauge
+                const recovery = advancedMetrics.calculateRecoveryScore();
+                ChartRenderer.renderGauge('recoveryGauge', recovery.score, 100, {
+                    label: 'Recovery',
+                    colorStops: [
+                        { stop: 40, color: '#ff4444' },
+                        { stop: 70, color: '#ffcc00' },
+                        { stop: 100, color: '#00ff88' }
+                    ]
+                });
+                document.getElementById('recoveryDetails').innerHTML = `
+                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                        ${recovery.daysSinceWorkout}g dall'ultimo workout
+                    </div>
+                `;
+                document.getElementById('recoveryRecommendation').innerHTML = `
+                    <span class="icon">💡</span>
+                    <p>${recovery.recommendation}</p>
+                `;
+
+                // 3. Weekly Summary
+                const weekly = advancedMetrics.getWeeklySummary();
+                document.getElementById('weeklySummaryGrid').innerHTML = `
+                    <div class="metric-card-mini">
+                        <div class="metric-icon">🏋️</div>
+                        <div class="metric-value-large">${weekly.sessions}</div>
+                        <div class="metric-label-small">Sessioni</div>
+                        <div class="metric-trend ${weekly.comparedToLastWeek.sessions >= 0 ? 'up' : 'down'}">
+                            ${weekly.comparedToLastWeek.sessions >= 0 ? '+' : ''}${weekly.comparedToLastWeek.sessions}
+                        </div>
+                    </div>
+                    <div class="metric-card-mini">
+                        <div class="metric-icon">📊</div>
+                        <div class="metric-value-large">${Math.round(weekly.totalVolume/1000)}k</div>
+                        <div class="metric-label-small">Volume</div>
+                        <div class="metric-trend ${weekly.volumeChange >= 0 ? 'up' : 'down'}">
+                            ${weekly.volumeChange >= 0 ? '+' : ''}${weekly.volumeChange}%
+                        </div>
+                    </div>
+                    <div class="metric-card-mini">
+                        <div class="metric-icon">🎯</div>
+                        <div class="metric-value-large">${weekly.uniqueExercises}</div>
+                        <div class="metric-label-small">Esercizi</div>
+                    </div>
+                    <div class="metric-card-mini">
+                        <div class="metric-icon">⏱️</div>
+                        <div class="metric-value-large">${weekly.avgDuration || '-'}</div>
+                        <div class="metric-label-small">Min/Sessione</div>
+                    </div>
+                `;
+
+                // 4. Muscle Balance
+                const muscleBalance = advancedMetrics.calculateMuscleBalance(30);
+                ChartRenderer.renderRadar('muscleRadarChart', muscleBalance.distribution);
+                ChartRenderer.renderDonut('muscleDonutChart', muscleBalance.distribution, {
+                    centerValue: muscleBalance.balanceScore,
+                    centerLabel: 'Balance'
+                });
+                
+                if (muscleBalance.imbalances.length > 0) {
+                    const imbalanceText = muscleBalance.imbalances.map(i => {
+                        const label = ChartRenderer.translateMuscle ? ChartRenderer.translateMuscle(i.muscle) : i.muscle;
+                        return i.type === 'undertrained' 
+                            ? `<span style="color: #ff6b6b;">⚠️ ${label}</span> poco allenato (${i.value}%)`
+                            : `<span style="color: #ffcc00;">⚡ ${label}</span> molto allenato (${i.value}%)`;
+                    }).join(' • ');
+                    document.getElementById('muscleImbalances').innerHTML = `
+                        <div class="insight-box">
+                            <span class="icon">🎯</span>
+                            <p>${imbalanceText}</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('muscleImbalances').innerHTML = `
+                        <div class="insight-box">
+                            <span class="icon">✅</span>
+                            <p>Ottimo bilanciamento muscolare! Continua così.</p>
+                        </div>
+                    `;
+                }
+
+                // 5. Strength Progression
+                const renderStrengthChart = (exercise) => {
+                    const progression = advancedMetrics.calculateStrengthProgression(exercise, 3);
+                    ChartRenderer.renderLineChart('strengthProgressChart', progression.dataPoints, {
+                        width: 400,
+                        height: 180,
+                        unit: 'kg'
+                    });
+                    
+                    const trendIcon = progression.trend === 'up' ? '📈' : progression.trend === 'down' ? '📉' : '➡️';
+                    const trendClass = progression.trend === 'up' ? 'up' : progression.trend === 'down' ? 'down' : 'stable';
+                    
+                    document.getElementById('strengthProgressStats').innerHTML = `
+                        <div>
+                            <div style="font-family: var(--font-display); font-size: 1.5rem; color: var(--color-primary);">${progression.current || '-'}</div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">1RM Attuale (kg)</div>
+                        </div>
+                        <div>
+                            <div style="font-family: var(--font-display); font-size: 1.5rem;" class="metric-trend ${trendClass}">
+                                ${progression.change > 0 ? '+' : ''}${progression.change || 0} kg
+                            </div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">${trendIcon} Variazione 3 mesi</div>
+                        </div>
+                        <div>
+                            <div style="font-family: var(--font-display); font-size: 1.5rem; color: ${progression.changePercent >= 0 ? '#00ff88' : '#ff6b6b'};">
+                                ${progression.changePercent > 0 ? '+' : ''}${progression.changePercent}%
+                            </div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">Progresso</div>
+                        </div>
+                    `;
+                };
+                
+                renderStrengthChart('panca');
+                document.getElementById('strengthExerciseSelect').addEventListener('change', (e) => {
+                    renderStrengthChart(e.target.value);
+                });
+
+                // 6. Consistency Calendar
+                const calendarData = advancedMetrics.generateConsistencyCalendar(12);
+                ChartRenderer.renderCalendar('consistencyCalendar', calendarData);
+
+                // 7. Sleep-Performance Correlation
+                const correlation = advancedMetrics.calculateSleepPerformanceCorrelation();
+                if (correlation.dataPoints.length >= 5) {
+                    const scatterData = correlation.dataPoints.map(d => ({
+                        x: d.sleep,
+                        y: d.performance
+                    }));
+                    ChartRenderer.renderScatter('sleepPerformanceScatter', scatterData, {
+                        xLabel: 'Qualità Sonno (1-10)',
+                        yLabel: 'Performance Index'
+                    });
+                    
+                    const corrColor = correlation.correlation > 0.3 ? '#00ff88' : correlation.correlation < -0.1 ? '#ff6b6b' : '#ffcc00';
+                    document.getElementById('correlationInsight').innerHTML = `
+                        <span class="icon">🧠</span>
+                        <p>
+                            <strong style="color: ${corrColor}">Correlazione: ${correlation.correlation}</strong><br>
+                            ${correlation.insight}
+                        </p>
+                    `;
+                } else {
+                    document.getElementById('sleepPerformanceScatter').innerHTML = `
+                        <p style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+                            Registra almeno 5 allenamenti con dati sul sonno per vedere la correlazione.
+                        </p>
+                    `;
+                    document.getElementById('correlationInsight').innerHTML = `
+                        <span class="icon">💡</span>
+                        <p>Compila il questionario wellness prima degli allenamenti per sbloccare questa analisi.</p>
+                    `;
+                }
+
+                // 8. RPE Distribution
+                const rpeData = advancedMetrics.calculateRpeDistribution(30);
+                const rpeColors = {
+                    easy: '#00ff88',
+                    moderate: '#00f3ff', 
+                    hard: '#ff8844',
+                    maximal: '#ff4444'
+                };
+                const rpeLabels = {
+                    easy: 'Facile (1-5)',
+                    moderate: 'Moderato (6-7)',
+                    hard: 'Intenso (8-9)',
+                    maximal: 'Massimale (10)'
+                };
+                
+                if (rpeData.totalSets > 0) {
+                    let rpeHTML = '';
+                    for (const [key, pct] of Object.entries(rpeData.percentages)) {
+                        rpeHTML += `
+                            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                                <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px 4px 0 0; position: relative; height: 100%;">
+                                    <div style="position: absolute; bottom: 0; width: 100%; height: ${pct}%; background: ${rpeColors[key]}; border-radius: 4px 4px 0 0; transition: height 0.5s;"></div>
+                                </div>
+                                <div style="font-size: 0.9rem; font-weight: bold; color: ${rpeColors[key]}; margin-top: 0.5rem;">${pct}%</div>
+                                <div style="font-size: 0.65rem; color: var(--color-text-muted); text-align: center;">${rpeLabels[key]}</div>
+                            </div>
+                        `;
+                    }
+                    document.getElementById('rpeDistribution').innerHTML = rpeHTML;
+                    document.getElementById('rpeAssessment').innerHTML = `
+                        <span class="icon">${rpeData.hardPercent > 40 ? '⚠️' : rpeData.hardPercent < 15 ? '💪' : '✅'}</span>
+                        <p>${rpeData.assessment} (${rpeData.totalSets} set analizzati)</p>
+                    `;
+                } else {
+                    document.getElementById('rpeDistribution').innerHTML = `
+                        <p style="text-align: center; color: var(--color-text-muted); width: 100%;">
+                            Registra l'RPE durante gli allenamenti per vedere la distribuzione.
+                        </p>
+                    `;
+                }
+
+                // 9. Volume Trend
+                const volumeTrend = advancedMetrics.calculateVolumeTrend(8);
+                const volumeDataPoints = volumeTrend.weeklyData.map(w => ({
+                    date: w.date,
+                    value: Math.round(w.volume / 1000) // In migliaia
+                }));
+                ChartRenderer.renderLineChart('volumeTrendChart', volumeDataPoints, {
+                    width: 400,
+                    height: 160,
+                    unit: 'k'
+                });
+                
+                const trendIcon = volumeTrend.trend === 'increasing' ? '📈' : volumeTrend.trend === 'decreasing' ? '📉' : '➡️';
+                document.getElementById('volumeTrendStats').innerHTML = `
+                    <div>
+                        <div style="font-family: var(--font-display); font-size: 1.3rem; color: var(--color-primary);">${Math.round(volumeTrend.avgVolume/1000)}k</div>
+                        <div style="font-size: 0.7rem; color: var(--color-text-muted);">Media Settimanale</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-display); font-size: 1.3rem; color: ${volumeTrend.trendPercent >= 0 ? '#00ff88' : '#ff6b6b'};">
+                            ${volumeTrend.trendPercent > 0 ? '+' : ''}${volumeTrend.trendPercent}%
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--color-text-muted);">${trendIcon} Trend</div>
+                    </div>
+                `;
+
+                // 10. Variety Score
+                const variety = advancedMetrics.calculateVarietyScore(30);
+                ChartRenderer.renderGauge('varietyGauge', variety.score, 100, {
+                    label: 'Varietà',
+                    colorStops: [
+                        { stop: 30, color: '#ff6b6b' },
+                        { stop: 60, color: '#ffcc00' },
+                        { stop: 100, color: '#00ff88' }
+                    ]
+                });
+                document.getElementById('varietyStats').innerHTML = `
+                    <div class="metric-card-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        <div class="metric-card-mini">
+                            <div class="metric-value-large">${variety.uniqueExercises}</div>
+                            <div class="metric-label-small">Esercizi Unici</div>
+                        </div>
+                        <div class="metric-card-mini">
+                            <div class="metric-value-large">${variety.avgPerSession}</div>
+                            <div class="metric-label-small">Media/Sessione</div>
+                        </div>
+                    </div>
+                    <div class="insight-box" style="margin-top: 0.75rem;">
+                        <span class="icon">💡</span>
+                        <p style="font-size: 0.85rem;">${variety.insight}</p>
+                    </div>
+                `;
+
+                // 11. PR Timeline
+                const prData = advancedMetrics.getPersonalBestsTimeline(6);
+                if (prData.timeline.length > 0) {
+                    let timelineHTML = '';
+                    prData.timeline.reverse().forEach((pr, i) => {
+                        const date = new Date(pr.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+                        timelineHTML += `
+                            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-left: 3px solid var(--color-primary); margin-bottom: 0.5rem; background: rgba(0,243,255,0.05); border-radius: 0 8px 8px 0;">
+                                <div style="font-size: 1.5rem;">🏆</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; text-transform: capitalize;">${pr.exercise}</div>
+                                    <div style="font-size: 0.8rem; color: var(--color-text-muted);">${pr.weight}kg × ${pr.reps} reps</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-family: var(--font-display); font-size: 1.2rem; color: var(--color-primary);">${pr.value}kg</div>
+                                    <div style="font-size: 0.7rem; color: var(--color-text-muted);">${date}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('prTimeline').innerHTML = timelineHTML;
+                } else {
+                    document.getElementById('prTimeline').innerHTML = `
+                        <p style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+                            I tuoi nuovi PR appariranno qui man mano che migliori! 💪
+                        </p>
+                    `;
+                }
+            };
+
+            // Initialize advanced metrics
+            initAdvancedMetrics();
+
+            // Refresh on data change
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'ironflow_logs' || event.key === 'ironflow_body_stats') {
+                    initAdvancedMetrics();
+                }
+            });
+            // ===== END ADVANCED METRICS =====
 
             window.addEventListener('storage', (event) => {
                 if (event.key === 'ironflow_logs') {

@@ -1,0 +1,683 @@
+/* Advanced Charts & Metrics Styles */
+
+/* ===== GAUGE METER ===== */
+.gauge-container {
+    position: relative;
+    width: 180px;
+    height: 100px;
+    margin: 0 auto;
+}
+
+.gauge-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.gauge-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 12;
+    stroke-linecap: round;
+}
+
+.gauge-fill {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease-out, stroke 0.5s ease;
+}
+
+.gauge-value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    fill: white;
+    text-anchor: middle;
+}
+
+.gauge-label {
+    font-size: 0.75rem;
+    fill: var(--color-text-muted);
+    text-anchor: middle;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ===== RADAR CHART ===== */
+.radar-container {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    aspect-ratio: 1;
+}
+
+.radar-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.radar-grid {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 1;
+}
+
+.radar-axis {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 1;
+}
+
+.radar-area {
+    fill: rgba(0, 243, 255, 0.2);
+    stroke: var(--color-primary);
+    stroke-width: 2;
+    transition: all 0.5s ease;
+}
+
+.radar-point {
+    fill: var(--color-primary);
+    stroke: white;
+    stroke-width: 2;
+    r: 5;
+    transition: r 0.2s ease;
+}
+
+.radar-point:hover {
+    r: 8;
+}
+
+.radar-label {
+    font-size: 0.7rem;
+    fill: var(--color-text-muted);
+    text-anchor: middle;
+    text-transform: uppercase;
+}
+
+/* ===== LINE CHART ===== */
+.line-chart-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    padding: 10px 0;
+}
+
+.line-chart-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.chart-grid-line {
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 1;
+}
+
+.chart-line {
+    fill: none;
+    stroke: var(--color-primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5));
+}
+
+.chart-area {
+    fill: url(#lineGradient);
+    opacity: 0.3;
+}
+
+.chart-point {
+    fill: var(--color-primary);
+    stroke: var(--color-background);
+    stroke-width: 2;
+    cursor: pointer;
+    transition: r 0.2s ease;
+}
+
+.chart-point:hover {
+    r: 8;
+}
+
+.chart-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 100;
+}
+
+.chart-tooltip.visible {
+    opacity: 1;
+}
+
+/* ===== DONUT CHART ===== */
+.donut-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+}
+
+.donut-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.donut-segment {
+    fill: none;
+    stroke-width: 35;
+    transition: stroke-dashoffset 0.8s ease-out, opacity 0.2s;
+    cursor: pointer;
+}
+
+.donut-segment:hover {
+    opacity: 0.8;
+    filter: brightness(1.2);
+}
+
+.donut-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.donut-center-value {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+}
+
+.donut-center-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+
+.donut-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.donut-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.donut-legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+/* ===== CONSISTENCY CALENDAR (GitHub Style) ===== */
+.calendar-heatmap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow-x: auto;
+    padding: 10px 0;
+}
+
+.calendar-row {
+    display: flex;
+    gap: 3px;
+}
+
+.calendar-day {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    transform: scale(1.3);
+    z-index: 10;
+}
+
+.calendar-day[data-intensity="1"] {
+    background: rgba(0, 243, 255, 0.2);
+}
+
+.calendar-day[data-intensity="2"] {
+    background: rgba(0, 243, 255, 0.4);
+}
+
+.calendar-day[data-intensity="3"] {
+    background: rgba(0, 243, 255, 0.6);
+}
+
+.calendar-day[data-intensity="4"] {
+    background: var(--color-primary);
+    box-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+}
+
+.calendar-labels {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 5px;
+    padding-left: 25px;
+}
+
+.calendar-label {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    width: 14px;
+    text-align: center;
+}
+
+.calendar-day-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-right: 5px;
+}
+
+.calendar-day-label {
+    font-size: 0.6rem;
+    color: var(--color-text-muted);
+    height: 14px;
+    line-height: 14px;
+    width: 20px;
+}
+
+/* ===== SCATTER PLOT ===== */
+.scatter-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+}
+
+.scatter-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.scatter-point {
+    fill: var(--color-primary);
+    opacity: 0.7;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.scatter-point:hover {
+    opacity: 1;
+    r: 10;
+    filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.8));
+}
+
+.scatter-trend-line {
+    stroke: rgba(255, 136, 68, 0.6);
+    stroke-width: 2;
+    stroke-dasharray: 5, 5;
+}
+
+.scatter-axis-label {
+    font-size: 0.7rem;
+    fill: var(--color-text-muted);
+}
+
+/* ===== METRIC CARDS ===== */
+.metric-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.metric-card-mini {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.metric-card-mini:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 243, 255, 0.15);
+}
+
+.metric-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.metric-value-large {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1;
+}
+
+.metric-label-small {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+.metric-trend {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.metric-trend.up {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+}
+
+.metric-trend.down {
+    background: rgba(255, 107, 107, 0.15);
+    color: #ff6b6b;
+}
+
+.metric-trend.stable {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-muted);
+}
+
+/* ===== PROGRESS BARS ===== */
+.progress-bar-container {
+    margin-bottom: 1rem;
+}
+
+.progress-bar-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.progress-bar-label {
+    color: var(--color-text-muted);
+}
+
+.progress-bar-value {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.progress-bar-track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease-out;
+    background: linear-gradient(90deg, var(--color-primary), #00ff88);
+}
+
+.progress-bar-fill.warning {
+    background: linear-gradient(90deg, #ff8844, #ffcc00);
+}
+
+.progress-bar-fill.danger {
+    background: linear-gradient(90deg, #ff4444, #ff6b6b);
+}
+
+/* ===== STREAK BADGE ===== */
+.streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(255, 136, 68, 0.2) 0%, rgba(255, 68, 68, 0.2) 100%);
+    border: 1px solid rgba(255, 136, 68, 0.4);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+.streak-badge .fire {
+    font-size: 1.2rem;
+}
+
+.streak-badge .count {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: #ff8844;
+}
+
+/* ===== INSIGHT BOX ===== */
+.insight-box {
+    background: linear-gradient(135deg, rgba(0, 243, 255, 0.1) 0%, rgba(0, 243, 255, 0.02) 100%);
+    border-left: 3px solid var(--color-primary);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.insight-box .icon {
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+.insight-box p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #ddd;
+    line-height: 1.5;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .gauge-container {
+        width: 150px;
+        height: 85px;
+    }
+    
+    .gauge-value {
+        font-size: 1.5rem;
+    }
+    
+    .radar-container {
+        max-width: 250px;
+    }
+    
+    .donut-container {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .calendar-day {
+        width: 11px;
+        height: 11px;
+    }
+    
+    .metric-card-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .metric-value-large {
+        font-size: 1.5rem;
+    }
+}
+
+
+/* ===== ADDITIONAL RESPONSIVE STYLES ===== */
+
+/* RPE Distribution Bars */
+.rpe-bar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 60px;
+}
+
+/* PR Timeline */
+.pr-timeline-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-left: 3px solid var(--color-primary);
+    margin-bottom: 0.5rem;
+    background: rgba(0, 243, 255, 0.05);
+    border-radius: 0 8px 8px 0;
+    transition: all 0.2s ease;
+}
+
+.pr-timeline-item:hover {
+    background: rgba(0, 243, 255, 0.1);
+    transform: translateX(5px);
+}
+
+/* Volume Trend specific */
+.volume-trend-bar {
+    background: linear-gradient(180deg, var(--color-primary) 0%, rgba(0, 243, 255, 0.3) 100%);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s ease;
+}
+
+/* Card hover effects */
+.card:has(.gauge-container):hover .gauge-fill,
+.card:has(.radar-container):hover .radar-area {
+    filter: brightness(1.1);
+}
+
+/* Animated number counters */
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.metric-value-large {
+    animation: countUp 0.5s ease-out;
+}
+
+/* Pulse animation for active streaks */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.streak-badge {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Glow effect for high scores */
+.gauge-fill[style*="stroke: #00ff88"] {
+    filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.6));
+}
+
+/* Mobile grid adjustments */
+@media (max-width: 600px) {
+    .card > div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .card > div[style*="grid-template-columns: 1fr 2fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    #muscleRadarChart,
+    #muscleDonutChart {
+        margin: 0 auto;
+    }
+    
+    #strengthProgressStats,
+    #volumeTrendStats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .insight-box {
+        padding: 0.75rem;
+    }
+    
+    .insight-box p {
+        font-size: 0.85rem;
+    }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+    .chart-tooltip {
+        background: rgba(10, 10, 15, 0.95);
+    }
+    
+    .calendar-day:hover {
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+    }
+}
+
+/* Print styles */
+@media print {
+    .gauge-container,
+    .radar-container,
+    .donut-container {
+        break-inside: avoid;
+    }
+    
+    .calendar-heatmap {
+        display: none;
+    }
+}
+
+/* Accessibility - reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .gauge-fill,
+    .chart-line,
+    .radar-area,
+    .donut-segment,
+    .metric-value-large,
+    .streak-badge {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* Focus states for interactive elements */
+.chart-point:focus,
+.scatter-point:focus,
+.radar-point:focus,
+.calendar-day:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Loading skeleton */
+.chart-skeleton {
+    background: linear-gradient(90deg, 
+        rgba(255,255,255,0.05) 25%, 
+        rgba(255,255,255,0.1) 50%, 
+        rgba(255,255,255,0.05) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
