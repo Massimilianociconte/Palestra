@@ -186,10 +186,16 @@
 
         @media (max-width: 600px) {
             .set-item {
-                grid-template-columns: auto 1fr 60px 60px 30px;
+                grid-template-columns: auto 1fr 50px 50px 50px 25px;
+                gap: 4px;
             }
-            .set-item .set-rpe-input {
-                display: none;
+            .set-item select,
+            .set-item input {
+                padding: 0.4rem;
+                font-size: 0.75rem;
+            }
+            .set-item .set-number {
+                font-size: 0.7rem;
             }
         }
     </style>
