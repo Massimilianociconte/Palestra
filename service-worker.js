@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ironflow-v2';
+const CACHE_NAME = 'ironflow-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -17,7 +17,7 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Force new SW to take control immediately
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
@@ -38,17 +38,53 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  return self.clients.claim(); // Take control of all clients immediately
+  return self.clients.claim();
 });
 
+// Network-first per HTML/JS/CSS, cache-first per assets statici
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Solo richieste GET
+  if (event.request.method !== 'GET') return;
+  
+  // Network-first per file dinamici (HTML, JS, CSS)
+  if (url.pathname.endsWith('.html') || 
+      url.pathname.endsWith('.js') || 
+      url.pathname.endsWith('.css') ||
+      url.pathname === '/' ||
+      url.pathname.endsWith('/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Aggiorna la cache con la nuova versione
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Offline: usa la cache
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+  
+  // Cache-first per assets statici (immagini, font, ecc.)
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Cache hit - return response
       if (response) {
         return response;
       }
-      return fetch(event.request);
+      return fetch(event.request).then((response) => {
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
+        return response;
+      });
     })
   );
 });
