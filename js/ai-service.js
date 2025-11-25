@@ -66,11 +66,11 @@ export class AIService {
     encodeToTOON(data, rootName = 'data') {
         if (Array.isArray(data)) {
             if (data.length === 0) return `${rootName}[0]{}`;
-            
+
             // Get all unique keys from first item (assuming consistent schema for token efficiency)
             const keys = Object.keys(data[0]);
             const header = `${rootName}[${data.length}]{${keys.join(',')}}:`;
-            
+
             const rows = data.map(item => {
                 return '  ' + keys.map(k => {
                     let val = item[k];
@@ -81,8 +81,8 @@ export class AIService {
             }).join('\n');
 
             return `${header}\n${rows}`;
-        } 
-        
+        }
+
         if (typeof data === 'object' && data !== null) {
             // Single object
             return `${rootName}:\n` + Object.entries(data)
@@ -100,7 +100,7 @@ export class AIService {
 
         try {
             const genAI = new GoogleGenerativeAI(this.apiKey);
-            
+
             // Configuration for high-quality, comprehensive output
             const generationConfig = {
                 temperature: 0.7, // Creative but grounded
@@ -111,14 +111,14 @@ export class AIService {
 
             // Use the most advanced model available
             // Fallback chain: 1.5 Pro (Stable High Intelligence) -> 2.0 Flash (Fast)
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-flash-latest", 
-                generationConfig 
-            }); 
+            const model = genAI.getGenerativeModel({
+                model: "gemini-flash-latest",
+                generationConfig
+            });
 
             // Convert data to TOON to save tokens
             const toonLogs = this.encodeToTOON(data.recentLogs, 'workoutLogs');
-            
+
             // Flatten PRs for cleaner AI context (lift + 1rm/3rm/5rm/8rm)
             const prList = Object.entries(data.prs).map(([k, v]) => {
                 // Handle both legacy (number) and new (object) formats
@@ -126,16 +126,16 @@ export class AIService {
                 return { lift: k, ...v };
             });
             const toonPrs = this.encodeToTOON(prList, 'personalRecords');
-            
+
             // Historical PRs for progression tracking
             const historicalPrList = data.historicalPrs ? Object.entries(data.historicalPrs).map(([k, v]) => {
                 if (typeof v === 'number') return { lift: k, '1rm': v };
                 return { lift: k, ...v };
             }) : [];
-            const toonHistoricalPrs = historicalPrList.length > 0 
+            const toonHistoricalPrs = historicalPrList.length > 0
                 ? this.encodeToTOON(historicalPrList, 'historicalPRs')
                 : 'historicalPRs[0]{}';
-            
+
             // Progression/Regression data
             const progressionList = data.progressionData ? Object.entries(data.progressionData).map(([lift, prog]) => ({
                 lift,
@@ -148,7 +148,7 @@ export class AIService {
             const toonProgressions = progressionList.length > 0
                 ? this.encodeToTOON(progressionList, 'progressionRegression')
                 : 'progressionRegression[0]{}';
-            
+
             // Body stats for weight trend
             const toonBodyStats = data.bodyStats && data.bodyStats.length > 0
                 ? this.encodeToTOON(data.bodyStats.map(s => ({
@@ -533,16 +533,16 @@ Usa Markdown con questa struttura OBBLIGATORIA:
         if (!this.apiKey) return { success: false, message: "API Key mancante." };
         try {
             const genAI = new GoogleGenerativeAI(this.apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" }); 
+            const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
             const toonLogs = this.encodeToTOON(data.recentLogs.slice(0, 10), 'lastWorkouts'); // Last 10 for better pattern detection
             const domsGuidance = buildRecentDomsBlock(data?.domsInsights?.hotspots || []);
-            
+
             // Include existing workouts in TOON format
-            const existingWorkoutsTOON = data.existingWorkouts && data.existingWorkouts.length > 0 
+            const existingWorkoutsTOON = data.existingWorkouts && data.existingWorkouts.length > 0
                 ? this.encodeToTOON(data.existingWorkouts, 'existingWorkoutPlans')
                 : 'existingWorkoutPlans: []';
-            
+
             // Include progression data to guide exercise selection
             const progressionList = data.progressionData ? Object.entries(data.progressionData).map(([lift, prog]) => ({
                 lift,
@@ -593,6 +593,11 @@ ${data.healthData ? `
 *Usa questi dati per valutare NEAT e recupero generale.*
 ` : '- Dati salute non disponibili'}
 
+**RICHIESTA SPECIFICA UTENTE (PRIORITÀ MASSIMA):**
+${data.userRequest?.style ? `- L'utente vuole allenare: **${data.userRequest.style}** (Rispetta questa scelta a meno che non ci siano controindicazioni mediche gravi).` : ''}
+${data.userRequest?.customText ? `- Note Utente: "${data.userRequest.customText}" (Integra questa richiesta nel workout).` : ''}
+${data.userRequest?.targetInstruction || ''}
+
 **ANALISI STILE E STRUTTURA:**
 1. Identifica la "Split" o lo stile abituale dell'utente guardando gli ultimi workout (es. fa Push/Pull/Legs? Upper/Lower? Full Body? O split per gruppi muscolari singoli?).
 2. Nota il volume abituale (quanti esercizi fa in media per sessione?).
@@ -604,6 +609,7 @@ IMPORTANTE:
 2. Usa i dati \`recentProgressions\` per prioritizzare esercizi in progressione e variare/deload quelli in regressione.
 3. Evita gruppi muscolari con DOMS elevati (>7/10) negli ultimi 2 giorni.
 4. Se l'atleta ha un obiettivo specifico (bulk/cut/strength), adatta volume e intensità di conseguenza.
+5. **SE L'UTENTE HA FATTO UNA RICHIESTA SPECIFICA (sopra), QUELLA HA LA PRECEDENZA su tutto il resto.**
 
 Rispondi in formato JSON (senza markdown, solo JSON puro):
 {
@@ -617,7 +623,7 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
             let text = result.response.text();
             // Clean markdown if present
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            
+
             return { success: true, data: JSON.parse(text) };
         } catch (error) {
             console.error("AI Prediction Error:", error);
@@ -629,16 +635,16 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
         if (!this.apiKey) return { success: false, message: "API Key mancante." };
         try {
             const genAI = new GoogleGenerativeAI(this.apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" }); 
+            const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
             const domsHotspots = payload?.domsHotspots || [];
-            
+
             // Convert metrics to TOON format for token efficiency
             const toonMetrics = this.encodeToTOON(payload.metrics, 'trendMetrics');
             const toonDomsHotspots = this.encodeToTOON(domsHotspots, 'domsHotspots');
-            
+
             // Include historical trend data if available
-            const toonHistoricalTrends = payload.historicalTrends 
+            const toonHistoricalTrends = payload.historicalTrends
                 ? this.encodeToTOON(payload.historicalTrends, 'historicalTrends')
                 : 'historicalTrends: []';
 

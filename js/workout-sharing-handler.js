@@ -1,0 +1,301 @@
+// Workout Sharing Handler for short link generation and import
+// Manages workout sharing via short URLs
+
+export class WorkoutSharingHandler {
+    constructor(firestoreService) {
+        this.firestoreService = firestoreService;
+    }
+
+    // Share a workout and return short URL
+    async shareWorkout(workout) {
+        try {
+            // Validate workout
+            if (!workout || !workout.name) {
+                throw new Error('Workout non valido');
+            }
+
+            // Create share via firestore service (returns short ID)
+            const shortId = await this.firestoreService.createSharedWorkout(workout);
+
+            // Build clean share URL
+            const baseUrl = `${window.location.origin}${window.location.pathname}`;
+            const shareUrl = `${baseUrl}?s=${shortId}`;
+
+            return {
+                success: true,
+                shortId: shortId,
+                shareUrl: shareUrl
+            };
+        } catch (error) {
+            console.error('Error sharing workout:', error);
+            return {
+                success: false,
+                error: error.message || 'Errore durante la condivisione'
+            };
+        }
+    }
+
+    // Import workout from short link
+    async importWorkout(shortId) {
+        try {
+            // Get workout from Firestore
+            const workoutData = await this.firestoreService.getSharedWorkout(shortId);
+
+            if (!workoutData) {
+                throw new Error('Workout non trovato');
+            }
+
+            // Generate new local ID
+            const importedWorkout = {
+                id: Date.now(),
+                ...workoutData,
+                importedFrom: shortId,
+                importedAt: new Date().toISOString()
+            };
+
+            // Save to local storage
+            const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+            workouts.unshift(importedWorkout);
+            localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
+
+            // Sync to cloud if logged in
+            try {
+                await this.firestoreService.syncToCloud();
+            } catch (syncError) {
+                console.warn('Cloud sync failed after import:', syncError);
+            }
+
+            return {
+                success: true,
+                workout: importedWorkout
+            };
+        } catch (error) {
+            console.error('Error importing workout:', error);
+            return {
+                success: false,
+                error: error.message || 'Errore durante l\'importazione'
+            };
+        }
+    }
+
+    // Check URL for shared workout on page load
+    async checkForSharedWorkout() {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Check for new format (?s=)
+        let shareId = urlParams.get('s');
+
+        // Fallback to old format for backward compatibility
+        if (!shareId) {
+            shareId = urlParams.get('shareId');
+        }
+
+        if (shareId) {
+            console.log('Shared workout detected:', shareId);
+
+            const result = await this.importWorkout(shareId);
+
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            return result;
+        }
+
+        return null;
+    }
+
+    // Show share modal with copy button
+    showShareModal(workoutName, shareUrl) {
+        const modalHTML = `
+            <div id="workoutShareModal" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 3000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+            ">
+                <div class="card" style="max-width: 500px; width: 100%;">
+                    <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
+                        🔗 Condividi Scheda
+                    </h3>
+                    
+                    <p style="margin-bottom: 1rem; color: var(--color-text-muted);">
+                        Condividi <strong style="color: var(--color-text);">${workoutName}</strong> con questo link:
+                    </p>
+                    
+                    <div style="
+                        background: rgba(255,255,255,0.05);
+                        padding: 1rem;
+                        border-radius: var(--radius-sm);
+                        border: 1px solid var(--color-border);
+                        margin-bottom: 1rem;
+                        word-break: break-all;
+                        font-family: monospace;
+                        font-size: 0.9rem;
+                        color: var(--color-primary);
+                    ">
+                        ${shareUrl}
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button id="shareModalClose" class="btn btn-outline" style="flex: 1;">
+                            Chiudi
+                        </button>
+                        <button id="shareModalCopy" class="btn btn-primary" style="flex: 1;">
+                            📋 Copia Link
+                        </button>
+                    </div>
+                    
+                    <p id="shareCopyFeedback" style="
+                        text-align: center;
+                        margin-top: 1rem;
+                        margin-bottom: 0;
+                        font-size: 0.85rem;
+                        color: var(--color-primary);
+                        min-height: 1.5em;
+                    "></p>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        const modal = document.getElementById('workoutShareModal');
+        const closeBtn = document.getElementById('shareModalClose');
+        const copyBtn = document.getElementById('shareModalCopy');
+        const feedback = document.getElementById('shareCopyFeedback');
+
+        closeBtn.addEventListener('click', () => modal.remove());
+
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                feedback.textContent = '✅ Link copiato negli appunti!';
+                copyBtn.textContent = '✅ Copiato!';
+
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Copia Link';
+                }, 2000);
+            } catch (error) {
+                console.error('Copy failed:', error);
+
+                // Fallback: select text
+                const range = document.createRange();
+                const selection = window.getSelection();
+                range.selectNodeContents(modal.querySelector('div[style*="monospace"]'));
+                selection.removeAllRanges();
+                selection.addRange(range);
+
+                feedback.textContent = '📋 Testo selezionato, premi Ctrl+C (Cmd+C su Mac)';
+            }
+        });
+    }
+
+    // Show import success notification
+    showImportSuccess(workoutName) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-surface);
+            border: 1px solid var(--color-primary);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            z-index: 4000;
+            box-shadow: 0 4px 12px rgba(0, 243, 255, 0.3);
+            animation: slideDown 0.3s ease-out;
+        `;
+
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 1.5rem;">✅</span>
+                <div>
+                    <strong style="color: var(--color-primary);">Scheda Importata!</strong>
+                    <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                        ${workoutName}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideUp 0.3s ease-in';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Show import error notification
+    showImportError(message) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-surface);
+            border: 1px solid #ff4444;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            z-index: 4000;
+            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+        `;
+
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 1.5rem;">❌</span>
+                <div>
+                    <strong style="color: #ff4444;">Errore Importazione</strong>
+                    <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                        ${message}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => notification.remove(), 4000);
+    }
+
+    // Add animation CSS (call once on init)
+    static addStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    transform: translateX(-50%) translateY(-20px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideUp {
+                from {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(-50%) translateY(-20px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Export class (not singleton, needs firestoreService instance)
+export { WorkoutSharingHandler };

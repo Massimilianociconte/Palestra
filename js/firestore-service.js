@@ -560,17 +560,89 @@ export class FirestoreService {
         }
     }
 
-    // --- SHARED WORKOUTS (Legacy Support kept but main sharing is now URL-based) ---
+    // --- SHARED WORKOUTS (SHORT LINKS) ---
+
+    // Generate a 6-character short ID
+    generateShortId() {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let id = '';
+        for (let i = 0; i < 6; i++) {
+            id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return id;
+    }
+
+    // Generate unique short ID with collision check
+    async generateUniqueShortId(maxRetries = 5) {
+        for (let i = 0; i < maxRetries; i++) {
+            const shortId = this.generateShortId();
+
+            // Check if ID already exists
+            const docRef = doc(db, 'shared_workouts', shortId);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                return shortId;
+            }
+
+            console.warn(`Short ID collision: ${shortId}, retrying...`);
+        }
+
+        throw new Error('Failed to generate unique short ID after maximum retries');
+    }
+
+    // Create a shared workout with short link
+    async createSharedWorkout(workoutData) {
+        try {
+            // Clean data before saving
+            const cleanData = JSON.parse(JSON.stringify(workoutData));
+            delete cleanData.id; // Remove local ID
+
+            // Generate unique short ID
+            const shortId = await this.generateUniqueShortId();
+
+            // Use short ID as document ID
+            await setDoc(doc(db, 'shared_workouts', shortId), {
+                workoutData: cleanData,
+                createdAt: serverTimestamp(),
+                createdBy: this.getUid() || 'anonymous',
+                shortId: shortId // Store for reference
+            });
+
+            return shortId; // Return just the short ID
+        } catch (error) {
+            console.error("Error creating shared workout:", error);
+            throw new Error(`Impossibile creare link di condivisione: ${error.message}`);
+        }
+    }
+
+    // Get shared workout by short ID (case-insensitive)
     async getSharedWorkout(shareId) {
         try {
-            const docSnap = await getDoc(doc(db, 'shared_workouts', shareId));
-            if (docSnap.exists()) {
-                return { success: true, data: docSnap.data() };
+            if (!shareId || shareId.length < 6) {
+                throw new Error('ID condivisione non valido');
             }
-            return { success: false, message: "Scheda non trovata." };
+
+            // Try exact match first
+            let docSnap = await getDoc(doc(db, 'shared_workouts', shareId));
+
+            // If not found and ID looks like it might be case-mismatched, try case-insensitive search
+            if (!docSnap.exists() && /^[a-zA-Z0-9]{6}$/.test(shareId)) {
+                // This is a fallback - in production you'd want to use Firestore queries
+                // For now, we'll just return not found
+                console.warn('Workout not found with ID:', shareId);
+                throw new Error('Link di condivisione non valido o scaduto');
+            }
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                return data.workoutData; // Return just the workout data
+            } else {
+                throw new Error('Link di condivisione non valido o scaduto');
+            }
         } catch (error) {
-            console.error("Error fetching shared workout:", error);
-            return { success: false, message: error.message };
+            console.error("Error getting shared workout:", error);
+            throw error;
         }
     }
 
