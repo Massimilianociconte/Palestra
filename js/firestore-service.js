@@ -356,7 +356,7 @@ export class FirestoreService {
                 .slice(0, 10)
                 .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {});
 
-            // Simplify Logs for Token Efficiency (Date + Volume + All Exercises for Style Analysis + RPE)
+            // Simplify Logs for Token Efficiency (Date + Volume + All Exercises for Style Analysis + RPE + Set Types)
             const simplifiedLogs = recentLogs.map(log => {
                 // Pass ALL exercises to allow AI to understand the split/structure
                 const workoutStructure = log.exercises.map(e => {
@@ -368,24 +368,49 @@ export class FirestoreService {
                         ? (rpeValues.reduce((sum, val) => sum + val, 0) / rpeValues.length).toFixed(1)
                         : null;
 
-                    return avgRpe
-                        ? `${e.name} (${e.sets.length} sets @ RPE ${avgRpe})`
-                        : `${e.name} (${e.sets.length} sets)`;
+                    // Check for special set types
+                    const setTypes = e.sets.map(s => s.type || 'normal');
+                    const hasSpecialSets = setTypes.some(t => t !== 'normal');
+                    
+                    let setsDescription;
+                    if (hasSpecialSets) {
+                        // Count sets by type for compact representation
+                        const typeCounts = {};
+                        setTypes.forEach(t => {
+                            typeCounts[t] = (typeCounts[t] || 0) + 1;
+                        });
+                        setsDescription = Object.entries(typeCounts)
+                            .map(([type, count]) => `${count}${type.charAt(0).toUpperCase()}`) // e.g., "3N+1B" for 3 normal + 1 backoff
+                            .join('+');
+                    } else {
+                        setsDescription = `${e.sets.length}`;
+                    }
+
+                    let result = `${e.name} (${setsDescription} sets`;
+                    if (avgRpe) result += ` @ RPE ${avgRpe}`;
+                    result += ')';
+                    
+                    return result;
                 });
 
-                // Calculate overall workout RPE average
-                const allRpeValues = log.exercises
-                    .flatMap(e => e.sets.map(s => s.rpe))
-                    .filter(rpe => rpe && rpe > 0);
-                const workoutAvgRpe = allRpeValues.length > 0
-                    ? (allRpeValues.reduce((sum, val) => sum + val, 0) / allRpeValues.length).toFixed(1)
-                    : null;
+                // Calculate overall workout RPE average (use log.avgRpe if available, otherwise calculate)
+                let workoutAvgRpe = log.avgRpe;
+                if (!workoutAvgRpe) {
+                    const allRpeValues = log.exercises
+                        .flatMap(e => e.sets.map(s => s.rpe))
+                        .filter(rpe => rpe && rpe > 0);
+                    workoutAvgRpe = allRpeValues.length > 0
+                        ? (allRpeValues.reduce((sum, val) => sum + val, 0) / allRpeValues.length).toFixed(1)
+                        : null;
+                }
 
                 return {
                     date: log.date.split('T')[0],
-                    volume: log.totalVolume, // Total tonnage if calculated, or just rely on sets
-                    exercises: workoutStructure, // Renamed from mainExercises to avoid confusion
-                    avgRpe: workoutAvgRpe, // Average RPE for entire workout
+                    name: log.workoutName || 'Workout', // Include workout name
+                    volume: log.totalVolume,
+                    exercises: workoutStructure,
+                    avgRpe: workoutAvgRpe,
+                    duration: log.duration || null, // Include duration
                     wellness: log.wellness ? {
                         sleepQuality: log.wellness.sleepQuality,
                         energyLevel: log.wellness.energyLevel,
@@ -417,12 +442,49 @@ export class FirestoreService {
             // Get existing workouts (Schede) created by user
             const existingWorkouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]').map(w => ({
                 name: w.name,
-                exercises: w.exercises.map(ex => ({
-                    name: ex.name,
-                    sets: ex.sets,
-                    reps: ex.reps,
-                    rpe: ex.rpe || 'N/D'
-                }))
+                exercises: w.exercises.map(ex => {
+                    // Handle both old format (sets as number) and new format (sets as array)
+                    let setsInfo;
+                    if (Array.isArray(ex.sets)) {
+                        // New format - array of set objects with types
+                        const setTypes = ex.sets.map(s => s.type || 'normal');
+                        const uniqueTypes = [...new Set(setTypes)];
+                        const hasSpecialSets = uniqueTypes.some(t => t !== 'normal');
+                        
+                        if (hasSpecialSets) {
+                            // Count sets by type
+                            const typeCounts = {};
+                            setTypes.forEach(t => {
+                                typeCounts[t] = (typeCounts[t] || 0) + 1;
+                            });
+                            setsInfo = Object.entries(typeCounts)
+                                .map(([type, count]) => `${count}x${type}`)
+                                .join('+');
+                        } else {
+                            setsInfo = ex.sets.length;
+                        }
+                        
+                        // Get target reps from first set
+                        const targetReps = ex.sets[0]?.target || ex.sets[0]?.reps || 'N/D';
+                        const targetRpe = ex.sets[0]?.rpe || 'N/D';
+                        
+                        return {
+                            name: ex.name,
+                            sets: setsInfo,
+                            reps: targetReps,
+                            rpe: targetRpe,
+                            hasSpecialSets: hasSpecialSets
+                        };
+                    } else {
+                        // Old format - sets as number
+                        return {
+                            name: ex.name,
+                            sets: ex.sets,
+                            reps: ex.reps,
+                            rpe: ex.rpe || 'N/D'
+                        };
+                    }
+                })
             }));
 
             // Calculate historical PRs for progression/regression tracking
