@@ -777,24 +777,39 @@
             style="background: var(--color-surface); padding: 2rem; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--color-border);">
             <h3 style="margin-bottom: 1.5rem;">Condividi Scheda</h3>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <button id="shareNative"
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: none; color: white; padding: 1rem; background: linear-gradient(135deg, #00f3ff, #0099ff); border-radius: 8px; cursor: pointer; font-family: inherit;">
+                    <span style="font-size: 2rem;">�</sppan>
+                    <span>Condividi</span>
+                </button>
                 <a id="shareWhatsapp" href="#" target="_blank"
-                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #25D366; border-radius: 8px;">
                     <span style="font-size: 2rem;">💚</span>
                     <span>WhatsApp</span>
                 </a>
                 <a id="shareTelegram" href="#" target="_blank"
-                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #0088cc; border-radius: 8px;">
                     <span style="font-size: 2rem;">✈️</span>
                     <span>Telegram</span>
                 </a>
+                <a id="shareTwitter" href="#" target="_blank"
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #1DA1F2; border-radius: 8px;">
+                    <span style="font-size: 2rem;">�</sppan>
+                    <span>X/Twitter</span>
+                </a>
+                <a id="shareFacebook" href="#" target="_blank"
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #1877F2; border-radius: 8px;">
+                    <span style="font-size: 2rem;">📘</span>
+                    <span>Facebook</span>
+                </a>
                 <a id="shareEmail" href="#" target="_blank"
-                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #666; border-radius: 8px;">
                     <span style="font-size: 2rem;">📧</span>
                     <span>Email</span>
                 </a>
                 <button id="shareCopy"
-                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: none; color: white; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; font-family: inherit;">
+                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: none; color: white; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; font-family: inherit; grid-column: span 3;">
                     <span style="font-size: 2rem;">📋</span>
                     <span>Copia Link</span>
                 </button>
@@ -1443,14 +1458,24 @@
             const closeShareModal = document.getElementById('closeShareModal');
             const shareWhatsapp = document.getElementById('shareWhatsapp');
             const shareTelegram = document.getElementById('shareTelegram');
+            const shareTwitter = document.getElementById('shareTwitter');
+            const shareFacebook = document.getElementById('shareFacebook');
             const shareEmail = document.getElementById('shareEmail');
             const shareCopy = document.getElementById('shareCopy');
+            const shareNative = document.getElementById('shareNative');
+            
+            let currentShareUrl = '';
+            let currentShareTitle = '';
 
             window.showShareModal = (title, url) => {
                 const text = `Guarda la mia scheda "${title}" su IronFlow!`;
+                currentShareUrl = url;
+                currentShareTitle = title;
 
                 shareWhatsapp.href = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
                 shareTelegram.href = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+                shareTwitter.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
                 shareEmail.href = `mailto:?subject=${encodeURIComponent('Scheda Allenamento IronFlow')}&body=${encodeURIComponent(text + '\n\n' + url)}`;
 
                 shareCopy.onclick = async () => {
@@ -1463,6 +1488,31 @@
 
                 shareModal.style.display = 'flex';
             };
+            
+            // Native share button handler
+            shareNative.addEventListener('click', async () => {
+                if (navigator.share && currentShareUrl) {
+                    try {
+                        await navigator.share({
+                            title: `Allenamento: ${currentShareTitle}`,
+                            text: `Guarda la mia scheda "${currentShareTitle}" su IronFlow!`,
+                            url: currentShareUrl
+                        });
+                        shareModal.style.display = 'none';
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            console.error('Share failed:', err);
+                        }
+                    }
+                } else {
+                    // Fallback: copy to clipboard
+                    await navigator.clipboard.writeText(currentShareUrl);
+                    shareNative.innerHTML = '<span style="font-size: 2rem;">✅</span><span>Copiato!</span>';
+                    setTimeout(() => {
+                        shareNative.innerHTML = '<span style="font-size: 2rem;">📤</span><span>Condividi</span>';
+                    }, 2000);
+                }
+            });
 
             closeShareModal.addEventListener('click', () => {
                 shareModal.style.display = 'none';

@@ -104,8 +104,12 @@ export class WorkoutSharingHandler {
         return null;
     }
 
-    // Show share modal with copy button
+    // Show share modal with copy button and social sharing
     showShareModal(workoutName, shareUrl) {
+        const shareText = `Dai un'occhiata a questa scheda di allenamento: ${workoutName}`;
+        const encodedUrl = encodeURIComponent(shareUrl);
+        const encodedText = encodeURIComponent(shareText);
+        
         const modalHTML = `
             <div id="workoutShareModal" style="
                 position: fixed;
@@ -119,6 +123,7 @@ export class WorkoutSharingHandler {
                 align-items: center;
                 justify-content: center;
                 padding: 1rem;
+                overflow-y: auto;
             ">
                 <div class="card" style="max-width: 500px; width: 100%;">
                     <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
@@ -137,10 +142,74 @@ export class WorkoutSharingHandler {
                         margin-bottom: 1rem;
                         word-break: break-all;
                         font-family: monospace;
-                        font-size: 0.9rem;
+                        font-size: 0.85rem;
                         color: var(--color-primary);
                     ">
                         ${shareUrl}
+                    </div>
+                    
+                    <!-- Social Share Buttons -->
+                    <div style="margin-bottom: 1rem;">
+                        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Condividi su:</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            <button class="share-social-btn" data-platform="native" style="
+                                background: linear-gradient(135deg, #00f3ff, #0099ff);
+                                border: none;
+                                color: white;
+                                padding: 0.5rem 1rem;
+                                border-radius: var(--radius-sm);
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                                display: flex;
+                                align-items: center;
+                                gap: 0.3rem;
+                            ">📤 Condividi</button>
+                            <button class="share-social-btn" data-platform="whatsapp" style="
+                                background: #25D366;
+                                border: none;
+                                color: white;
+                                padding: 0.5rem 1rem;
+                                border-radius: var(--radius-sm);
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                            ">WhatsApp</button>
+                            <button class="share-social-btn" data-platform="telegram" style="
+                                background: #0088cc;
+                                border: none;
+                                color: white;
+                                padding: 0.5rem 1rem;
+                                border-radius: var(--radius-sm);
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                            ">Telegram</button>
+                            <button class="share-social-btn" data-platform="twitter" style="
+                                background: #1DA1F2;
+                                border: none;
+                                color: white;
+                                padding: 0.5rem 1rem;
+                                border-radius: var(--radius-sm);
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                            ">X/Twitter</button>
+                            <button class="share-social-btn" data-platform="facebook" style="
+                                background: #1877F2;
+                                border: none;
+                                color: white;
+                                padding: 0.5rem 1rem;
+                                border-radius: var(--radius-sm);
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                            ">Facebook</button>
+                            <button class="share-social-btn" data-platform="email" style="
+                                background: #666;
+                                border: none;
+                                color: white;
+                                padding: 0.5rem 1rem;
+                                border-radius: var(--radius-sm);
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                            ">📧 Email</button>
+                        </div>
                     </div>
                     
                     <div style="display: flex; gap: 0.75rem;">
@@ -172,6 +241,14 @@ export class WorkoutSharingHandler {
         const feedback = document.getElementById('shareCopyFeedback');
 
         closeBtn.addEventListener('click', () => modal.remove());
+        
+        // Social share button handlers
+        modal.querySelectorAll('.share-social-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const platform = btn.dataset.platform;
+                this.shareToSocialPlatform(platform, shareUrl, shareText);
+            });
+        });
 
         copyBtn.addEventListener('click', async () => {
             try {
@@ -195,6 +272,36 @@ export class WorkoutSharingHandler {
                 feedback.textContent = '📋 Testo selezionato, premi Ctrl+C (Cmd+C su Mac)';
             }
         });
+    }
+
+    // Share to social platform
+    shareToSocialPlatform(platform, shareUrl, shareText) {
+        const encodedUrl = encodeURIComponent(shareUrl);
+        const encodedText = encodeURIComponent(shareText);
+        
+        const socialUrls = {
+            whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+            telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
+            twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+            email: `mailto:?subject=${encodeURIComponent('Scheda di Allenamento')}&body=${encodedText}%20${encodedUrl}`
+        };
+        
+        if (platform === 'native' && navigator.share) {
+            navigator.share({
+                title: 'Scheda di Allenamento',
+                text: shareText,
+                url: shareUrl
+            }).catch(err => console.log('Share cancelled:', err));
+        } else if (platform === 'native') {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                const feedback = document.getElementById('shareCopyFeedback');
+                if (feedback) feedback.textContent = '✅ Link copiato!';
+            });
+        } else if (socialUrls[platform]) {
+            window.open(socialUrls[platform], '_blank', 'width=600,height=400');
+        }
     }
 
     // Show import success notification
