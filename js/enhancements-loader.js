@@ -39,6 +39,9 @@ async function init() {
         aiTargetingHandler.init('.ai-target-chip');
     }, 1000);
 
+    // Intercept Share Buttons (Hijack old logic)
+    setupShareInterception(workoutSharingHandler);
+
     console.log('✅ All enhancements loaded');
 }
 
@@ -110,6 +113,52 @@ async function checkSharedWorkout(workoutSharingHandler) {
             workoutSharingHandler.showImportError(result.error);
         }
     }
+}
+
+// Intercept clicks on share buttons to use new system
+function setupShareInterception(sharingHandler) {
+    const list = document.getElementById('savedWorkoutsList');
+    if (!list) return;
+
+    // Use Capture phase to intercept event BEFORE it reaches the button's original handler
+    list.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.share-workout');
+        if (!btn) return;
+
+        // Stop original handler
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        console.log('⚡ Share button intercepted by Enhancement Loader');
+
+        // Visual feedback
+        const originalText = btn.textContent;
+        btn.textContent = '⏳';
+
+        try {
+            const index = Number(btn.dataset.index);
+            const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+            const workout = workouts[index];
+
+            if (!workout) throw new Error('Workout non trovato');
+
+            const result = await sharingHandler.shareWorkout(workout);
+
+            if (result.success) {
+                sharingHandler.showShareModal(workout.name, result.shareUrl);
+            } else {
+                alert('Errore: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Share error:', error);
+            alert('Errore durante la condivisione');
+        } finally {
+            btn.textContent = originalText;
+        }
+    }, true); // true = Capture Phase
+
+    console.log('🛡️ Share interception active');
 }
 
 // Export for global access
