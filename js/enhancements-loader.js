@@ -54,20 +54,76 @@ async function init() {
 
 // Setup Media Session Integration (Timer Observer & Audio Trigger)
 function setupMediaSessionIntegration() {
-    // 1. Audio Trigger on Start (Delegated)
+    let lastTimerValue = null;
+    let timerStarted = false;
+    
+    // 1. Audio Trigger on Start (Delegated) - CRITICAL for lockscreen
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.start-workout');
         if (btn) {
             // Get workout name if possible
             const workoutName = btn.closest('.workout-list-item')?.querySelector('strong')?.textContent.replace('AI', '').trim() || 'Allenamento';
 
-            // Start Media Session (Audio Loop)
+            // Start Media Session (Audio Loop) - This activates lockscreen controls
             mediaSessionManager.startWorkout(workoutName);
-            console.log('🎵 Media Session started via user interaction');
+            console.log('🎵 Media Session started via user interaction - lockscreen should be active');
         }
     });
 
-    // 2. Timer Observer (Sync DOM timer to Lockscreen)
+    // 2. Timer Area Observer - Detect when rest period starts/ends
+    const timerArea = document.getElementById('focusTimerArea');
+    if (timerArea) {
+        const timerAreaObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    const isVisible = timerArea.style.display !== 'none';
+                    
+                    if (isVisible && !timerStarted) {
+                        // Timer area just became visible - REST STARTED
+                        console.log('🔔 Rest period detected - activating lockscreen timer');
+                        timerStarted = true;
+                        
+                        // Get initial timer value
+                        const timerElement = document.getElementById('focusTimer');
+                        if (timerElement) {
+                            const text = timerElement.textContent;
+                            if (text && text.includes(':')) {
+                                const [min, sec] = text.split(':').map(Number);
+                                const totalSeconds = (min * 60) + sec;
+                                if (!isNaN(totalSeconds) && totalSeconds > 0) {
+                                    // Store initial duration for progress bar
+                                    mediaSessionManager.initialTimerDuration = totalSeconds;
+                                    mediaSessionManager.updateTimer(totalSeconds);
+                                    console.log(`⏱️ Lockscreen timer started: ${totalSeconds}s`);
+                                }
+                            }
+                        }
+                    } else if (!isVisible && timerStarted) {
+                        // Timer area hidden - REST ENDED
+                        console.log('✅ Rest period ended');
+                        timerStarted = false;
+                        lastTimerValue = null;
+                        
+                        // Update lockscreen to show exercise info
+                        const exerciseElement = document.getElementById('focusExerciseName');
+                        if (exerciseElement) {
+                            const name = exerciseElement.textContent;
+                            const setCounter = document.getElementById('focusSetCounter');
+                            const setInfo = setCounter ? setCounter.textContent : '';
+                            const match = setInfo.match(/Set (\d+)\/(\d+)/);
+                            const current = match ? parseInt(match[1]) : 1;
+                            const total = match ? parseInt(match[2]) : 3;
+                            mediaSessionManager.updateExercise(name, current, total);
+                        }
+                    }
+                }
+            });
+        });
+        timerAreaObserver.observe(timerArea, { attributes: true, attributeFilter: ['style'] });
+        console.log('👁️ Timer area visibility observer attached');
+    }
+
+    // 3. Timer Value Observer (Sync DOM timer to Lockscreen in real-time)
     const timerElement = document.getElementById('focusTimer');
     if (timerElement) {
         const observer = new MutationObserver((mutations) => {
@@ -76,19 +132,25 @@ function setupMediaSessionIntegration() {
                 const [min, sec] = text.split(':').map(Number);
                 const totalSeconds = (min * 60) + sec;
 
-                // Only update if valid number
-                if (!isNaN(totalSeconds)) {
+                // Only update if valid number and different from last value
+                if (!isNaN(totalSeconds) && totalSeconds !== lastTimerValue) {
+                    lastTimerValue = totalSeconds;
                     mediaSessionManager.updateTimer(totalSeconds);
+                    
+                    // Log every 10 seconds for debugging
+                    if (totalSeconds % 10 === 0) {
+                        console.log(`⏱️ Lockscreen timer: ${min}:${sec.toString().padStart(2, '0')}`);
+                    }
                 }
             }
         });
         observer.observe(timerElement, { childList: true, characterData: true, subtree: true });
-        console.log('⏱️ Timer observer attached');
+        console.log('⏱️ Timer value observer attached');
     } else {
         console.warn('⚠️ focusTimer element not found for observer');
     }
 
-    // 3. Exercise Name Observer (Sync Title)
+    // 4. Exercise Name Observer (Sync Title)
     const exerciseElement = document.getElementById('focusExerciseName');
     if (exerciseElement) {
         const observer = new MutationObserver(() => {
@@ -98,13 +160,55 @@ function setupMediaSessionIntegration() {
             const setInfo = setCounter ? setCounter.textContent : '';
             // Parse "Set 1/3" if possible, otherwise pass raw
             const match = setInfo.match(/Set (\d+)\/(\d+)/);
-            const current = match ? match[1] : 1;
-            const total = match ? match[2] : 3;
+            const current = match ? parseInt(match[1]) : 1;
+            const total = match ? parseInt(match[2]) : 3;
 
             mediaSessionManager.updateExercise(name, current, total);
         });
         observer.observe(exerciseElement, { childList: true, characterData: true, subtree: true });
+        console.log('💪 Exercise name observer attached');
     }
+
+    // 5. Focus Mode Modal Observer - Detect when focus mode opens/closes
+    const focusModal = document.getElementById('focusModeModal');
+    if (focusModal) {
+        const modalObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    const isVisible = focusModal.style.display !== 'none';
+                    
+                    if (!isVisible) {
+                        // Focus mode closed - end workout session
+                        console.log('🏁 Focus mode closed - ending media session');
+                        mediaSessionManager.endWorkout();
+                    }
+                }
+            });
+        });
+        modalObserver.observe(focusModal, { attributes: true, attributeFilter: ['style'] });
+        console.log('🎯 Focus mode modal observer attached');
+    }
+
+    // 6. Setup media session callbacks for lockscreen controls
+    mediaSessionManager.onPlayPauseCallback((isPlaying) => {
+        console.log('🎮 Lockscreen play/pause:', isPlaying);
+        // Could be used to pause/resume timer in future
+    });
+
+    mediaSessionManager.onNextCallback(() => {
+        console.log('🎮 Lockscreen next pressed');
+        // Skip rest if available
+        if (typeof window.skipRest === 'function') {
+            window.skipRest();
+        }
+    });
+
+    mediaSessionManager.onPreviousCallback(() => {
+        console.log('🎮 Lockscreen previous pressed');
+        // Could go to previous exercise in future
+    });
+
+    console.log('✅ Media Session Integration fully configured for lockscreen support');
 }
 
 // Inject AI targeting chips HTML and Custom Text Input

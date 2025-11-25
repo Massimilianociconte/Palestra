@@ -1,5 +1,6 @@
 // Media Session Manager for Lockscreen Controls
 // Provides lockscreen timer display and controls for Focus Mode
+// UPDATED: Enhanced for better lockscreen support on Android and iOS
 
 export class MediaSessionManager {
     constructor() {
@@ -11,51 +12,138 @@ export class MediaSessionManager {
         this.timerValue = 0;
         this.timerInterval = null;
         this.audioElement = null;
+        this.audioContext = null;
+        this.oscillator = null;
+        this.gainNode = null;
+        this.isPlaying = false;
     }
 
     // Initialize Media Session
     init() {
         if ('mediaSession' in navigator) {
-            console.log('Media Session API available');
-            this.createSilentAudio();
-
+            console.log('Media Session API available - initializing lockscreen support');
+            this.createPersistentAudio();
+            this.setupActionHandlers();
+            
             // Set default metadata
             this.updateMetadata({
                 title: 'IRONFLOW',
                 artist: 'Focus Mode',
                 album: 'Allenamento'
             });
-
-            // Set up action handlers
-            this.setupActionHandlers();
         } else {
             console.warn('Media Session API not supported on this browser');
         }
     }
 
-    createSilentAudio() {
-        // Create a silent audio element to keep the session alive
+    // Create persistent audio that keeps the media session alive on lockscreen
+    createPersistentAudio() {
+        // Method 1: Create an Audio element with a longer silent audio
+        // This is a 10-second silent WAV file encoded in base64
+        // The longer duration helps maintain the session on lockscreen
         this.audioElement = document.createElement('audio');
-        this.audioElement.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAGZGF0YQQAAAAAAA=='; // Silent wav
-        this.audioElement.loop = true;
-        document.body.appendChild(this.audioElement);
+        
+        // Generate a longer silent audio using Web Audio API
+        this.generateSilentAudioBlob().then(blob => {
+            this.audioElement.src = URL.createObjectURL(blob);
+            this.audioElement.loop = true;
+            this.audioElement.volume = 0.01; // Nearly silent but not zero (some browsers ignore zero volume)
+            this.audioElement.preload = 'auto';
+            
+            // Important: Set attributes for background playback
+            this.audioElement.setAttribute('playsinline', '');
+            this.audioElement.setAttribute('webkit-playsinline', '');
+            
+            document.body.appendChild(this.audioElement);
+            console.log('Persistent audio element created for lockscreen');
+        });
+    }
+
+    // Generate a silent audio blob using Web Audio API
+    async generateSilentAudioBlob() {
+        return new Promise((resolve) => {
+            // Create a 30-second silent audio buffer
+            const sampleRate = 44100;
+            const duration = 30; // 30 seconds
+            const numChannels = 2;
+            const numSamples = sampleRate * duration;
+            
+            // Create WAV file header and data
+            const buffer = new ArrayBuffer(44 + numSamples * numChannels * 2);
+            const view = new DataView(buffer);
+            
+            // WAV header
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + numSamples * numChannels * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true); // Subchunk1Size
+            view.setUint16(20, 1, true); // AudioFormat (PCM)
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * 2, true); // ByteRate
+            view.setUint16(32, numChannels * 2, true); // BlockAlign
+            view.setUint16(34, 16, true); // BitsPerSample
+            writeString(36, 'data');
+            view.setUint32(40, numSamples * numChannels * 2, true);
+            
+            // Silent audio data (all zeros = silence)
+            // Data is already zero-initialized in ArrayBuffer
+            
+            resolve(new Blob([buffer], { type: 'audio/wav' }));
+        });
+    }
+
+    // Start playing audio to activate media session (MUST be called from user interaction)
+    async startAudioSession() {
+        if (!this.audioElement) {
+            console.warn('Audio element not ready');
+            return false;
+        }
+
+        try {
+            // Play the audio element
+            await this.audioElement.play();
+            this.isPlaying = true;
+            
+            // Set playback state
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'playing';
+            }
+            
+            console.log('✅ Audio session started - lockscreen should now show controls');
+            return true;
+        } catch (error) {
+            console.error('Failed to start audio session:', error);
+            return false;
+        }
     }
 
     // Update metadata with current workout info
     updateMetadata({ title, artist, album, artwork }) {
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: title || this.currentExercise || 'Allenamento',
-                artist: artist || `Set ${this.currentSet}/${this.totalSets}`,
-                album: album || this.currentWorkoutName,
-                artwork: artwork || [
-                    {
-                        src: 'assets/icon.svg',
-                        sizes: '512x512',
-                        type: 'image/svg+xml'
-                    }
-                ]
-            });
+            try {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: title || this.currentExercise || 'Allenamento',
+                    artist: artist || `Set ${this.currentSet}/${this.totalSets}`,
+                    album: album || this.currentWorkoutName,
+                    artwork: artwork || [
+                        {
+                            src: 'assets/icon.svg',
+                            sizes: '512x512',
+                            type: 'image/svg+xml'
+                        }
+                    ]
+                });
+            } catch (e) {
+                console.warn('Failed to update media metadata:', e);
+            }
         }
     }
 
@@ -64,47 +152,75 @@ export class MediaSessionManager {
         if ('mediaSession' in navigator) {
             // Play/Pause for timer control
             navigator.mediaSession.setActionHandler('play', () => {
+                console.log('Media Session: Play pressed');
                 this.onPlayPause?.(true);
-                if (this.audioElement) this.audioElement.play();
+                if (this.audioElement && this.audioElement.paused) {
+                    this.audioElement.play().catch(e => console.log('Play failed:', e));
+                }
                 navigator.mediaSession.playbackState = 'playing';
             });
 
             navigator.mediaSession.setActionHandler('pause', () => {
+                console.log('Media Session: Pause pressed');
                 this.onPlayPause?.(false);
-                if (this.audioElement) this.audioElement.pause();
+                // Don't actually pause the audio - we need it for lockscreen
+                // Just update the state
                 navigator.mediaSession.playbackState = 'paused';
             });
 
             // Next/Previous for exercise navigation
             navigator.mediaSession.setActionHandler('previoustrack', () => {
+                console.log('Media Session: Previous pressed');
                 this.onPrevious?.();
             });
 
             navigator.mediaSession.setActionHandler('nexttrack', () => {
+                console.log('Media Session: Next pressed');
                 this.onNext?.();
             });
 
-            // Set playback state
-            navigator.mediaSession.playbackState = 'paused';
+            // Seek handlers (for scrubbing the timer)
+            try {
+                navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+                    console.log('Media Session: Seek backward', details);
+                    this.onSeekBackward?.(details?.seekOffset || 10);
+                });
+
+                navigator.mediaSession.setActionHandler('seekforward', (details) => {
+                    console.log('Media Session: Seek forward', details);
+                    this.onSeekForward?.(details?.seekOffset || 10);
+                });
+            } catch (e) {
+                console.log('Seek handlers not supported');
+            }
+
+            // Set initial playback state
+            navigator.mediaSession.playbackState = 'none';
         }
     }
 
-    // Start workout session
-    startWorkout(workoutName) {
+    // Start workout session (MUST be called from user interaction like button click)
+    async startWorkout(workoutName) {
         this.isActive = true;
         this.currentWorkoutName = workoutName;
+        
+        // Update metadata first
         this.updateMetadata({
-            album: workoutName
+            title: workoutName,
+            artist: 'IRONFLOW Focus Mode',
+            album: 'Allenamento in corso'
         });
 
-        // Play silent audio to activate session (must be triggered by user interaction)
-        if (this.audioElement) {
-            this.audioElement.play().catch(e => console.log('Audio play failed (interaction needed):', e));
+        // Start audio session (this activates the lockscreen controls)
+        const success = await this.startAudioSession();
+        
+        if (success) {
+            console.log('🏋️ Workout session started with lockscreen support');
+        } else {
+            console.warn('⚠️ Lockscreen support may not work - audio session failed');
         }
 
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'playing';
-        }
+        return success;
     }
 
     // Update current exercise
@@ -114,57 +230,110 @@ export class MediaSessionManager {
         this.totalSets = totalSets;
 
         this.updateMetadata({
-            title: exerciseName,
-            artist: `Set ${currentSet}/${totalSets}`
+            title: `💪 ${exerciseName}`,
+            artist: `Set ${currentSet}/${totalSets}`,
+            album: this.currentWorkoutName
         });
+
+        // Update position state to show progress
+        this.updatePositionState(currentSet, totalSets);
     }
 
-    // Update timer display (for rest periods)
+    // Update position state (shows progress bar on lockscreen)
+    updatePositionState(current, total) {
+        if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+            try {
+                // Use position state to show set progress
+                navigator.mediaSession.setPositionState({
+                    duration: total * 60, // Total "duration" based on sets
+                    playbackRate: 1,
+                    position: current * 60 // Current "position" based on current set
+                });
+            } catch (e) {
+                // Position state not supported or invalid values
+            }
+        }
+    }
+
+    // Update timer display (for rest periods) - THIS IS THE KEY METHOD FOR LOCKSCREEN TIMER
     updateTimer(seconds) {
         this.timerValue = seconds;
 
-        // Update metadata to show timer
+        // Format timer text
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         const timerText = `${minutes}:${secs.toString().padStart(2, '0')}`;
 
+        // Update metadata to show timer on lockscreen
         this.updateMetadata({
-            title: `⏱️ Rest: ${timerText}`,
-            artist: this.currentExercise || 'Recupero'
+            title: `⏱️ Riposo: ${timerText}`,
+            artist: `Prossimo: ${this.currentExercise || 'Set successivo'}`,
+            album: this.currentWorkoutName
         });
 
-        // Update position state if supported
-        if ('setPositionState' in navigator.mediaSession) {
-            navigator.mediaSession.setPositionState({
-                duration: seconds || 1,
-                playbackRate: 1,
-                position: 0
-            });
+        // Update position state to show timer progress
+        if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+            try {
+                // This creates a progress bar on the lockscreen
+                // Duration = initial timer value, Position = elapsed time
+                const initialDuration = this.initialTimerDuration || seconds;
+                const elapsed = initialDuration - seconds;
+                
+                navigator.mediaSession.setPositionState({
+                    duration: initialDuration,
+                    playbackRate: 1,
+                    position: Math.max(0, elapsed)
+                });
+            } catch (e) {
+                // Ignore errors
+            }
         }
     }
 
     // Start timer countdown on lockscreen
     startTimerDisplay(initialSeconds, onTick, onComplete) {
         this.stopTimerDisplay(); // Clear any existing timer
-
+        
+        this.initialTimerDuration = initialSeconds;
         let remainingSeconds = initialSeconds;
+        
+        // Initial update
         this.updateTimer(remainingSeconds);
+        
+        // Ensure audio is playing for lockscreen
+        if (this.audioElement && this.audioElement.paused) {
+            this.audioElement.play().catch(e => console.log('Audio play failed:', e));
+        }
 
+        // Set playback state to playing
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'playing';
+        }
+
+        // Start countdown interval
         this.timerInterval = setInterval(() => {
             remainingSeconds--;
-            this.updateTimer(remainingSeconds);
-
-            onTick?.(remainingSeconds);
+            
+            if (remainingSeconds >= 0) {
+                this.updateTimer(remainingSeconds);
+                onTick?.(remainingSeconds);
+            }
 
             if (remainingSeconds <= 0) {
                 this.stopTimerDisplay();
+                
+                // Update metadata to show timer complete
+                this.updateMetadata({
+                    title: '✅ Riposo completato!',
+                    artist: `Inizia: ${this.currentExercise || 'Set successivo'}`,
+                    album: this.currentWorkoutName
+                });
+                
                 onComplete?.();
             }
         }, 1000);
 
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'playing';
-        }
+        console.log(`⏱️ Timer started: ${initialSeconds}s - lockscreen should update`);
     }
 
     // Stop timer display
@@ -173,9 +342,11 @@ export class MediaSessionManager {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
+        this.initialTimerDuration = null;
 
+        // Keep playing state to maintain lockscreen session
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'playing'; // Keep playing to maintain session
+            navigator.mediaSession.playbackState = 'playing';
         }
     }
 
@@ -185,17 +356,46 @@ export class MediaSessionManager {
         this.stopTimerDisplay();
 
         this.updateMetadata({
-            title: 'Allenamento Completato',
-            artist: 'IRONFLOW',
+            title: '🎉 Allenamento Completato!',
+            artist: 'Ottimo lavoro!',
             album: this.currentWorkoutName
         });
 
-        if (this.audioElement) {
-            this.audioElement.pause();
-        }
+        // Stop audio after a short delay
+        setTimeout(() => {
+            if (this.audioElement) {
+                this.audioElement.pause();
+            }
+            this.isPlaying = false;
 
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'none';
+            }
+        }, 3000); // Keep showing "completed" for 3 seconds
+    }
+
+    // Pause the session (but keep lockscreen active)
+    pauseSession() {
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'none';
+            navigator.mediaSession.playbackState = 'paused';
+        }
+        
+        this.updateMetadata({
+            title: '⏸️ In pausa',
+            artist: this.currentExercise || 'Allenamento',
+            album: this.currentWorkoutName
+        });
+    }
+
+    // Resume the session
+    resumeSession() {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'playing';
+        }
+        
+        // Ensure audio is playing
+        if (this.audioElement && this.audioElement.paused) {
+            this.audioElement.play().catch(e => console.log('Resume audio failed:', e));
         }
     }
 
@@ -212,6 +412,34 @@ export class MediaSessionManager {
     // Set callback for next track
     onNextCallback(callback) {
         this.onNext = callback;
+    }
+
+    // Set callback for seek backward
+    onSeekBackwardCallback(callback) {
+        this.onSeekBackward = callback;
+    }
+
+    // Set callback for seek forward
+    onSeekForwardCallback(callback) {
+        this.onSeekForward = callback;
+    }
+
+    // Check if lockscreen is supported
+    isLockscreenSupported() {
+        return 'mediaSession' in navigator;
+    }
+
+    // Get current status
+    getStatus() {
+        return {
+            isActive: this.isActive,
+            isPlaying: this.isPlaying,
+            currentExercise: this.currentExercise,
+            currentSet: this.currentSet,
+            totalSets: this.totalSets,
+            timerValue: this.timerValue,
+            lockscreenSupported: this.isLockscreenSupported()
+        };
     }
 }
 
