@@ -285,26 +285,58 @@ function setupAIGenerationInterception() {
                 });
 
                 // Handle Save
-                document.getElementById('saveAiWorkout').addEventListener('click', () => {
-                    const newWorkout = createWorkoutObj();
-                    const currentWorkouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-                    currentWorkouts.unshift(newWorkout);
-                    localStorage.setItem('ironflow_workouts', JSON.stringify(currentWorkouts));
+                document.getElementById('saveAiWorkout').addEventListener('click', async () => {
+                    const btn = document.getElementById('saveAiWorkout');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '☁️ Sync...';
+                    btn.disabled = true;
 
-                    alert('Scheda salvata con successo!');
-                    // Reload to show in list
-                    setTimeout(() => window.location.reload(), 100);
+                    try {
+                        const newWorkout = createWorkoutObj();
+                        const currentWorkouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                        currentWorkouts.unshift(newWorkout);
+                        localStorage.setItem('ironflow_workouts', JSON.stringify(currentWorkouts));
+
+                        // CRITICAL: Sync to cloud BEFORE reload to prevent overwrite by loadFromCloud() on init
+                        console.log('☁️ Syncing new AI workout to cloud...');
+                        await firestoreService.syncToCloud();
+
+                        alert('Scheda salvata e sincronizzata!');
+                        window.location.reload();
+                    } catch (e) {
+                        console.error('Sync error:', e);
+                        alert('Salvato in locale. Errore sync cloud: ' + e.message);
+                        window.location.reload();
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
                 });
 
                 // Handle Start
-                document.getElementById('startAiWorkout').addEventListener('click', () => {
-                    const newWorkout = createWorkoutObj();
-                    const currentWorkouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
-                    currentWorkouts.unshift(newWorkout);
-                    localStorage.setItem('ironflow_workouts', JSON.stringify(currentWorkouts));
+                document.getElementById('startAiWorkout').addEventListener('click', async () => {
+                    const btn = document.getElementById('startAiWorkout');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '🚀 Avvio...';
+                    btn.disabled = true;
 
-                    // Reload to show in list and start
-                    setTimeout(() => window.location.reload(), 100);
+                    try {
+                        const newWorkout = createWorkoutObj();
+                        const currentWorkouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                        currentWorkouts.unshift(newWorkout);
+                        localStorage.setItem('ironflow_workouts', JSON.stringify(currentWorkouts));
+
+                        // CRITICAL: Sync to cloud BEFORE reload
+                        console.log('☁️ Syncing new AI workout to cloud before start...');
+                        await firestoreService.syncToCloud();
+
+                        // Reload to show in list and start
+                        window.location.reload();
+                    } catch (e) {
+                        console.error('Sync error:', e);
+                        // Still reload to try to start locally
+                        window.location.reload();
+                    }
                 });
 
             } else {
