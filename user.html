@@ -956,6 +956,14 @@
                         setTimeout(() => syncStatus.textContent = '', 2000);
                         if (loadResult.data) {
                             renderWorkouts();
+                            
+                            // Merge AI history: if local has items not in cloud, sync back
+                            const localAiHistory = JSON.parse(localStorage.getItem('ironflow_ai_plan_history') || '[]');
+                            const cloudAiHistory = loadResult.data.aiPlanHistory || [];
+                            if (localAiHistory.length > cloudAiHistory.length) {
+                                console.log('📚 Local AI history has more items, syncing to cloud...');
+                                await firestoreService.syncToCloud();
+                            }
                         }
                     }
 
