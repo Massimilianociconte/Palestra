@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ironflow-v4';
+const CACHE_NAME = 'gymbro-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

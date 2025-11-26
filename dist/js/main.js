@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    console.log('IRONFLOW initialized.');
+    console.log('GYMBRO initialized.');
 
     // Service Worker Registration
     if ('serviceWorker' in navigator) {

@@ -1,4 +1,4 @@
-package com.ironflow.app;
+package com.gymbro.app;
 
 import android.Manifest;
 import android.content.ComponentName;

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Profilo | IRONFLOW</title>
+    <title>Profilo | GYMBRO</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
@@ -16,7 +16,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="IronFlow">
+    <meta name="apple-mobile-web-app-title" content="GymBro">
     <link rel="apple-touch-icon" href="assets/icon.svg">
 
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
@@ -359,7 +359,7 @@
 
     <header class="header">
         <div class="container">
-            <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
+            <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
             <nav>
                 <div class="mobile-toggle" id="mobileToggle">☰</div>
                 <ul class="nav-links" id="navLinks">
@@ -1302,7 +1302,23 @@
                 buttonEl.textContent = 'Salvata!';
             };
 
-            const renderAiPlanHistoryList = () => {
+            const renderAiPlanHistoryList = async (forceRefresh = false) => {
+                // Show loading state
+                aiPlanHistoryList.innerHTML = '<p style="color: var(--color-text-muted); text-align: center;"><span class="loading-spinner"></span> Sincronizzazione...</p>';
+                
+                // Refresh from cloud if user is logged in
+                if (forceRefresh && authService.getCurrentUser()) {
+                    try {
+                        const loadResult = await firestoreService.loadFromCloud();
+                        if (loadResult.success && loadResult.data) {
+                            // Merge is handled automatically in loadFromCloud
+                            console.log('📚 Storico AI aggiornato dal cloud');
+                        }
+                    } catch (e) {
+                        console.warn('Could not refresh AI history from cloud:', e);
+                    }
+                }
+                
                 const history = loadAiPlanHistory();
                 if (!history.length) {
                     aiPlanHistoryList.innerHTML = '<p style="color: var(--color-text-muted); text-align: center;">Nessuna sessione AI salvata.</p>';
@@ -1404,9 +1420,9 @@
             }
 
             if (aiPlanHistoryBtn) {
-                aiPlanHistoryBtn.addEventListener('click', () => {
-                    renderAiPlanHistoryList();
+                aiPlanHistoryBtn.addEventListener('click', async () => {
                     aiPlanHistoryModal.style.display = 'flex';
+                    await renderAiPlanHistoryList(true); // Force refresh from cloud
                 });
             }
 
@@ -1612,7 +1628,7 @@
             let currentShareTitle = '';
 
             window.showShareModal = (title, url) => {
-                const text = `Guarda la mia scheda "${title}" su IronFlow!`;
+                const text = `Guarda la mia scheda "${title}" su GymBro!`;
                 currentShareUrl = url;
                 currentShareTitle = title;
 
@@ -1620,7 +1636,7 @@
                 shareTelegram.href = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
                 shareTwitter.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
                 shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-                shareEmail.href = `mailto:?subject=${encodeURIComponent('Scheda Allenamento IronFlow')}&body=${encodeURIComponent(text + '\n\n' + url)}`;
+                shareEmail.href = `mailto:?subject=${encodeURIComponent('Scheda Allenamento GymBro')}&body=${encodeURIComponent(text + '\n\n' + url)}`;
 
                 shareCopy.onclick = async () => {
                     await navigator.clipboard.writeText(url);
@@ -1639,7 +1655,7 @@
                     try {
                         await navigator.share({
                             title: `Allenamento: ${currentShareTitle}`,
-                            text: `Guarda la mia scheda "${currentShareTitle}" su IronFlow!`,
+                            text: `Guarda la mia scheda "${currentShareTitle}" su GymBro!`,
                             url: currentShareUrl
                         });
                         shareModal.style.display = 'none';
@@ -2304,7 +2320,7 @@
                     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
                     const downloadAnchorNode = document.createElement('a');
                     downloadAnchorNode.setAttribute("href", dataStr);
-                    downloadAnchorNode.setAttribute("download", "ironflow_backup_" + new Date().toISOString().split('T')[0] + ".json");
+                    downloadAnchorNode.setAttribute("download", "gymbro_backup_" + new Date().toISOString().split('T')[0] + ".json");
                     document.body.appendChild(downloadAnchorNode);
                     downloadAnchorNode.click();
                     downloadAnchorNode.remove();
@@ -2437,7 +2453,7 @@
                                 if (navigator.share) {
                                     await navigator.share({
                                         title: `Allenamento: ${workout.name}`,
-                                        text: `Prova questa scheda di allenamento su IronFlow: ${workout.name}`,
+                                        text: `Prova questa scheda di allenamento su GymBro: ${workout.name}`,
                                         url: shareUrl
                                     });
                                 } else {

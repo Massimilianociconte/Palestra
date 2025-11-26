@@ -74,7 +74,7 @@ class ExportService {
     /**
      * Download come file Word (.doc) in formato RTF
      */
-    async downloadAsWord(content, filename, title = 'Report IronFlow') {
+    async downloadAsWord(content, filename, title = 'Report GymBro') {
         try {
             console.log('downloadAsWord chiamato - inizio generazione RTF');
             // Genera RTF dal contenuto HTML
@@ -249,7 +249,7 @@ class ExportService {
         rtf += '\\viewkind4\\uc1\\pard\\sa200\\sl276\\slmult1\\lang1040\\f0\\fs22\n';
         
         // Title header
-        rtf += '\\qc\\b\\fs48 IRONFLOW\\b0\\fs22\\par\n';
+        rtf += '\\qc\\b\\fs48 GYMBRO\\b0\\fs22\\par\n';
         rtf += '\\qc\\cf2\\fs20 Report generato il ' + new Date().toLocaleDateString('it-IT', {
             day: 'numeric',
             month: 'long',
@@ -268,7 +268,7 @@ class ExportService {
         
         // Footer
         rtf += '\\par\\pard\\qc\\brdrb\\brdrs\\brdrw10\\brsp20\\par\n';
-        rtf += '\\cf2\\i Generato da IronFlow - Il tuo assistente di allenamento intelligente\\i0\\cf0\\par\n';
+        rtf += '\\cf2\\i Generato da GymBro - Il tuo assistente di allenamento intelligente\\i0\\cf0\\par\n';
         
         // Close RTF
         rtf += '}';
@@ -416,7 +416,7 @@ class ExportService {
         // Header con titolo
         elements.push(
             new Paragraph({
-                text: 'IRONFLOW',
+                text: 'GYMBRO',
                 heading: HeadingLevel.HEADING_1,
                 alignment: AlignmentType.CENTER,
                 spacing: { after: 200 }
@@ -467,7 +467,7 @@ class ExportService {
             new Paragraph({
                 children: [
                     new TextRun({
-                        text: 'Generato da IronFlow - Il tuo assistente di allenamento intelligente',
+                        text: 'Generato da GymBro - Il tuo assistente di allenamento intelligente',
                         size: 18,
                         color: '666666',
                         italics: true
@@ -780,7 +780,7 @@ class ExportService {
 </head>
 <body>
     <div class="header">
-        <h1>IRONFLOW</h1>
+        <h1>GYMBRO</h1>
         <p style="font-size: 10pt; color: #666666;">Report generato il ${new Date().toLocaleDateString('it-IT', { 
             day: 'numeric', 
             month: 'long', 
@@ -791,7 +791,7 @@ class ExportService {
     </div>
     ${content}
     <div class="footer">
-        <p>Generato da IronFlow - Il tuo assistente di allenamento intelligente</p>
+        <p>Generato da GymBro - Il tuo assistente di allenamento intelligente</p>
     </div>
 </body>
 </html>`;
@@ -1064,11 +1064,11 @@ class ExportService {
                         result = await this.copyToClipboard(content, 'markdown');
                         break;
                     case 'download':
-                        const filename = `ironflow-report-${Date.now()}`;
+                        const filename = `gymbro-report-${Date.now()}`;
                         result = this.downloadAsFile(content, filename, 'markdown');
                         break;
                     case 'word':
-                        const wordFilename = `ironflow-report-${Date.now()}`;
+                        const wordFilename = `gymbro-report-${Date.now()}`;
                         result = await this.downloadAsWord(content, wordFilename, title);
                         break;
                     case 'share':

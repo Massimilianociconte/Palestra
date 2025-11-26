@@ -1,4 +1,4 @@
-package com.ironflow.app;
+package com.gymbro.app;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -16,7 +16,7 @@ import androidx.core.app.NotificationCompat;
 
 public class TimerService extends Service {
     private static final String TAG = "TimerService";
-    private static final String CHANNEL_ID = "ironflow_timer_channel";
+    private static final String CHANNEL_ID = "gymbro_timer_channel";
     private static final int NOTIFICATION_ID = 1001;
     
     private final IBinder binder = new TimerBinder();
@@ -200,7 +200,7 @@ public class TimerService extends Service {
         NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle()
             .setBigContentTitle("⏱ " + timeText + "  RIPOSO")
             .bigText(workoutName + "\nProssimo: " + exerciseName)
-            .setSummaryText("IronFlow Timer");
+            .setSummaryText("GymBro Timer");
         
         notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_media_play)
@@ -236,7 +236,7 @@ public class TimerService extends Service {
             NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle()
                 .setBigContentTitle("⏱ " + timeText + "  RIPOSO")
                 .bigText(workoutName + "\nProssimo: " + exerciseName)
-                .setSummaryText("IronFlow Timer");
+                .setSummaryText("GymBro Timer");
             
             notificationBuilder
                 .setContentTitle("⏱ " + timeText + "  RIPOSO")
@@ -260,7 +260,7 @@ public class TimerService extends Service {
             NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle()
                 .setBigContentTitle("⏸ " + timeText + "  PAUSA")
                 .bigText(workoutName + "\n" + exerciseName)
-                .setSummaryText("IronFlow Timer");
+                .setSummaryText("GymBro Timer");
             
             notificationBuilder
                 .setContentTitle("⏸ " + timeText + "  PAUSA")
@@ -282,7 +282,7 @@ public class TimerService extends Service {
             NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle()
                 .setBigContentTitle("✅ FATTO!")
                 .bigText(workoutName + "\nInizia: " + exerciseName)
-                .setSummaryText("IronFlow Timer");
+                .setSummaryText("GymBro Timer");
             
             notificationBuilder
                 .setContentTitle("✅ FATTO!")

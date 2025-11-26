@@ -1,6 +1,6 @@
 {
-  "name": "IronFlow Gym",
-  "short_name": "IronFlow",
+  "name": "GymBro",
+  "short_name": "GymBro",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
