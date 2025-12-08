@@ -1,5 +1,5 @@
 /* 
-   GYMBRO - API Service
+   IRONFLOW - API Service
    Handles synchronization with JSONbin.io
 */
 
