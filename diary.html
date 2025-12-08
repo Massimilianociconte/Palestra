@@ -187,7 +187,7 @@
                     </div>
                 </div>
 
-                <div class="wellness-grid" style="display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:0.75rem; margin-bottom:1.5rem;">
+                <div class="wellness-grid" style="display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:0.75rem; margin-bottom:1rem;">
                     <div>
                         <label style="font-size: 0.85rem; color: var(--color-text-muted);">Sonno (1-10)</label>
                         <input type="number" id="logSleepQuality" class="set-input" min="1" max="10" placeholder="7">
@@ -203,6 +203,28 @@
                     <div>
                         <label style="font-size: 0.85rem; color: var(--color-text-muted);">DOMS (1-10)</label>
                         <input type="number" id="logSorenessLevel" class="set-input" min="1" max="10" placeholder="3">
+                    </div>
+                </div>
+                
+                <!-- DOMS Details Section -->
+                <div id="domsDetailsSection" style="background: rgba(255,255,255,0.03); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="font-size: 0.9rem; color: var(--color-text-muted); font-weight: 500;">💪 Dettagli DOMS</label>
+                        <button type="button" id="toggleDomsDetails" style="background: none; border: none; color: var(--color-primary); cursor: pointer; font-size: 0.8rem;">Espandi ▼</button>
+                    </div>
+                    <div id="domsDetailsContent" style="display: none;">
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Gruppi Muscolari Doloranti</label>
+                            <div id="logSorenessMusclePicker" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                                <!-- Muscle chips will be generated here -->
+                            </div>
+                            <small id="logSorenessMuscleHint" style="display: block; margin-top: 0.5rem; color: var(--color-text-muted); font-size: 0.75rem;">Nessun gruppo selezionato</small>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Causa DOMS / Dolore (opzionale)</label>
+                            <input type="text" id="logExternalCause" class="set-input" style="width: 100%; text-align: left;" placeholder="es. Partita di Padel, Corsa 10km, Trasloco...">
+                            <small style="display: block; margin-top: 0.25rem; color: var(--color-text-muted); font-size: 0.7rem;">Se il dolore è dovuto ad attività esterne alla palestra</small>
+                        </div>
                     </div>
                 </div>
 
@@ -228,8 +250,98 @@
     <script src="js/main.js"></script>
     <script type="module">
         import { firestoreService } from './js/firestore-service.js';
+        import { MUSCLE_GROUPS } from './js/exercise-db.js';
 
         document.addEventListener('DOMContentLoaded', () => {
+            
+            // DOMS Muscle Picker Setup
+            const logSorenessMusclePicker = document.getElementById('logSorenessMusclePicker');
+            const logSorenessMuscleHint = document.getElementById('logSorenessMuscleHint');
+            const logExternalCause = document.getElementById('logExternalCause');
+            const toggleDomsDetails = document.getElementById('toggleDomsDetails');
+            const domsDetailsContent = document.getElementById('domsDetailsContent');
+            
+            let selectedLogSorenessMuscles = new Set();
+            
+            // Toggle DOMS details section
+            toggleDomsDetails.addEventListener('click', () => {
+                const isHidden = domsDetailsContent.style.display === 'none';
+                domsDetailsContent.style.display = isHidden ? 'block' : 'none';
+                toggleDomsDetails.textContent = isHidden ? 'Comprimi ▲' : 'Espandi ▼';
+            });
+            
+            // Build muscle picker chips
+            function buildLogSorenessPicker() {
+                if (!logSorenessMusclePicker) return;
+                logSorenessMusclePicker.innerHTML = '';
+                
+                Object.entries(MUSCLE_GROUPS).forEach(([id, meta]) => {
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'doms-chip';
+                    chip.dataset.muscle = id;
+                    chip.textContent = meta.label;
+                    chip.style.cssText = `
+                        background: rgba(255, 255, 255, 0.08);
+                        border: 1px solid rgba(255, 255, 255, 0.12);
+                        color: #fff;
+                        border-radius: 999px;
+                        padding: 0.25rem 0.6rem;
+                        font-size: 0.75rem;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                    `;
+                    
+                    chip.addEventListener('click', () => {
+                        if (selectedLogSorenessMuscles.has(id)) {
+                            selectedLogSorenessMuscles.delete(id);
+                            chip.style.background = 'rgba(255, 255, 255, 0.08)';
+                            chip.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                        } else {
+                            selectedLogSorenessMuscles.add(id);
+                            chip.style.background = 'rgba(0, 243, 255, 0.25)';
+                            chip.style.borderColor = 'rgba(0, 243, 255, 0.6)';
+                        }
+                        updateLogSorenessHint();
+                    });
+                    
+                    logSorenessMusclePicker.appendChild(chip);
+                });
+            }
+            
+            function updateLogSorenessHint() {
+                if (!logSorenessMuscleHint) return;
+                if (selectedLogSorenessMuscles.size === 0) {
+                    logSorenessMuscleHint.textContent = 'Nessun gruppo selezionato';
+                } else {
+                    const labels = Array.from(selectedLogSorenessMuscles).map(id => MUSCLE_GROUPS[id]?.label || id);
+                    logSorenessMuscleHint.textContent = `Selezionati: ${labels.join(', ')}`;
+                }
+            }
+            
+            function syncLogSorenessChips() {
+                if (!logSorenessMusclePicker) return;
+                logSorenessMusclePicker.querySelectorAll('.doms-chip').forEach(chip => {
+                    const id = chip.dataset.muscle;
+                    if (selectedLogSorenessMuscles.has(id)) {
+                        chip.style.background = 'rgba(0, 243, 255, 0.25)';
+                        chip.style.borderColor = 'rgba(0, 243, 255, 0.6)';
+                    } else {
+                        chip.style.background = 'rgba(255, 255, 255, 0.08)';
+                        chip.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                    }
+                });
+                updateLogSorenessHint();
+            }
+            
+            function clearLogSorenessSelection() {
+                selectedLogSorenessMuscles.clear();
+                syncLogSorenessChips();
+                if (logExternalCause) logExternalCause.value = '';
+            }
+            
+            // Initialize muscle picker
+            buildLogSorenessPicker();
             // DOM Elements
             const startBtn = document.getElementById('startWorkoutBtn');
             const workoutSelector = document.getElementById('workoutSelector');
@@ -310,6 +422,10 @@
                 if (logEnergyLevel) logEnergyLevel.value = '';
                 if (logStressLevel) logStressLevel.value = '';
                 if (logSorenessLevel) logSorenessLevel.value = '';
+                // Reset DOMS details
+                clearLogSorenessSelection();
+                if (domsDetailsContent) domsDetailsContent.style.display = 'none';
+                if (toggleDomsDetails) toggleDomsDetails.textContent = 'Espandi ▼';
             }
 
             // 3. Load Workout for Logging
@@ -589,12 +705,18 @@
                 const energyVal = parseInt(logEnergyLevel.value, 10);
                 const stressVal = parseInt(logStressLevel.value, 10);
                 const sorenessVal = parseInt(logSorenessLevel.value, 10);
-                if ([sleepVal, energyVal, stressVal, sorenessVal].some(val => !Number.isNaN(val))) {
+                const externalCauseVal = logExternalCause ? logExternalCause.value.trim() : '';
+                const sorenessMusclesVal = Array.from(selectedLogSorenessMuscles);
+                
+                if ([sleepVal, energyVal, stressVal, sorenessVal].some(val => !Number.isNaN(val)) || sorenessMusclesVal.length > 0 || externalCauseVal) {
                     logData.wellness = {
                         sleepQuality: Number.isNaN(sleepVal) ? null : sleepVal,
                         energyLevel: Number.isNaN(energyVal) ? null : energyVal,
                         stressLevel: Number.isNaN(stressVal) ? null : stressVal,
                         sorenessLevel: Number.isNaN(sorenessVal) ? null : sorenessVal,
+                        sorenessMuscles: sorenessMusclesVal.length > 0 ? sorenessMusclesVal : undefined,
+                        sorenessLabels: sorenessMusclesVal.length > 0 ? sorenessMusclesVal.map(id => MUSCLE_GROUPS[id]?.label || id) : undefined,
+                        externalCause: externalCauseVal || undefined,
                         recordedAt: new Date().toISOString()
                     };
                 }
@@ -1130,11 +1252,30 @@
                     logEnergyLevel.value = log.wellness.energyLevel ?? '';
                     logStressLevel.value = log.wellness.stressLevel ?? '';
                     logSorenessLevel.value = log.wellness.sorenessLevel ?? '';
+                    
+                    // Load DOMS muscles
+                    selectedLogSorenessMuscles.clear();
+                    if (Array.isArray(log.wellness.sorenessMuscles)) {
+                        log.wellness.sorenessMuscles.forEach(m => selectedLogSorenessMuscles.add(m));
+                    }
+                    syncLogSorenessChips();
+                    
+                    // Load external cause
+                    if (logExternalCause) {
+                        logExternalCause.value = log.wellness.externalCause || '';
+                    }
+                    
+                    // Auto-expand DOMS section if there's data
+                    if (log.wellness.sorenessMuscles?.length > 0 || log.wellness.externalCause) {
+                        domsDetailsContent.style.display = 'block';
+                        toggleDomsDetails.textContent = 'Comprimi ▲';
+                    }
                 } else {
                     logSleepQuality.value = '';
                     logEnergyLevel.value = '';
                     logStressLevel.value = '';
                     logSorenessLevel.value = '';
+                    clearLogSorenessSelection();
                 }
                 finishWorkoutBtn.textContent = 'Aggiorna Allenamento';
 

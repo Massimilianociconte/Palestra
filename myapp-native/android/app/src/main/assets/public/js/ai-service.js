@@ -45,6 +45,19 @@ const buildRecentDomsBlock = (hotspots = [], windowDays = 4) => {
     }).join('\n');
 };
 
+// Extract external DOMS causes from recent logs (e.g., Padel, running, etc.)
+const buildExternalDomsBlock = (recentLogs = []) => {
+    const externalCauses = recentLogs
+        .filter(log => log.domsExternalCause)
+        .map(log => `- ${log.date}: "${log.domsExternalCause}"${log.domsTargets?.length ? ` (muscoli: ${log.domsTargets.join(', ')})` : ''}`)
+        .slice(0, 5); // Last 5 entries with external causes
+    
+    if (!externalCauses.length) {
+        return '';
+    }
+    return `\n**Cause Esterne DOMS (attività non-palestra):**\n${externalCauses.join('\n')}\n*Nota: Questi DOMS potrebbero non essere correlati all'allenamento in palestra.*`;
+};
+
 export class AIService {
     constructor() {
         // API Key is loaded from LocalStorage only. 
@@ -167,9 +180,11 @@ export class AIService {
 ` : '';
 
             const domsHotspots = data?.domsInsights?.hotspots || [];
+            const externalDomsInfo = buildExternalDomsBlock(data.recentLogs || []);
             const domsBlock = `
 **DOMS Localizzati & Recupero**
 ${buildDomsSummaryBlock(domsHotspots)}
+${externalDomsInfo}
 `;
 
             // Health Data from Google Fit (already decoded by gatherDataForAI)
@@ -537,6 +552,7 @@ Usa Markdown con questa struttura OBBLIGATORIA:
 
             const toonLogs = this.encodeToTOON(data.recentLogs.slice(0, 10), 'lastWorkouts'); // Last 10 for better pattern detection
             const domsGuidance = buildRecentDomsBlock(data?.domsInsights?.hotspots || []);
+            const externalDomsInfo = buildExternalDomsBlock(data.recentLogs || []);
 
             // Include existing workouts in TOON format
             const existingWorkoutsTOON = data.existingWorkouts && data.existingWorkouts.length > 0
@@ -569,6 +585,7 @@ ${toonProgressions}
 
 **Segnalazioni DOMS recenti (<=4 giorni):**
 ${domsGuidance}
+${externalDomsInfo}
 
 **Profilo & Biometria Atleta:**
 - Età: ${data.profile.athleteParams?.age || 'N/D'}
@@ -651,6 +668,7 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
             const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
             const domsHotspots = payload?.domsHotspots || [];
+            const externalDomsInfo = buildExternalDomsBlock(payload?.recentLogs || []);
 
             // Convert metrics to TOON format for token efficiency
             const toonMetrics = this.encodeToTOON(payload.metrics, 'trendMetrics');
@@ -694,6 +712,7 @@ Obiettivo: ${payload.profile?.goal || payload.profile?.objective || 'N/D'}
 
 **DOMS Hotspots (TOON Format):**
 ${toonDomsHotspots}
+${externalDomsInfo}
 
 **Storico Trend (TOON Format):**
 ${toonHistoricalTrends}

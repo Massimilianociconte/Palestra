@@ -78,7 +78,7 @@ export class MediaSessionManager {
             
             // Set default metadata
             this.updateMetadata({
-                title: 'GYMBRO',
+                title: 'GymBro',
                 artist: 'Focus Mode',
                 album: 'Allenamento'
             });
@@ -258,7 +258,7 @@ export class MediaSessionManager {
         // Update metadata first
         this.updateMetadata({
             title: workoutName,
-            artist: 'GYMBRO Focus Mode',
+            artist: 'GymBro Focus Mode',
             album: 'Allenamento in corso'
         });
 
