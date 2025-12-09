@@ -567,6 +567,59 @@ export class FirestoreService {
                 }
             });
 
+            // === STIME 1RM PER SUGGERIMENTO PESO ===
+            // Formula ibrida per calcolare 1RM
+            const calculateHybrid1RM = (weight, reps) => {
+                if (reps === 1) return weight;
+                if (reps > 15) return null;
+                const epley = weight * (1 + reps / 30);
+                const brzycki = weight * (36 / (37 - reps));
+                const lombardi = weight * Math.pow(reps, 0.1);
+                const mayhew = weight * (100 / (52.2 + 41.9 * Math.exp(-0.055 * reps)));
+                const wathen = weight * (100 / (48.8 + 53.8 * Math.exp(-0.075 * reps)));
+                return (epley * 0.25 + brzycki * 0.25 + lombardi * 0.15 + mayhew * 0.15 + wathen * 0.2);
+            };
+
+            // Normalizza nome esercizio per matching (versione aggressiva)
+            const normalizeExerciseName = (name) => {
+                return (name || '').toLowerCase().trim()
+                    .replace(/\s+/g, ' ')
+                    .replace(/[àáâã]/g, 'a')
+                    .replace(/[èéêë]/g, 'e')
+                    .replace(/[ìíîï]/g, 'i')
+                    .replace(/[òóôõ]/g, 'o')
+                    .replace(/[ùúûü]/g, 'u')
+                    .replace(/\(.*?\)/g, '') // Rimuove contenuto tra parentesi
+                    .replace(/[:;,\-–]/g, ' ') // Rimuove punteggiatura
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            };
+
+            // Calcola stime 1RM per ogni esercizio dai log
+            const exerciseEstimates = {};
+            localLogs.forEach(log => {
+                if (!log.exercises) return;
+                log.exercises.forEach(ex => {
+                    const name = normalizeExerciseName(ex.name);
+                    if (!name || !ex.sets) return;
+                    
+                    ex.sets.forEach(set => {
+                        const w = parseFloat(set.weight);
+                        const r = parseInt(set.reps);
+                        if (w > 0 && r > 0 && r <= 15) {
+                            const est1RM = calculateHybrid1RM(w, r);
+                            if (est1RM && (!exerciseEstimates[name] || est1RM > exerciseEstimates[name].est1RM)) {
+                                exerciseEstimates[name] = {
+                                    est1RM: Math.round(est1RM * 10) / 10,
+                                    basedOn: `${w}kg x ${r}`,
+                                    originalName: ex.name
+                                };
+                            }
+                        }
+                    });
+                });
+            });
+
             // Get health data from Google Fit or Terra/Apple Health (last 7 days)
             let healthData = null;
             try {
@@ -637,7 +690,9 @@ export class FirestoreService {
                 existingWorkouts,
                 healthData: healthData, // Health data in TOON format
                 // Nota per AI: i pesi nei PR sono REALI, non stime 1RM
-                prNote: 'I pesi nei PR sono i massimi REALI sollevati, non stime 1RM'
+                prNote: 'I pesi nei PR sono i massimi REALI sollevati, non stime 1RM',
+                // Stime 1RM per suggerimento peso nelle schede AI
+                exerciseEstimates: exerciseEstimates
             };
 
         } catch (e) {

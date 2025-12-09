@@ -656,6 +656,95 @@ function setupAIGenerationInterception() {
                         return isNaN(num) || num < 1 ? 3 : num;
                     };
                     
+                    // === CALCOLO PESO SUGGERITO ===
+                    // Percentuali NSCA per convertire 1RM in peso per X reps
+                    const rmPercentages = {
+                        1: 1.00, 2: 0.97, 3: 0.93, 4: 0.90, 5: 0.87,
+                        6: 0.85, 7: 0.83, 8: 0.80, 9: 0.77, 10: 0.75,
+                        11: 0.73, 12: 0.70, 13: 0.68, 14: 0.66, 15: 0.64
+                    };
+                    
+                    // Normalizza nome esercizio per matching (versione aggressiva)
+                    const normalizeExerciseName = (name) => {
+                        return (name || '').toLowerCase().trim()
+                            .replace(/\s+/g, ' ')
+                            .replace(/[àáâã]/g, 'a')
+                            .replace(/[èéêë]/g, 'e')
+                            .replace(/[ìíîï]/g, 'i')
+                            .replace(/[òóôõ]/g, 'o')
+                            .replace(/[ùúûü]/g, 'u')
+                            .replace(/\(.*?\)/g, '') // Rimuove contenuto tra parentesi
+                            .replace(/[:;,\-–]/g, ' ') // Rimuove punteggiatura
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                    };
+                    
+                    // Accedi alle stime 1RM dal payload
+                    const exerciseEstimates = payload?.exerciseEstimates || {};
+                    console.log('📊 AI Workout - exerciseEstimates disponibili:', Object.keys(exerciseEstimates).length, exerciseEstimates);
+                    
+                    // Calcola peso suggerito basato su 1RM e reps target
+                    const calculateSuggestedWeight = (exerciseName, targetReps) => {
+                        const name = normalizeExerciseName(exerciseName);
+                        
+                        // Parsa le reps target
+                        let reps = parseInt(targetReps);
+                        if (isNaN(reps) || reps < 1) reps = 10;
+                        if (reps > 15) reps = 15;
+                        
+                        const percentage = rmPercentages[reps] || 0.70;
+                        
+                        // STEP 1: Cerca match ESATTO (nome normalizzato identico)
+                        const exactMatch = exerciseEstimates[name];
+                        if (exactMatch && exactMatch.est1RM) {
+                            const suggestedWeight = Math.round(exactMatch.est1RM * percentage * 2) / 2;
+                            return {
+                                weight: suggestedWeight,
+                                basedOn: exactMatch.basedOn, // es. "60kg x 8"
+                                est1RM: exactMatch.est1RM,
+                                type: 'direct'
+                            };
+                        }
+                        
+                        // STEP 2: Cerca match con nome base (prima parola/e principali)
+                        const nameWords = name.split(' ').filter(w => w.length > 2);
+                        let bestMatch = null;
+                        let bestScore = 0;
+                        
+                        for (const [estName, estData] of Object.entries(exerciseEstimates)) {
+                            const estWords = estName.split(' ').filter(w => w.length > 2);
+                            
+                            // Calcola quante parole in comune
+                            const commonWords = nameWords.filter(w => estWords.includes(w));
+                            const score = commonWords.length;
+                            
+                            // Match diretto se tutte le parole principali combaciano
+                            if (score >= Math.min(nameWords.length, estWords.length) && score >= 2) {
+                                if (score > bestScore) {
+                                    bestScore = score;
+                                    bestMatch = { estName, estData, isDirect: true };
+                                }
+                            }
+                            // Match simile se almeno 1 parola chiave combacia
+                            else if (score >= 1 && !bestMatch) {
+                                bestMatch = { estName, estData, isDirect: false };
+                            }
+                        }
+                        
+                        if (bestMatch) {
+                            const factor = bestMatch.isDirect ? 1.0 : 0.85;
+                            const suggestedWeight = Math.round(bestMatch.estData.est1RM * percentage * factor * 2) / 2;
+                            return {
+                                weight: suggestedWeight,
+                                basedOn: bestMatch.isDirect ? bestMatch.estData.basedOn : bestMatch.estData.originalName,
+                                est1RM: bestMatch.estData.est1RM,
+                                type: bestMatch.isDirect ? 'direct' : 'similar'
+                            };
+                        }
+                        
+                        return null;
+                    };
+                    
                     return {
                         id: Date.now(),
                         name: suggestion.suggestion || 'Allenamento AI',
@@ -663,15 +752,28 @@ function setupAIGenerationInterception() {
                             const setsCount = parseSetsCount(ex.sets);
                             const repsValue = parseReps(ex.reps);
                             
+                            // Calcola peso suggerito per questo esercizio
+                            const weightSuggestion = calculateSuggestedWeight(ex.name, repsValue);
+                            console.log(`💪 ${ex.name} (${repsValue} reps):`, weightSuggestion ? `${weightSuggestion.weight}kg (${weightSuggestion.type})` : 'Nessun suggerimento');
+                            
                             // Create individual set objects (not references to same object)
                             const setsArray = [];
                             for (let i = 0; i < setsCount; i++) {
-                                setsArray.push({
+                                const setObj = {
                                     weight: 0,
                                     reps: repsValue,
                                     rpe: 8,
                                     target: repsValue // Also set target for display
-                                });
+                                };
+                                
+                                // Aggiungi peso suggerito se disponibile
+                                if (weightSuggestion) {
+                                    setObj.suggestedWeight = weightSuggestion.weight;
+                                    setObj.suggestedBasis = weightSuggestion.basedOn;
+                                    setObj.suggestedType = weightSuggestion.type;
+                                }
+                                
+                                setsArray.push(setObj);
                             }
                             
                             return {

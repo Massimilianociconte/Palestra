@@ -877,7 +877,7 @@
         import { authService } from './js/auth-service.js';
         import { firestoreService } from './js/firestore-service.js';
         import { aiService } from './js/ai-service.js';
-        import { MUSCLE_GROUPS, isBilateralDumbbell, calculateTotalWeight } from './js/exercise-db.js';
+        import { EXERCISE_DB, MUSCLE_GROUPS, isBilateralDumbbell, calculateTotalWeight } from './js/exercise-db.js';
         import { notificationManager } from './js/notification-manager.js';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1541,7 +1541,7 @@
                 11: 0.73, 12: 0.70, 13: 0.68, 14: 0.66, 15: 0.64
             };
             
-            // Normalizza nome esercizio per matching
+            // Normalizza nome esercizio per matching (versione aggressiva)
             const normalizeExerciseName = (name) => {
                 return (name || '').toLowerCase().trim()
                     .replace(/\s+/g, ' ')
@@ -1549,7 +1549,125 @@
                     .replace(/[èéêë]/g, 'e')
                     .replace(/[ìíîï]/g, 'i')
                     .replace(/[òóôõ]/g, 'o')
-                    .replace(/[ùúûü]/g, 'u');
+                    .replace(/[ùúûü]/g, 'u')
+                    .replace(/\(.*?\)/g, '') // Rimuove contenuto tra parentesi
+                    .replace(/[:;,\-–]/g, ' ') // Rimuove punteggiatura
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            };
+            
+            // Trova i muscoli target di un esercizio
+            const getExerciseMuscles = (exerciseName) => {
+                const name = normalizeExerciseName(exerciseName);
+                
+                // Cerca match esatto in EXERCISE_DB
+                for (const [exName, muscles] of Object.entries(EXERCISE_DB)) {
+                    if (name === normalizeExerciseName(exName)) {
+                        return { muscles, primaryMuscle: muscles[0], matchType: 'exact' };
+                    }
+                }
+                
+                // Cerca match parziale (contiene)
+                for (const [exName, muscles] of Object.entries(EXERCISE_DB)) {
+                    const normalizedDbName = normalizeExerciseName(exName);
+                    if (name.includes(normalizedDbName) || normalizedDbName.includes(name)) {
+                        return { muscles, primaryMuscle: muscles[0], matchType: 'partial' };
+                    }
+                }
+                
+                // Cerca per keyword comuni
+                const keywords = {
+                    'panca': 'chest', 'bench': 'chest', 'push': 'chest', 'chest': 'chest',
+                    'traz': 'lats', 'pull': 'lats', 'lat': 'lats', 'row': 'lats', 'remator': 'lats',
+                    'squat': 'quads', 'pressa': 'quads', 'leg': 'quads', 'affond': 'quads',
+                    'stacco': 'hamstrings', 'deadlift': 'hamstrings',
+                    'curl': 'biceps', 'bicip': 'biceps',
+                    'tricip': 'triceps', 'french': 'triceps', 'pushdown': 'triceps',
+                    'spall': 'front-delts', 'shoulder': 'front-delts', 'military': 'front-delts', 'lento': 'front-delts',
+                    'lateral': 'side-delts', 'alzate': 'side-delts',
+                    'crunch': 'abs', 'plank': 'abs', 'addominali': 'abs'
+                };
+                
+                for (const [keyword, muscle] of Object.entries(keywords)) {
+                    if (name.includes(keyword)) {
+                        return { muscles: [muscle], primaryMuscle: muscle, matchType: 'keyword' };
+                    }
+                }
+                
+                return null;
+            };
+            
+            // Trova esercizi simili con dati storici
+            const findSimilarExerciseEstimate = (exerciseName) => {
+                const muscleInfo = getExerciseMuscles(exerciseName);
+                if (!muscleInfo) return null;
+                
+                const { primaryMuscle, muscles } = muscleInfo;
+                let bestMatch = null;
+                let bestScore = 0;
+                
+                // Cerca tra gli esercizi con dati storici
+                for (const [estName, estimate] of Object.entries(exerciseEstimates)) {
+                    const estMuscleInfo = getExerciseMuscles(estName);
+                    if (!estMuscleInfo) continue;
+                    
+                    // Calcola score di similarità
+                    let score = 0;
+                    
+                    // Match muscolo primario (peso alto)
+                    if (estMuscleInfo.primaryMuscle === primaryMuscle) {
+                        score += 10;
+                    }
+                    
+                    // Match muscoli secondari
+                    const commonMuscles = muscles.filter(m => estMuscleInfo.muscles.includes(m));
+                    score += commonMuscles.length * 2;
+                    
+                    // Match stesso gruppo (push/pull/legs)
+                    const getGroup = (muscle) => MUSCLE_GROUPS[muscle]?.group || 'other';
+                    if (getGroup(primaryMuscle) === getGroup(estMuscleInfo.primaryMuscle)) {
+                        score += 3;
+                    }
+                    
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMatch = {
+                            name: estName,
+                            estimate: estimate,
+                            similarity: score,
+                            primaryMuscle: estMuscleInfo.primaryMuscle
+                        };
+                    }
+                }
+                
+                // Richiedi almeno un match sul muscolo primario
+                return bestScore >= 10 ? bestMatch : null;
+            };
+            
+            // Fattori di correzione per esercizi derivati
+            const getExerciseCorrectionFactor = (newExercise, referenceExercise) => {
+                const newName = normalizeExerciseName(newExercise);
+                const refName = normalizeExerciseName(referenceExercise);
+                
+                // Esercizi con manubri tipicamente ~80% del bilanciere
+                if ((newName.includes('manubr') || newName.includes('dumbbell')) && 
+                    !refName.includes('manubr') && !refName.includes('dumbbell')) {
+                    return 0.80;
+                }
+                
+                // Varianti inclinate tipicamente ~85% della versione piana
+                if (newName.includes('inclinat') && !refName.includes('inclinat')) {
+                    return 0.85;
+                }
+                
+                // Varianti unilaterali ~50% del bilaterale
+                if ((newName.includes('singol') || newName.includes('single') || newName.includes('unilateral')) &&
+                    !refName.includes('singol') && !refName.includes('single')) {
+                    return 0.50;
+                }
+                
+                // Default: stima conservativa al 85%
+                return 0.85;
             };
             
             // Carica stime 1RM dai log storici
@@ -1573,7 +1691,8 @@
                                         exerciseEstimates[name] = {
                                             est1RM: est1RM,
                                             basedOn: `${w}kg x ${r}`,
-                                            date: log.date
+                                            date: log.date,
+                                            originalName: ex.name
                                         };
                                     }
                                 }
@@ -1591,9 +1710,6 @@
             // Calcola peso suggerito per esercizio e reps target
             const getSuggestedWeight = (exerciseName, targetReps) => {
                 const name = normalizeExerciseName(exerciseName);
-                const estimate = exerciseEstimates[name];
-                
-                if (!estimate || !estimate.est1RM) return null;
                 
                 // Parsa le reps target (gestisce range come "8-12")
                 let reps = parseInt(targetReps);
@@ -1602,16 +1718,74 @@
                     reps = match ? parseInt(match[1]) : null;
                 }
                 
-                if (!reps || reps < 1 || reps > 15) return null;
+                if (!reps || reps < 1 || reps > 15) reps = 10; // Default a 10 reps se non specificato
                 
                 const percentage = rmPercentages[reps] || 0.70;
-                const suggestedWeight = Math.round(estimate.est1RM * percentage * 2) / 2; // Arrotonda a 0.5kg
                 
-                return {
-                    weight: suggestedWeight,
-                    basedOn: estimate.basedOn,
-                    est1RM: Math.round(estimate.est1RM)
-                };
+                // STEP 1: Cerca match ESATTO (nome normalizzato identico)
+                const exactMatch = exerciseEstimates[name];
+                if (exactMatch && exactMatch.est1RM) {
+                    const suggestedWeight = Math.round(exactMatch.est1RM * percentage * 2) / 2;
+                    return {
+                        weight: suggestedWeight,
+                        basedOn: exactMatch.basedOn, // es. "60kg x 8"
+                        est1RM: Math.round(exactMatch.est1RM),
+                        type: 'direct'
+                    };
+                }
+                
+                // STEP 2: Cerca match per parole chiave (più robusto)
+                const nameWords = name.split(' ').filter(w => w.length > 2);
+                let bestMatch = null;
+                let bestScore = 0;
+                
+                for (const [estName, estData] of Object.entries(exerciseEstimates)) {
+                    const estWords = estName.split(' ').filter(w => w.length > 2);
+                    
+                    // Calcola quante parole in comune
+                    const commonWords = nameWords.filter(w => estWords.includes(w));
+                    const score = commonWords.length;
+                    
+                    // Match diretto se tutte le parole principali combaciano (almeno 2)
+                    if (score >= Math.min(nameWords.length, estWords.length) && score >= 2) {
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMatch = { estName, estData, isDirect: true };
+                        }
+                    }
+                    // Match simile se almeno 1 parola chiave combacia
+                    else if (score >= 1 && !bestMatch) {
+                        bestMatch = { estName, estData, isDirect: false };
+                    }
+                }
+                
+                if (bestMatch && bestMatch.isDirect) {
+                    const suggestedWeight = Math.round(bestMatch.estData.est1RM * percentage * 2) / 2;
+                    return {
+                        weight: suggestedWeight,
+                        basedOn: bestMatch.estData.basedOn,
+                        est1RM: Math.round(bestMatch.estData.est1RM),
+                        type: 'direct'
+                    };
+                }
+                
+                // STEP 3: Cerca esercizi simili per gruppo muscolare (fallback)
+                const similarMatch = findSimilarExerciseEstimate(exerciseName);
+                if (similarMatch) {
+                    const correctionFactor = getExerciseCorrectionFactor(exerciseName, similarMatch.name);
+                    const adjustedEst1RM = similarMatch.estimate.est1RM * correctionFactor;
+                    const suggestedWeight = Math.round(adjustedEst1RM * percentage * 2) / 2;
+                    
+                    return {
+                        weight: suggestedWeight,
+                        basedOn: similarMatch.estimate.originalName || similarMatch.name,
+                        est1RM: Math.round(adjustedEst1RM),
+                        type: 'similar',
+                        correctionFactor: correctionFactor
+                    };
+                }
+                
+                return null;
             };
             
             // Carica stime all'avvio
@@ -1991,6 +2165,12 @@
                 window.focusModeWellnessData = currentWellnessSnapshot;
                 window.focusModeSessionCompleted = false;
                 
+                // Blocca scroll del body quando Focus Mode è aperta
+                document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
+                document.body.style.top = `-${window.scrollY}px`;
+                
                 focusOverlay.style.display = 'flex';
             }
 
@@ -2060,6 +2240,13 @@
                 }
                 
                 stopTimer();
+                // Ripristina scroll del body
+                const scrollY = document.body.style.top;
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+                document.body.style.top = '';
+                window.scrollTo(0, parseInt(scrollY || '0') * -1);
                 focusOverlay.style.display = 'none';
             });
 
@@ -2068,6 +2255,13 @@
                     // Session completed normally - clear recovery data
                     window.focusModeSessionCompleted = true;
                     stopTimer();
+                    // Ripristina scroll del body
+                    const scrollY = document.body.style.top;
+                    document.body.style.overflow = '';
+                    document.body.style.position = '';
+                    document.body.style.width = '';
+                    document.body.style.top = '';
+                    window.scrollTo(0, parseInt(scrollY || '0') * -1);
                     focusOverlay.style.display = 'none';
                     return;
                 }
@@ -2239,13 +2433,39 @@
                 }
                 focusRpeInput.placeholder = '1-10';
                 
-                // Show suggested weight based on historical data
+                // Show suggested weight - PRIORITÀ: 1) dalla scheda AI, 2) calcolo live
                 const targetReps = set.reps || set.target || ex.reps || targetLabel;
-                const suggestion = getSuggestedWeight(ex.name, targetReps);
+                
+                // Controlla se la scheda ha già un peso suggerito (schede AI)
+                let suggestion = null;
+                if (set.suggestedWeight && set.suggestedWeight > 0) {
+                    // Usa il peso suggerito salvato nella scheda
+                    suggestion = {
+                        weight: set.suggestedWeight,
+                        basedOn: set.suggestedBasis || 'scheda AI',
+                        type: set.suggestedType || 'ai-generated'
+                    };
+                } else {
+                    // Calcola al volo dai dati storici
+                    suggestion = getSuggestedWeight(ex.name, targetReps);
+                }
                 
                 if (suggestion && focusSuggestedWeight) {
                     focusSuggestedValue.textContent = `${suggestion.weight} kg`;
-                    focusSuggestedBasis.textContent = `(1RM: ~${suggestion.est1RM}kg da ${suggestion.basedOn})`;
+                    
+                    if (suggestion.type === 'direct') {
+                        // Suggerimento da dati storici diretti
+                        focusSuggestedBasis.textContent = `(1RM da ${suggestion.basedOn})`;
+                        focusSuggestedWeight.style.background = 'linear-gradient(135deg, rgba(0,243,255,0.15), rgba(0,153,255,0.1))';
+                        focusSuggestedWeight.style.borderColor = 'rgba(0,243,255,0.3)';
+                    } else if (suggestion.type === 'similar' || suggestion.type === 'ai-generated') {
+                        // Suggerimento stimato da esercizio simile o generato AI
+                        const basisText = suggestion.type === 'ai-generated' ? 'calcolato da AI' : `stimato da ${suggestion.basedOn}`;
+                        focusSuggestedBasis.textContent = `(${basisText})`;
+                        focusSuggestedWeight.style.background = 'linear-gradient(135deg, rgba(255,193,7,0.15), rgba(255,152,0,0.1))';
+                        focusSuggestedWeight.style.borderColor = 'rgba(255,193,7,0.3)';
+                    }
+                    
                     focusSuggestedWeight.style.display = 'block';
                 } else if (focusSuggestedWeight) {
                     focusSuggestedWeight.style.display = 'none';
