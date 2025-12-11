@@ -428,8 +428,17 @@
                 <div class="modal-content">
                     <h3 style="margin-bottom: 1.5rem;">Carica Foto</h3>
                     <div class="form-group">
-                        <label>Seleziona Foto</label>
-                        <input type="file" id="photoInput" accept="image/*">
+                        <label>Seleziona Foto <small style="color:#888;">(puoi selezionare più foto: fronte, lato, retro)</small></label>
+                        <input type="file" id="photoInput" accept="image/*" multiple>
+                    </div>
+                    
+                    <!-- Multi-photo preview -->
+                    <div id="photoPreviewContainer" style="display:none; margin-bottom:1rem;">
+                        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem;" id="photoPreviewGrid"></div>
+                        <small style="color:#888; display:block; margin-top:0.5rem;">
+                            📸 <span id="photoCount">0</span> foto selezionate
+                            <span id="bfaiPhotoHint" style="display:none; color:#00f3ff;"> • Per BF-AI: fronte + lato + retro = maggiore precisione</span>
+                        </small>
                     </div>
                     <div class="form-group">
                         <label>Nota (opzionale)</label>
@@ -442,7 +451,7 @@
                             <input type="checkbox" id="enableBfaiAnalysis" style="width:20px; height:20px; margin-top:2px; accent-color:#00f3ff;">
                             <span>
                                 <strong style="color:#00f3ff;">🎯 Analizza Body Fat con AI</strong><br>
-                                <small style="color:#888;">Calcola body fat % con 7 formule scientifiche</small>
+                                <small style="color:#888;">Calcola body fat % con 7 formule scientifiche<br>📷 Per risultati migliori: carica fronte + lato + retro</small>
                             </span>
                         </label>
                     </div>
@@ -1119,6 +1128,48 @@
                             document.getElementById('bfaiParamsSection').style.display = 'none';
                             document.getElementById('bfaiResultsContainer').innerHTML = '';
                         }
+                        // Reset photo preview
+                        document.getElementById('photoPreviewContainer').style.display = 'none';
+                        document.getElementById('photoPreviewGrid').innerHTML = '';
+                        document.getElementById('photoCount').textContent = '0';
+                    });
+
+                    // Photo input change - show previews
+                    document.getElementById('photoInput').addEventListener('change', (e) => {
+                        const files = e.target.files;
+                        const previewContainer = document.getElementById('photoPreviewContainer');
+                        const previewGrid = document.getElementById('photoPreviewGrid');
+                        const photoCount = document.getElementById('photoCount');
+                        const bfaiHint = document.getElementById('bfaiPhotoHint');
+                        
+                        previewGrid.innerHTML = '';
+                        
+                        if (files.length > 0) {
+                            previewContainer.style.display = 'block';
+                            photoCount.textContent = files.length;
+                            
+                            // Show hint if BF-AI is enabled
+                            const bfaiEnabled = document.getElementById('enableBfaiAnalysis')?.checked;
+                            bfaiHint.style.display = bfaiEnabled ? 'inline' : 'none';
+                            
+                            Array.from(files).forEach((file, idx) => {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                    const div = document.createElement('div');
+                                    div.style.cssText = 'position:relative; aspect-ratio:3/4; border-radius:8px; overflow:hidden; border:1px solid var(--color-border);';
+                                    div.innerHTML = `
+                                        <img src="${ev.target.result}" style="width:100%; height:100%; object-fit:cover;">
+                                        <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; padding:2px 6px; border-radius:4px; font-size:0.7rem;">
+                                            ${idx === 0 ? '📷 1' : idx === 1 ? '📷 2' : '📷 3'}
+                                        </span>
+                                    `;
+                                    previewGrid.appendChild(div);
+                                };
+                                reader.readAsDataURL(file);
+                            });
+                        } else {
+                            previewContainer.style.display = 'none';
+                        }
                     });
 
                     cancelUploadBtn.addEventListener('click', () => photoModal.style.display = 'none');
@@ -1127,6 +1178,9 @@
                     document.getElementById('enableBfaiAnalysis')?.addEventListener('change', (e) => {
                         document.getElementById('bfaiParamsSection').style.display = e.target.checked ? 'block' : 'none';
                         document.getElementById('bfaiResultsContainer').innerHTML = '';
+                        // Show/hide multi-photo hint
+                        const hint = document.getElementById('bfaiPhotoHint');
+                        if (hint) hint.style.display = e.target.checked ? 'inline' : 'none';
                         if (e.target.checked) {
                             // Pre-fill from profile
                             const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
@@ -1146,11 +1200,12 @@
                         const enableBfai = document.getElementById('enableBfaiAnalysis')?.checked;
 
                         if (fileInput.files.length === 0) {
-                            alert('Seleziona una foto.');
+                            alert('Seleziona almeno una foto.');
                             return;
                         }
 
-                        const file = fileInput.files[0];
+                        const files = Array.from(fileInput.files);
+                        const file = files[0]; // Primary file for upload
                         confirmUploadBtn.disabled = true;
                         let bfaiResult = null;
 
@@ -1165,15 +1220,40 @@
                             }
                             uploadStatus.innerHTML = '<span style="color:#00f3ff;">⏳ Analisi Body Fat in corso...</span>';
                             try {
-                                bfaiResult = await bfAIService.analyzePhoto(file, {
+                                // Use multiple photos for better BF-AI analysis
+                                const bfaiParams = {
                                     height_cm: parseFloat(bfHeight),
                                     weight_kg: parseFloat(bfWeight),
                                     gender: document.getElementById('bfaiGender').value,
                                     age: parseInt(document.getElementById('bfaiAge').value) || undefined,
                                     ethnicity: document.getElementById('bfaiEthnicity').value
-                                });
+                                };
+                                
+                                // If multiple photos, analyze each and average results
+                                if (files.length > 1) {
+                                    uploadStatus.innerHTML = '<span style="color:#00f3ff;">⏳ Analisi ' + files.length + ' foto in corso...</span>';
+                                    const results = [];
+                                    for (let i = 0; i < Math.min(files.length, 3); i++) {
+                                        try {
+                                            const r = await bfAIService.analyzePhoto(files[i], bfaiParams);
+                                            if (r && r.success) results.push(r);
+                                        } catch (e) { console.warn('BF-AI photo ' + i + ' failed:', e); }
+                                    }
+                                    
+                                    if (results.length > 0) {
+                                        // Average the results
+                                        const avgBf = results.reduce((sum, r) => sum + (r.primary || 0), 0) / results.length;
+                                        bfaiResult = results[0]; // Use first as base
+                                        bfaiResult.primary = avgBf;
+                                        bfaiResult.multiPhoto = true;
+                                        bfaiResult.photoCount = results.length;
+                                    }
+                                } else {
+                                    bfaiResult = await bfAIService.analyzePhoto(file, bfaiParams);
+                                }
                                 document.getElementById('bfaiResultsContainer').innerHTML = bfAIService.generateResultsHTML(bfaiResult);
-                                uploadStatus.innerHTML = '<span style="color:#00ff88;">✓ Analisi BF-AI completata!</span>';
+                                const multiMsg = bfaiResult.multiPhoto ? ' (' + bfaiResult.photoCount + ' foto analizzate)' : '';
+                                uploadStatus.innerHTML = '<span style="color:#00ff88;">✓ Analisi BF-AI completata!' + multiMsg + '</span>';
                             } catch (bfErr) {
                                 console.error('BF-AI Error:', bfErr);
                                 uploadStatus.innerHTML = '<span style="color:#ff6666;">⚠ Errore BF-AI: ' + bfErr.message + '</span>';
@@ -1187,22 +1267,35 @@
                             const result = await firestoreService.processPhotoForUpload(file, 600);
 
                             if (result.success) {
-                                const newPhoto = {
-                                    id: Date.now(),
-                                    url: result.base64,
-                                    date: new Date().toISOString(),
-                                    note: note
-                                };
-                                // Add BF-AI data if available
-                                if (bfaiResult && bfaiResult.success) {
-                                    newPhoto.bfai = {
-                                        bodyFat: bfaiResult.primary,
-                                        category: bfaiResult.category?.label,
-                                        composition: bfaiResult.composition
-                                    };
+                                // Process all photos
+                                const timestamp = Date.now();
+                                const isoDate = new Date().toISOString();
+                                
+                                for (let i = 0; i < files.length; i++) {
+                                    const photoResult = i === 0 ? result : await firestoreService.processPhotoForUpload(files[i], 600);
+                                    if (photoResult.success) {
+                                        const newPhoto = {
+                                            id: timestamp + i,
+                                            url: photoResult.base64,
+                                            date: isoDate,
+                                            note: files.length > 1 ? (note + ' [' + (i+1) + '/' + files.length + ']') : note,
+                                            photoSet: files.length > 1 ? timestamp : null
+                                        };
+                                        // Add BF-AI data only to first photo
+                                        if (i === 0 && bfaiResult && bfaiResult.success) {
+                                            newPhoto.bfai = {
+                                                bodyFat: bfaiResult.primary,
+                                                category: bfaiResult.category?.label,
+                                                composition: bfaiResult.composition,
+                                                multiPhoto: bfaiResult.multiPhoto || false
+                                            };
+                                        }
+                                        photos.unshift(newPhoto);
+                                    }
                                 }
-
-                                photos.unshift(newPhoto);
+                                
+                                // Placeholder to match old code structure
+                                const newPhoto = photos[0];
                                 // Limit photos to avoid hitting document size limits (e.g. keep last 10 locally/doc)
                                 // For a real app, we'd use a subcollection, but for this single-doc architecture:
                                 if (photos.length > 10) photos = photos.slice(0, 10);
