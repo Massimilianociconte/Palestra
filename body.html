@@ -1265,6 +1265,30 @@
                         }
                     });
 
+                    // Open stats modal for editing
+                    editStatsBtn.addEventListener('click', () => {
+                        statsModal.style.display = 'flex';
+                        document.getElementById('statsDate').value = new Date().toISOString().split('T')[0];
+                        // Pre-fill with latest values if available
+                        if (bodyStats.length > 0) {
+                            const latest = bodyStats[bodyStats.length - 1];
+                            let w = latest.weight, c = latest.chest, a = latest.arm, wa = latest.waist, l = latest.legs;
+                            if (unitService) {
+                                if (w) w = unitService.convertWeight(w);
+                                if (c) c = unitService.convertLength(c);
+                                if (a) a = unitService.convertLength(a);
+                                if (wa) wa = unitService.convertLength(wa);
+                                if (l) l = unitService.convertLength(l);
+                            }
+                            document.getElementById('inputWeight').value = w || '';
+                            document.getElementById('inputFat').value = latest.fat || '';
+                            document.getElementById('inputChest').value = c || '';
+                            document.getElementById('inputArm').value = a || '';
+                            document.getElementById('inputWaist').value = wa || '';
+                            document.getElementById('inputLegs').value = l || '';
+                        }
+                    });
+
                     cancelStatsBtn.addEventListener('click', () => statsModal.style.display = 'none');
 
 
@@ -1438,9 +1462,9 @@
                                         // Add BF-AI data only to first photo
                                         if (i === 0 && bfaiResult && bfaiResult.success) {
                                             newPhoto.bfai = {
-                                                bodyFat: bfaiResult.summary?.bodyFatPercentage,
-                                                category: bfaiResult.summary?.category,
-                                                composition: bfaiResult.bodyComposition,
+                                                bodyFat: bfaiResult.summary?.bodyFatPercentage || 0,
+                                                category: bfaiResult.summary?.category || 'Calcolato',
+                                                composition: bfaiResult.bodyComposition || {},
                                                 multiPhoto: bfaiResult.multiPhoto || false
                                             };
                                         }
@@ -1482,9 +1506,9 @@
                                     try {
                                         const bfaiHistory = {
                                             date: new Date().toISOString(),
-                                            bodyFat: bfaiResult.summary?.bodyFatPercentage,
-                                            category: bfaiResult.summary?.category,
-                                            composition: bfaiResult.bodyComposition,
+                                            bodyFat: bfaiResult.summary?.bodyFatPercentage || 0,
+                                            category: bfaiResult.summary?.category || 'Unknown',
+                                            composition: bfaiResult.bodyComposition || {},
                                             measurements: bfaiResult.methods || {},
                                             multiPhoto: bfaiResult.multiPhoto || false,
                                             photoCount: bfaiResult.photoCount || 1
