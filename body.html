@@ -1153,11 +1153,11 @@
                                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:1rem;">
                                         <div style="background:rgba(255,107,107,0.1); padding:0.75rem; border-radius:8px; text-align:center;">
                                             <div style="font-size:0.75rem; color:#888;">Massa Grassa</div>
-                                            <div style="font-size:1.2rem; color:#ff6b6b; font-weight:600;">${comp.fat_mass_kg || '?'} kg</div>
+                                            <div style="font-size:1.2rem; color:#ff6b6b; font-weight:600;">${comp.fatMassKg || '?'} kg</div>
                                         </div>
                                         <div style="background:rgba(0,255,136,0.1); padding:0.75rem; border-radius:8px; text-align:center;">
                                             <div style="font-size:0.75rem; color:#888;">Massa Magra</div>
-                                            <div style="font-size:1.2rem; color:#00ff88; font-weight:600;">${comp.lean_mass_kg || '?'} kg</div>
+                                            <div style="font-size:1.2rem; color:#00ff88; font-weight:600;">${comp.leanMassKg || '?'} kg</div>
                                         </div>
                                     </div>` : ''}
                                     ${photo.bfai.multiPhoto ? '<div style="font-size:0.75rem; color:#888; text-align:center;">📷 Multi-foto</div>' : ''}
@@ -1396,9 +1396,9 @@
                                     
                                     if (results.length > 0) {
                                         // Average the results
-                                        const avgBf = results.reduce((sum, r) => sum + (r.primary || 0), 0) / results.length;
+                                        const avgBf = results.reduce((sum, r) => sum + (r.summary?.bodyFatPercentage || 0), 0) / results.length;
                                         bfaiResult = results[0]; // Use first as base
-                                        bfaiResult.primary = avgBf;
+                                        bfaiResult.summary.bodyFatPercentage = avgBf;
                                         bfaiResult.multiPhoto = true;
                                         bfaiResult.photoCount = results.length;
                                     }
@@ -1438,9 +1438,9 @@
                                         // Add BF-AI data only to first photo
                                         if (i === 0 && bfaiResult && bfaiResult.success) {
                                             newPhoto.bfai = {
-                                                bodyFat: bfaiResult.primary,
-                                                category: bfaiResult.category?.label,
-                                                composition: bfaiResult.composition,
+                                                bodyFat: bfaiResult.summary?.bodyFatPercentage,
+                                                category: bfaiResult.summary?.category,
+                                                composition: bfaiResult.bodyComposition,
                                                 multiPhoto: bfaiResult.multiPhoto || false
                                             };
                                         }
@@ -1482,10 +1482,10 @@
                                     try {
                                         const bfaiHistory = {
                                             date: new Date().toISOString(),
-                                            bodyFat: bfaiResult.primary,
-                                            category: bfaiResult.category?.label,
-                                            composition: bfaiResult.composition,
-                                            measurements: bfaiResult.body_fat || {},
+                                            bodyFat: bfaiResult.summary?.bodyFatPercentage,
+                                            category: bfaiResult.summary?.category,
+                                            composition: bfaiResult.bodyComposition,
+                                            measurements: bfaiResult.methods || {},
                                             multiPhoto: bfaiResult.multiPhoto || false,
                                             photoCount: bfaiResult.photoCount || 1
                                         };
