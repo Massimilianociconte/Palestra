@@ -1093,76 +1093,100 @@
 
                     // --- Render Photos ---
                     function renderPhotos() {
-                        photoGallery.innerHTML = photos.map((p, idx) => `
-                    <div class="photo-card ${p.bfai ? 'has-bfai' : ''}" data-photo-idx="${idx}" style="position:relative; cursor:pointer;">
-                        <img src="${p.thumb || p.url}" alt="Progress Photo" style="width:100%; height:200px; object-fit:cover;">
-                        ${p.bfai ? `<div style="position:absolute; top:8px; right:8px; background:rgba(0,243,255,0.9); color:#000; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:600;">${p.bfai.bodyFat?.toFixed(1) || '?'}%</div>` : ''}
-                        <div class="photo-info">
-                            <div>${new Date(p.date).toLocaleDateString()}</div>
-                            <div>${p.note || ''}${p.bfai ? ' 📊' : ''}</div>
-                        </div>
-                    </div>
-                `).join('');
+                        if (!photoGallery) return;
                         
-                        // Add click handlers for photo details
-                        document.querySelectorAll('.photo-card').forEach(card => {
-                            card.addEventListener('click', (e) => {
+                        // Store photos globally for click access
+                        window._galleryPhotos = photos;
+                        
+                        photoGallery.innerHTML = photos.map((p, idx) => {
+                            const hasBfai = p.bfai && p.bfai.bodyFat !== undefined;
+                            const bfValue = hasBfai ? Number(p.bfai.bodyFat).toFixed(1) : null;
+                            return `
+                            <div class="photo-card ${hasBfai ? 'has-bfai' : ''}" data-idx="${idx}" style="position:relative; cursor:pointer;">
+                                <img src="${p.thumb || p.url}" alt="Progress Photo" style="width:100%; height:200px; object-fit:cover; display:block;">
+                                ${hasBfai ? `<div style="position:absolute; top:8px; right:8px; background:rgba(0,243,255,0.95); color:#000; padding:4px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;">${bfValue}%</div>` : ''}
+                                <div class="photo-info">
+                                    <div>${new Date(p.date).toLocaleDateString('it-IT')}</div>
+                                    <div>${p.note || ''}${hasBfai ? ' 📊' : ''}</div>
+                                </div>
+                            </div>
+                            `;
+                        }).join('');
+
+                        // Add click handlers
+                        photoGallery.querySelectorAll('.photo-card').forEach(card => {
+                            card.onclick = function(e) {
                                 e.preventDefault();
-                                const idx = parseInt(card.dataset.photoIdx);
-                                showPhotoDetail(photos[idx]);
-                            });
+                                e.stopPropagation();
+                                const idx = parseInt(this.getAttribute('data-idx'));
+                                const photo = window._galleryPhotos[idx];
+                                console.log('Clicked photo index:', idx, photo);
+                                if (photo) {
+                                    showPhotoDetail(photo);
+                                }
+                            };
                         });
-                    }
+                    });
                     
                     // --- Show Photo Detail Modal ---
                     function showPhotoDetail(photo) {
+                        if (!photo) { console.error('Photo is null'); return; }
+                        console.log('Showing photo:', photo);
+                        
+                        document.querySelectorAll('.photo-detail-overlay').forEach(el => el.remove());
+                        
+                        const hasBfai = photo.bfai && photo.bfai.bodyFat !== undefined;
+                        const bfValue = hasBfai ? Number(photo.bfai.bodyFat).toFixed(1) : null;
+                        const bfColor = hasBfai ? getBfColor(photo.bfai.bodyFat) : '#888';
+                        
+                        let bfaiPanel = '';
+                        if (hasBfai) {
+                            const comp = photo.bfai.composition;
+                            bfaiPanel = `
+                                <div style="padding:1rem; background:var(--color-surface); border-radius:8px;">
+                                    <h3 style="color:var(--color-primary); margin-bottom:1rem;">📊 Analisi Body Fat</h3>
+                                    <div style="text-align:center; margin-bottom:1.5rem;">
+                                        <div style="font-size:3rem; font-weight:700; color:${bfColor};">${bfValue}%</div>
+                                        <div style="color:${bfColor}; font-size:0.9rem;">${photo.bfai.category || 'Calcolato'}</div>
+                                    </div>
+                                    ${comp ? `
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:1rem;">
+                                        <div style="background:rgba(255,107,107,0.1); padding:0.75rem; border-radius:8px; text-align:center;">
+                                            <div style="font-size:0.75rem; color:#888;">Massa Grassa</div>
+                                            <div style="font-size:1.2rem; color:#ff6b6b; font-weight:600;">${comp.fat_mass_kg || '?'} kg</div>
+                                        </div>
+                                        <div style="background:rgba(0,255,136,0.1); padding:0.75rem; border-radius:8px; text-align:center;">
+                                            <div style="font-size:0.75rem; color:#888;">Massa Magra</div>
+                                            <div style="font-size:1.2rem; color:#00ff88; font-weight:600;">${comp.lean_mass_kg || '?'} kg</div>
+                                        </div>
+                                    </div>` : ''}
+                                    ${photo.bfai.multiPhoto ? '<div style="font-size:0.75rem; color:#888; text-align:center;">📷 Multi-foto</div>' : ''}
+                                </div>`;
+                        }
+                        
                         const overlay = document.createElement('div');
                         overlay.className = 'photo-detail-overlay';
                         overlay.innerHTML = `
-                            <div class="photo-detail-content">
-                                <div style="display:grid; grid-template-columns: 1fr ${photo.bfai ? '1fr' : ''}; gap:1rem; padding:1rem;">
+                            <div class="photo-detail-content" style="max-width:${hasBfai ? '900px' : '500px'};">
+                                <div style="display:grid; grid-template-columns:${hasBfai ? '1fr 1fr' : '1fr'}; gap:1rem; padding:1rem;">
                                     <div>
                                         <img src="${photo.url}" style="width:100%; border-radius:8px; max-height:60vh; object-fit:contain;">
                                         <div style="margin-top:1rem; color:#888;">
                                             <div style="font-size:0.9rem;">${new Date(photo.date).toLocaleString('it-IT')}</div>
-                                            ${photo.note ? `<div style="margin-top:0.5rem;">${photo.note}</div>` : ''}
+                                            ${photo.note ? '<div style="margin-top:0.5rem;">' + photo.note + '</div>' : ''}
                                         </div>
                                     </div>
-                                    ${photo.bfai ? `
-                                    <div style="padding:1rem; background:var(--color-surface); border-radius:8px;">
-                                        <h3 style="color:var(--color-primary); margin-bottom:1rem;">📊 Analisi Body Fat</h3>
-                                        <div style="text-align:center; margin-bottom:1.5rem;">
-                                            <div style="font-size:3rem; font-weight:700; color:${getBfColor(photo.bfai.bodyFat)};">${photo.bfai.bodyFat?.toFixed(1) || '?'}%</div>
-                                            <div style="color:${getBfColor(photo.bfai.bodyFat)}; font-size:0.9rem;">${photo.bfai.category || 'N/A'}</div>
-                                        </div>
-                                        ${photo.bfai.composition ? `
-                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:1rem;">
-                                            <div style="background:rgba(255,107,107,0.1); padding:0.75rem; border-radius:8px; text-align:center;">
-                                                <div style="font-size:0.75rem; color:#888;">Massa Grassa</div>
-                                                <div style="font-size:1.2rem; color:#ff6b6b; font-weight:600;">${photo.bfai.composition.fat_mass_kg} kg</div>
-                                            </div>
-                                            <div style="background:rgba(0,255,136,0.1); padding:0.75rem; border-radius:8px; text-align:center;">
-                                                <div style="font-size:0.75rem; color:#888;">Massa Magra</div>
-                                                <div style="font-size:1.2rem; color:#00ff88; font-weight:600;">${photo.bfai.composition.lean_mass_kg} kg</div>
-                                            </div>
-                                        </div>
-                                        ` : ''}
-                                        ${photo.bfai.multiPhoto ? `<div style="font-size:0.75rem; color:#888; text-align:center;">📷 Analisi multi-foto</div>` : ''}
-                                    </div>
-                                    ` : ''}
+                                    ${bfaiPanel}
                                 </div>
                                 <div style="padding:1rem; border-top:1px solid var(--color-border); display:flex; gap:1rem;">
-                                    <button class="btn btn-outline" style="flex:1;" onclick="this.closest('.photo-detail-overlay').remove()">Chiudi</button>
-                                    <a href="${photo.url}" target="_blank" class="btn btn-primary" style="flex:1; text-align:center; text-decoration:none;">Apri Originale</a>
+                                    <button class="btn btn-outline close-overlay-btn" style="flex:1;">Chiudi</button>
+                                    <a href="${photo.url}" target="_blank" class="btn btn-primary" style="flex:1; text-align:center; text-decoration:none;">Apri</a>
                                 </div>
-                            </div>
-                        `;
-                        document.body.appendChild(overlay);
+                            </div>`;
                         
-                        // Close on overlay click
-                        overlay.addEventListener('click', (e) => {
-                            if (e.target === overlay) overlay.remove();
-                        });
+                        document.body.appendChild(overlay);
+                        overlay.querySelector('.close-overlay-btn').onclick = () => overlay.remove();
+                        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
                     }
                     
                     function getBfColor(bf) {
@@ -1173,33 +1197,6 @@
                         if (bf <= 25) return '#ffff00';
                         return '#ff6600';
                     }
-
-                    // --- Stats Logic ---
-                    editStatsBtn.addEventListener('click', () => {
-                        statsModal.style.display = 'flex';
-                        document.getElementById('statsDate').valueAsDate = new Date();
-
-                        // Pre-fill with latest (converted to display unit)
-                        if (bodyStats.length > 0) {
-                            const latest = bodyStats[bodyStats.length - 1];
-
-                            let w = latest.weight, c = latest.chest, a = latest.arm, wa = latest.waist, l = latest.legs;
-                            if (unitService) {
-                                w = unitService.convertWeight(w);
-                                c = unitService.convertLength(c);
-                                a = unitService.convertLength(a);
-                                wa = unitService.convertLength(wa);
-                                l = unitService.convertLength(l);
-                            }
-
-                            document.getElementById('inputWeight').value = w || '';
-                            document.getElementById('inputFat').value = latest.fat || '';
-                            document.getElementById('inputChest').value = c || '';
-                            document.getElementById('inputArm').value = a || '';
-                            document.getElementById('inputWaist').value = wa || '';
-                            document.getElementById('inputLegs').value = l || '';
-                        }
-                    });
 
                     saveStatsBtn.addEventListener('click', async () => {
                         const date = document.getElementById('statsDate').value;
