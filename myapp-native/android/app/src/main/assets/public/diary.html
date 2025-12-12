@@ -130,6 +130,104 @@
             letter-spacing: 0.05em;
         }
     </style>
+<style>
+    /* ... existing styles ... */
+    .exercise-log-item {
+        margin-bottom: 1.5rem;
+        background: var(--color-surface);
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-border);
+        position: relative;
+    }
+    .exercise-log-item.in-superset {
+        border-left: 3px solid #ff6b6b;
+        background: linear-gradient(to right, rgba(255, 107, 107, 0.05), var(--color-surface));
+    }
+    .superset-indicator {
+        display: inline-block;
+        background: #ff6b6b;
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+    .superset-controls {
+        margin-top: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed var(--color-border);
+        display: flex;
+        gap: 0.5rem;
+    }
+    .superset-btn {
+        background: none;
+        border: 1px solid var(--color-border);
+        color: var(--color-text-muted);
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .superset-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--color-text-main);
+    }
+    .superset-rest-config {
+        display: none;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+    }
+    .superset-rest-config.visible {
+        display: block;
+    }
+    .rest-input-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        margin-bottom: 0.3rem;
+    }
+    .rest-input-row input {
+        width: 50px;
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        color: white;
+        padding: 0.2rem;
+        text-align: center;
+        border-radius: 4px;
+    }
+    .set-type-select {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        color: var(--color-text-main);
+        border-radius: 4px;
+        padding: 0.2rem;
+        font-size: 0.8rem;
+        width: 80px;
+    }
+    /* Grid layout for set row */
+    .set-row {
+        display: grid;
+        grid-template-columns: 30px 80px 1fr 1fr 1fr 30px;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    .set-header {
+        display: grid;
+        grid-template-columns: 30px 80px 1fr 1fr 1fr 30px;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        text-align: center;
+    }
+</style>
 </head>
 
 <body>
@@ -252,7 +350,25 @@
         import { firestoreService } from './js/firestore-service.js';
         import { MUSCLE_GROUPS } from './js/exercise-db.js';
 
+        // Set types configuration (Mirrored from Creator)
+        const SET_TYPES = {
+            normal: { label: 'Normale', color: 'normal' },
+            warmup: { label: 'Warm-up', color: 'warmup' },
+            backoff: { label: 'Back-off', color: 'backoff' },
+            dropset: { label: 'Drop Set', color: 'dropset' },
+            amrap: { label: 'AMRAP', color: 'amrap' },
+            pause: { label: 'Pausa', color: 'pause' }
+        };
+
+        // Generate set type options HTML
+        function getSetTypeOptions(selectedType = 'normal') {
+            return Object.entries(SET_TYPES).map(([key, val]) => 
+                `<option value="${key}" ${key === selectedType ? 'selected' : ''}>${val.label}</option>`
+            ).join('');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            let nextSupersetId = 1;
             
             // DOMS Muscle Picker Setup
             const logSorenessMusclePicker = document.getElementById('logSorenessMusclePicker');
@@ -461,15 +577,64 @@
                 const exercisesToRender = existingExercises || workout.exercises;
                 const isEditing = editingLogIndex >= 0;
 
+                // Reset superset ID counter based on existing data
+                exercisesToRender.forEach(ex => {
+                    if (ex.supersetId) {
+                        const idNum = parseInt(ex.supersetId.split('_')[1]);
+                        if (!isNaN(idNum) && idNum >= nextSupersetId) {
+                            nextSupersetId = idNum + 1;
+                        }
+                    }
+                });
+
                 exercisesToRender.forEach((ex, exIndex) => {
                     const exDiv = document.createElement('div');
                     exDiv.className = 'exercise-log-item';
                     exDiv.dataset.exerciseIndex = exIndex;
 
-                    const unitLabel = unitService && unitService.getSystem() === 'imperial' ? 'Lbs' : 'Kg';
+                    // Superset classes and attributes
+                    if (ex.supersetId) {
+                        exDiv.dataset.supersetId = ex.supersetId;
+                        exDiv.dataset.supersetRole = ex.supersetRole;
+                        exDiv.classList.add('in-superset');
+                    }
 
-                    // Exercise header with editable name and controls
+                    const unitLabel = unitService && unitService.getSystem() === 'imperial' ? 'Lbs' : 'Kg';
+                    
+                    // Superset Indicator
+                    let supersetIndicator = '';
+                    if (ex.supersetId) {
+                        supersetIndicator = `<span class="superset-indicator">Superset ${ex.supersetRole}</span>`;
+                    }
+
+                    // Rest Configuration (Normal or Superset)
+                    let restConfigHtml = '';
+                    if (ex.supersetId && ex.supersetRole === 'A') {
+                        restConfigHtml = `
+                            <div class="superset-rest-config visible" data-superset-id="${ex.supersetId}">
+                                <div style="font-size: 0.8rem; color: #ff6b6b; font-weight: 500; margin-bottom: 0.5rem;">⏱️ Tempi di Recupero Superset</div>
+                                <div class="rest-input-row">
+                                    <label>Intra-Superset (A→B):</label>
+                                    <input type="number" class="intra-rest-input" value="${ex.intraRest || 0}" min="0" max="60" placeholder="0"> sec
+                                </div>
+                                <div class="rest-input-row">
+                                    <label>Inter-Superset (dopo round):</label>
+                                    <input type="number" class="inter-rest-input" value="${ex.interRest || 90}" min="0" max="300" placeholder="90"> sec
+                                </div>
+                            </div>
+                        `;
+                    } else if (!ex.supersetId) {
+                         restConfigHtml = `
+                            <div class="normal-rest-config" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+                                <label>Recupero:</label>
+                                <input type="number" class="ex-rest" value="${ex.rest || 90}" placeholder="90" style="width: 50px; background: var(--color-bg); border: 1px solid var(--color-border); color: white; padding: 0.2rem; text-align: center; border-radius: 4px;"> sec
+                            </div>
+                        `;
+                    }
+
+                    // Exercise header
                     let headerHtml = `
+                        ${supersetIndicator}
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                             <input type="text" class="exercise-name-input" value="${ex.name}" 
                                    style="flex: 1; padding: 0.5rem; background: var(--color-bg); border: 1px solid var(--color-border); 
@@ -484,15 +649,18 @@
                                 <button class="remove-exercise-btn" data-exercise-index="${exIndex}" 
                                         style="background: #ff4444; color: white; border: none; 
                                                padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
-                                        title="Rimuovi esercizio">× Esercizio</button>
+                                        title="Rimuovi esercizio">× Ex</button>
                                 ` : ''}
                             </div>
                         </div>
+                        ${restConfigHtml}
                         <div class="set-header">
-                            <span>Set</span>
+                            <span>#</span>
+                            <span>Tipo</span>
                             <span>${unitLabel}</span>
                             <span>Reps</span>
                             <span>RPE</span>
+                            <span></span>
                         </div>
                     `;
 
@@ -509,6 +677,7 @@
                         let weight = '';
                         let reps = '';
                         let rpe = '';
+                        let type = 'normal';
 
                         if (Array.isArray(setsToRender) && setsToRender[i]) {
                             let storedWeight = setsToRender[i].weight;
@@ -519,6 +688,7 @@
                             }
                             reps = setsToRender[i].reps;
                             rpe = setsToRender[i].rpe || '';
+                            type = setsToRender[i].type || 'normal';
                         } else {
                             if (workout.exercises[exIndex]) {
                                 reps = workout.exercises[exIndex].reps || '';
@@ -528,19 +698,32 @@
                         setsHtml += `
                             <div class="set-row" data-set-index="${i}">
                                 <span class="set-label">${i + 1}</span>
+                                <select class="set-type-select">
+                                    ${getSetTypeOptions(type)}
+                                </select>
                                 <input type="number" class="set-input input-weight" placeholder="${unitLabel}" value="${weight}">
                                 <input type="number" class="set-input input-reps" placeholder="Reps" value="${reps}">
                                 <input type="number" class="set-input input-rpe" placeholder="RPE" value="${rpe}">
-                                ${numSets > 1 ? `
                                 <button class="remove-set-btn" data-set-index="${i}" 
                                         style="background: none; border: none; color: #ff4444; cursor: pointer; font-size: 1rem; padding: 0;"
                                         title="Rimuovi set">×</button>
-                                ` : ''}
                             </div>
                         `;
                     }
+                    
+                    // Superset Controls
+                    const supersetControlsHtml = `
+                        <div class="superset-controls">
+                            <button type="button" class="superset-btn create-superset-btn" style="display: ${ex.supersetId ? 'none' : 'block'};">
+                                🔗 Crea Superset
+                            </button>
+                            <button type="button" class="superset-btn remove-superset-btn" style="display: ${ex.supersetId ? 'block' : 'none'};">
+                                ❌ Rimuovi Superset
+                            </button>
+                        </div>
+                    `;
 
-                    exDiv.innerHTML = headerHtml + setsHtml;
+                    exDiv.innerHTML = headerHtml + setsHtml + supersetControlsHtml;
                     exercisesLogContainer.appendChild(exDiv);
                 });
 
@@ -582,20 +765,43 @@
                             <button class="remove-exercise-btn" data-exercise-index="${newIndex}" 
                                     style="background: #ff4444; color: white; border: none; 
                                            padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
-                                    title="Rimuovi esercizio">× Esercizio</button>
+                                    title="Rimuovi esercizio">× Ex</button>
                         </div>
                     </div>
+                    
+                    <div class="normal-rest-config" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+                        <label>Recupero:</label>
+                        <input type="number" class="ex-rest" value="90" placeholder="90" style="width: 50px; background: var(--color-bg); border: 1px solid var(--color-border); color: white; padding: 0.2rem; text-align: center; border-radius: 4px;"> sec
+                    </div>
+                    
                     <div class="set-header">
-                        <span>Set</span>
+                        <span>#</span>
+                        <span>Tipo</span>
                         <span>${unitLabel}</span>
                         <span>Reps</span>
                         <span>RPE</span>
+                        <span></span>
                     </div>
                     <div class="set-row" data-set-index="0">
                         <span class="set-label">1</span>
+                        <select class="set-type-select">
+                            ${getSetTypeOptions('normal')}
+                        </select>
                         <input type="number" class="set-input input-weight" placeholder="${unitLabel}" value="">
                         <input type="number" class="set-input input-reps" placeholder="Reps" value="">
                         <input type="number" class="set-input input-rpe" placeholder="RPE" value="">
+                        <button class="remove-set-btn" data-set-index="0" 
+                                style="background: none; border: none; color: #ff4444; cursor: pointer; font-size: 1rem; padding: 0;"
+                                title="Rimuovi set">×</button>
+                    </div>
+                    
+                    <div class="superset-controls">
+                        <button type="button" class="superset-btn create-superset-btn">
+                            🔗 Crea Superset
+                        </button>
+                        <button type="button" class="superset-btn remove-superset-btn" style="display: none;">
+                            ❌ Rimuovi Superset
+                        </button>
                     </div>
                 `;
 
@@ -615,8 +821,9 @@
                 document.querySelectorAll('.add-set-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const exerciseDiv = e.target.closest('.exercise-log-item');
-                        const setRows = exerciseDiv.querySelectorAll('.set-row');
-                        const newSetIndex = setRows.length;
+                        // Find the set header to insert after, or the last set row
+                        const lastSetRow = exerciseDiv.querySelectorAll('.set-row');
+                        const newSetIndex = lastSetRow.length;
                         const unitLabel = unitService && unitService.getSystem() === 'imperial' ? 'Lbs' : 'Kg';
 
                         const newSetRow = document.createElement('div');
@@ -624,6 +831,9 @@
                         newSetRow.dataset.setIndex = newSetIndex;
                         newSetRow.innerHTML = `
                             <span class="set-label">${newSetIndex + 1}</span>
+                            <select class="set-type-select">
+                                ${getSetTypeOptions('normal')}
+                            </select>
                             <input type="number" class="set-input input-weight" placeholder="${unitLabel}" value="">
                             <input type="number" class="set-input input-reps" placeholder="Reps" value="">
                             <input type="number" class="set-input input-rpe" placeholder="RPE" value="">
@@ -632,7 +842,10 @@
                                     title="Rimuovi set">×</button>
                         `;
 
-                        exerciseDiv.appendChild(newSetRow);
+                        // Insert before superset controls
+                        const supersetControls = exerciseDiv.querySelector('.superset-controls');
+                        exerciseDiv.insertBefore(newSetRow, supersetControls);
+                        
                         attachExerciseControls(); // Re-attach listeners
                     });
                 });
@@ -664,6 +877,12 @@
                     btn.addEventListener('click', (e) => {
                         if (confirm('Rimuovere questo esercizio?')) {
                             const exerciseDiv = e.target.closest('.exercise-log-item');
+                            
+                            // If in superset, decouple first
+                            if (exerciseDiv.dataset.supersetId) {
+                                decoupleSuperset(exerciseDiv.dataset.supersetId);
+                            }
+                            
                             exerciseDiv.remove();
 
                             // Renumber remaining exercises
@@ -673,6 +892,136 @@
                             });
                         }
                     });
+                });
+                
+                // Superset Creation Buttons
+                document.querySelectorAll('.create-superset-btn').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true));
+                });
+                document.querySelectorAll('.create-superset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const currentExDiv = e.target.closest('.exercise-log-item');
+                        const allExercises = Array.from(document.querySelectorAll('.exercise-log-item'));
+                        const currentIndex = allExercises.indexOf(currentExDiv);
+                        const nextExDiv = allExercises[currentIndex + 1];
+                        
+                        if (!nextExDiv) {
+                            alert('Aggiungi prima un altro esercizio per creare un superset.');
+                            return;
+                        }
+                        
+                        if (currentExDiv.dataset.supersetId || nextExDiv.dataset.supersetId) {
+                            alert('Uno degli esercizi è già in un superset. Rimuovilo prima.');
+                            return;
+                        }
+                        
+                        // Create Superset ID
+                        const supersetId = 'ss_' + Date.now() + '_' + nextSupersetId++;
+                        
+                        // Update UI for A
+                        currentExDiv.dataset.supersetId = supersetId;
+                        currentExDiv.dataset.supersetRole = 'A';
+                        currentExDiv.classList.add('in-superset');
+                        
+                        // Add Indicator A
+                        const indicatorA = document.createElement('span');
+                        indicatorA.className = 'superset-indicator';
+                        indicatorA.textContent = 'Superset A';
+                        const headerA = currentExDiv.querySelector('.exercise-name-input').parentElement.parentElement; // messy selector, better insert at top
+                        currentExDiv.insertBefore(indicatorA, currentExDiv.firstChild);
+                        
+                        // Add Rest Config A
+                        const restConfigA = `
+                            <div class="superset-rest-config visible" data-superset-id="${supersetId}">
+                                <div style="font-size: 0.8rem; color: #ff6b6b; font-weight: 500; margin-bottom: 0.5rem;">⏱️ Tempi di Recupero Superset</div>
+                                <div class="rest-input-row">
+                                    <label>Intra-Superset (A→B):</label>
+                                    <input type="number" class="intra-rest-input" value="0" min="0" max="60" placeholder="0"> sec
+                                </div>
+                                <div class="rest-input-row">
+                                    <label>Inter-Superset (dopo round):</label>
+                                    <input type="number" class="inter-rest-input" value="90" min="0" max="300" placeholder="90"> sec
+                                </div>
+                            </div>
+                        `;
+                        // Remove normal rest config
+                        const normalRestA = currentExDiv.querySelector('.normal-rest-config');
+                        if (normalRestA) normalRestA.remove();
+                        
+                        // Insert new rest config after header
+                        currentExDiv.querySelector('.exercise-name-input').parentElement.insertAdjacentHTML('afterend', restConfigA);
+                        
+                        // Update Buttons A
+                        currentExDiv.querySelector('.create-superset-btn').style.display = 'none';
+                        currentExDiv.querySelector('.remove-superset-btn').style.display = 'block';
+                        
+                        // Update UI for B
+                        nextExDiv.dataset.supersetId = supersetId;
+                        nextExDiv.dataset.supersetRole = 'B';
+                        nextExDiv.classList.add('in-superset');
+                        
+                        // Add Indicator B
+                        const indicatorB = document.createElement('span');
+                        indicatorB.className = 'superset-indicator';
+                        indicatorB.textContent = 'Superset B';
+                        nextExDiv.insertBefore(indicatorB, nextExDiv.firstChild);
+                        
+                        // Remove normal rest config B
+                        const normalRestB = nextExDiv.querySelector('.normal-rest-config');
+                        if (normalRestB) normalRestB.remove();
+                        
+                        // Update Buttons B
+                        nextExDiv.querySelector('.create-superset-btn').style.display = 'none';
+                        nextExDiv.querySelector('.remove-superset-btn').style.display = 'block';
+                    });
+                });
+                
+                // Superset Removal Buttons
+                document.querySelectorAll('.remove-superset-btn').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true));
+                });
+                document.querySelectorAll('.remove-superset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const currentExDiv = e.target.closest('.exercise-log-item');
+                        const supersetId = currentExDiv.dataset.supersetId;
+                        if (supersetId) {
+                            decoupleSuperset(supersetId);
+                        }
+                    });
+                });
+            }
+            
+            // Helper to break a superset
+            function decoupleSuperset(supersetId) {
+                const exercises = document.querySelectorAll(`.exercise-log-item[data-superset-id="${supersetId}"]`);
+                exercises.forEach(exDiv => {
+                    delete exDiv.dataset.supersetId;
+                    delete exDiv.dataset.supersetRole;
+                    exDiv.classList.remove('in-superset');
+                    
+                    // Remove Indicator
+                    const indicator = exDiv.querySelector('.superset-indicator');
+                    if (indicator) indicator.remove();
+                    
+                    // Remove Superset Rest Config
+                    const ssRest = exDiv.querySelector('.superset-rest-config');
+                    if (ssRest) ssRest.remove();
+                    
+                    // Restore Normal Rest Config (if not present)
+                    if (!exDiv.querySelector('.normal-rest-config')) {
+                         const normalRestHtml = `
+                            <div class="normal-rest-config" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+                                <label>Recupero:</label>
+                                <input type="number" class="ex-rest" value="90" placeholder="90" style="width: 50px; background: var(--color-bg); border: 1px solid var(--color-border); color: white; padding: 0.2rem; text-align: center; border-radius: 4px;"> sec
+                            </div>
+                        `;
+                        const headerRow = exDiv.querySelector('.exercise-name-input').parentElement;
+                        headerRow.insertAdjacentHTML('afterend', normalRestHtml);
+                    }
+                    
+                    // Reset Buttons
+                    exDiv.querySelector('.create-superset-btn').style.display = 'block';
+                    exDiv.querySelector('.remove-superset-btn').style.display = 'none';
                 });
             }
 
@@ -732,14 +1081,38 @@
                     if (!exName) {
                         return; // Skip exercises without name
                     }
+                    
+                    const exData = {
+                        name: exName,
+                        sets: []
+                    };
+                    
+                    // Superset Data
+                    if (item.dataset.supersetId) {
+                        exData.supersetId = item.dataset.supersetId;
+                        exData.supersetRole = item.dataset.supersetRole;
+                        
+                        // Rest Times for A
+                        if (exData.supersetRole === 'A') {
+                            const intraInput = item.querySelector('.intra-rest-input');
+                            const interInput = item.querySelector('.inter-rest-input');
+                            if (intraInput) exData.intraRest = parseInt(intraInput.value) || 0;
+                            if (interInput) exData.interRest = parseInt(interInput.value) || 90;
+                        }
+                    } else {
+                        // Normal Rest
+                        const restInput = item.querySelector('.ex-rest');
+                        if (restInput) exData.rest = parseInt(restInput.value) || 90;
+                    }
 
                     const setRows = item.querySelectorAll('.set-row');
-                    const setsData = [];
 
                     setRows.forEach(row => {
                         let weightVal = parseFloat(row.querySelector('.input-weight').value) || 0;
                         const reps = parseFloat(row.querySelector('.input-reps').value) || 0;
                         const rpe = parseFloat(row.querySelector('.input-rpe').value) || 0;
+                        const typeSelect = row.querySelector('.set-type-select');
+                        const type = typeSelect ? typeSelect.value : 'normal';
 
                         if (weightVal > 0 && reps > 0) {
                             // Convert Input to Metric for Storage
@@ -748,16 +1121,13 @@
                                 metricWeight = unitService.toMetricWeight(weightVal);
                             }
 
-                            setsData.push({ weight: metricWeight, reps, rpe });
+                            exData.sets.push({ weight: metricWeight, reps, rpe, type });
                             logData.totalVolume += (metricWeight * reps);
                         }
                     });
 
-                    if (setsData.length > 0) {
-                        logData.exercises.push({
-                            name: exName,
-                            sets: setsData
-                        });
+                    if (exData.sets.length > 0) {
+                        logData.exercises.push(exData);
                     }
                 });
 

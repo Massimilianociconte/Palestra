@@ -12,16 +12,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('GYMBRO initialized.');
 
-    // Service Worker Registration
+    // Service Worker Management
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                })
-                .catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-        });
+        // Check if running in Capacitor Native
+        const isNative = window.Capacitor && window.Capacitor.isNativePlatform();
+
+        if (isNative) {
+            console.log('Running in Native mode: Unregistering Service Workers to prevent conflicts.');
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for(let registration of registrations) {
+                    registration.unregister().then(success => {
+                        console.log('Service Worker unregistered:', success);
+                    });
+                }
+            });
+        } else {
+            // Standard PWA registration for web
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
     }
 });

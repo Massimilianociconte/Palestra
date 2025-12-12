@@ -2258,6 +2258,105 @@
                 focusOverlay.style.display = 'none';
             });
 
+            let supersetModeActive = false;
+
+            function renderNormalInputs() {
+                if (!supersetModeActive) return; // Already normal
+                supersetModeActive = false;
+                
+                focusActiveArea.innerHTML = `
+                <div id="focusBilateralIndicator" style="display: none; background: linear-gradient(135deg, rgba(156,39,176,0.15), rgba(103,58,183,0.1)); border: 1px solid rgba(156,39,176,0.3); border-radius: var(--radius-md); padding: 0.5rem 1rem; margin-bottom: 0.75rem; text-align: center;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <span style="font-size: 1rem;">🏋️</span>
+                        <span style="color: #ce93d8; font-size: 0.8rem; font-weight: 500;">Manubri Bilaterali</span>
+                        <span style="color: var(--color-text-muted); font-size: 0.7rem;">• Inserisci peso singolo manubrio</span>
+                    </div>
+                </div>
+                <div id="focusSuggestedWeight" style="display: none; background: linear-gradient(135deg, rgba(0,243,255,0.15), rgba(0,153,255,0.1)); border: 1px solid rgba(0,243,255,0.3); border-radius: var(--radius-md); padding: 0.6rem 1rem; margin-bottom: 1rem; text-align: center;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="color: var(--color-text-muted); font-size: 0.75rem;">💡 Suggerito:</span>
+                        <span id="focusSuggestedValue" style="color: var(--color-primary); font-weight: bold; font-size: 1.1rem;">--</span>
+                        <span style="color: var(--color-text-muted); font-size: 0.7rem;" id="focusSuggestedBasis">(basato su storico)</span>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--color-surface); padding: 0.75rem 0.5rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
+                        <label id="focusWeightLabel" style="display: block; color: var(--color-text-muted); font-size: 0.7rem; margin-bottom: 0.3rem;">KG</label>
+                        <input type="number" id="focusWeightInput" style="width: 100%; background: transparent; border: none; color: white; font-size: 2rem; text-align: center; font-weight: bold; font-family: var(--font-display);" value="">
+                    </div>
+                    <div style="background: var(--color-surface); padding: 0.75rem 0.5rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
+                        <label style="display: block; color: var(--color-text-muted); font-size: 0.7rem; margin-bottom: 0.3rem;">REPS</label>
+                        <input type="text" id="focusRepsInput" style="width: 100%; background: transparent; border: none; color: white; font-size: 2rem; text-align: center; font-weight: bold; font-family: var(--font-display);" value="">
+                    </div>
+                    <div style="background: var(--color-surface); padding: 0.75rem 0.5rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
+                        <label style="display: block; color: var(--color-text-muted); font-size: 0.7rem; margin-bottom: 0.3rem;">RPE</label>
+                        <input type="number" id="focusRpeInput" min="1" max="10" step="0.5" style="width: 100%; background: transparent; border: none; color: white; font-size: 2rem; text-align: center; font-weight: bold; font-family: var(--font-display);" value="" placeholder="1-10">
+                    </div>
+                </div>
+                `;
+            }
+
+            function renderSupersetInputs(exA, exB, setA, setB) {
+                supersetModeActive = true;
+                
+                const targetA = setA?.target || exA.reps || '';
+                const targetB = setB?.target || exB.reps || '';
+                
+                // Get suggestions for both
+                const suggestA = getSuggestedWeight(exA.name, targetA);
+                const suggestB = getSuggestedWeight(exB.name, targetB);
+
+                const htmlA = `
+                    <div class="superset-block-a" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed rgba(255,255,255,0.1);">
+                        <div style="font-size: 1rem; color: var(--color-primary); margin-bottom: 0.5rem;">A: ${exA.name}</div>
+                        ${suggestA ? `<div style="font-size: 0.75rem; color: #aaa; margin-bottom: 0.5rem;">💡 Suggerito: <span style="color:var(--color-primary)">${suggestA.weight}kg</span></div>` : ''}
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
+                                <label style="font-size: 0.6rem; color: #888;">KG</label>
+                                <input type="number" id="focusWeightInput_A" value="${setA.weight || ''}" placeholder="${setA.weight || 'Kg'}" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
+                            </div>
+                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
+                                <label style="font-size: 0.6rem; color: #888;">REPS</label>
+                                <input type="text" id="focusRepsInput_A" value="${setA.reps || ''}" placeholder="${targetA || 'Reps'}" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
+                            </div>
+                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
+                                <label style="font-size: 0.6rem; color: #888;">RPE</label>
+                                <input type="number" id="focusRpeInput_A" value="${setA.rpe || ''}" placeholder="1-10" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const htmlB = `
+                    <div class="superset-block-b">
+                        <div style="font-size: 1rem; color: #ff6b6b; margin-bottom: 0.5rem;">B: ${exB.name}</div>
+                        ${suggestB ? `<div style="font-size: 0.75rem; color: #aaa; margin-bottom: 0.5rem;">💡 Suggerito: <span style="color:#ff6b6b">${suggestB.weight}kg</span></div>` : ''}
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
+                                <label style="font-size: 0.6rem; color: #888;">KG</label>
+                                <input type="number" id="focusWeightInput_B" value="${setB.weight || ''}" placeholder="${setB.weight || 'Kg'}" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
+                            </div>
+                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
+                                <label style="font-size: 0.6rem; color: #888;">REPS</label>
+                                <input type="text" id="focusRepsInput_B" value="${setB.reps || ''}" placeholder="${targetB || 'Reps'}" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
+                            </div>
+                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
+                                <label style="font-size: 0.6rem; color: #888;">RPE</label>
+                                <input type="number" id="focusRpeInput_B" value="${setB.rpe || ''}" placeholder="1-10" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                focusActiveArea.innerHTML = `
+                    <div class="superset-container" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,107,107,0.3); border-radius: 12px; padding: 1rem;">
+                        <div style="text-align:center; margin-bottom:1rem; color:#ff6b6b; font-size:0.8rem; font-weight:bold; letter-spacing:1px;">🔗 SUPERSET COMBINATO</div>
+                        ${htmlA}
+                        ${htmlB}
+                    </div>
+                `;
+            }
+
             focusActionBtn.addEventListener('click', () => {
                 if (sessionCompleted) {
                     // Session completed normally - clear recovery data
@@ -2371,93 +2470,6 @@
                 }
             });
 
-            let supersetModeActive = false;
-
-            function renderNormalInputs() {
-                supersetModeActive = false;
-                const html = `
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                        <div>
-                            <label id="focusWeightLabel" style="font-size: 0.8rem; color: #888; display: block; margin-bottom: 0.5rem;">KG</label>
-                            <input type="number" id="focusWeightInput" class="focus-input" placeholder="Kg">
-                            <div id="focusBilateralIndicator" style="display:none; font-size:0.65rem; color:var(--color-primary); margin-top:4px;">
-                                Totale (x2)
-                            </div>
-                        </div>
-                        <div>
-                            <label style="font-size: 0.8rem; color: #888; display: block; margin-bottom: 0.5rem;">REPS</label>
-                            <input type="text" id="focusRepsInput" class="focus-input" placeholder="Reps">
-                        </div>
-                        <div>
-                            <label style="font-size: 0.8rem; color: #888; display: block; margin-bottom: 0.5rem;">RPE</label>
-                            <input type="number" id="focusRpeInput" class="focus-input" placeholder="1-10">
-                        </div>
-                    </div>
-                `;
-                focusActiveArea.innerHTML = html;
-            }
-
-            function renderSupersetInputs(exA, exB, setA, setB) {
-                supersetModeActive = true;
-                
-                const targetA = setA?.target || exA.reps || '';
-                const targetB = setB?.target || exB.reps || '';
-                
-                // Get suggestions for both
-                const suggestA = getSuggestedWeight(exA.name, targetA);
-                const suggestB = getSuggestedWeight(exB.name, targetB);
-
-                const htmlA = `
-                    <div class="superset-block-a" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed rgba(255,255,255,0.1);">
-                        <div style="font-size: 1rem; color: var(--color-primary); margin-bottom: 0.5rem;">A: ${exA.name}</div>
-                        ${suggestA ? `<div style="font-size: 0.75rem; color: #aaa; margin-bottom: 0.5rem;">💡 Suggerito: <span style="color:var(--color-primary)">${suggestA.weight}kg</span></div>` : ''}
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
-                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
-                                <label style="font-size: 0.6rem; color: #888;">KG</label>
-                                <input type="number" id="focusWeightInput_A" value="${setA.weight || ''}" placeholder="${setA.weight || 'Kg'}" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
-                            </div>
-                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
-                                <label style="font-size: 0.6rem; color: #888;">REPS</label>
-                                <input type="text" id="focusRepsInput_A" value="${setA.reps || ''}" placeholder="${targetA || 'Reps'}" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
-                            </div>
-                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
-                                <label style="font-size: 0.6rem; color: #888;">RPE</label>
-                                <input type="number" id="focusRpeInput_A" value="${setA.rpe || ''}" placeholder="1-10" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                const htmlB = `
-                    <div class="superset-block-b">
-                        <div style="font-size: 1rem; color: #ff6b6b; margin-bottom: 0.5rem;">B: ${exB.name}</div>
-                        ${suggestB ? `<div style="font-size: 0.75rem; color: #aaa; margin-bottom: 0.5rem;">💡 Suggerito: <span style="color:#ff6b6b">${suggestB.weight}kg</span></div>` : ''}
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
-                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
-                                <label style="font-size: 0.6rem; color: #888;">KG</label>
-                                <input type="number" id="focusWeightInput_B" value="${setB.weight || ''}" placeholder="${setB.weight || 'Kg'}" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
-                            </div>
-                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
-                                <label style="font-size: 0.6rem; color: #888;">REPS</label>
-                                <input type="text" id="focusRepsInput_B" value="${setB.reps || ''}" placeholder="${targetB || 'Reps'}" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
-                            </div>
-                            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px;">
-                                <label style="font-size: 0.6rem; color: #888;">RPE</label>
-                                <input type="number" id="focusRpeInput_B" value="${setB.rpe || ''}" placeholder="1-10" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; text-align:center;">
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                focusActiveArea.innerHTML = `
-                    <div class="superset-container" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,107,107,0.3); border-radius: 12px; padding: 1rem;">
-                        <div style="text-align:center; margin-bottom:1rem; color:#ff6b6b; font-size:0.8rem; font-weight:bold; letter-spacing:1px;">🔗 SUPERSET COMBINATO</div>
-                        ${htmlA}
-                        ${htmlB}
-                    </div>
-                `;
-            }
-
             function updateFocusUI() {
                 if (!currentWorkout || !Array.isArray(currentWorkout.exercises) || currentWorkout.exercises.length === 0) {
                     finishWorkout(true);
@@ -2506,7 +2518,7 @@
                 renderNormalInputs();
                 updateFocusCommon(ex, set);
             }
-
+            
             function updateFocusCommon(ex, set) {
                 const targetLabel = set?.target || ex.reps || '';
                 const baseCounter = `Set ${currentSetIndex + 1} / ${ex.sets.length}`;
@@ -2554,6 +2566,27 @@
                 if (repsInput) {
                     repsInput.value = set.reps || '';
                     repsInput.placeholder = targetLabel || 'Reps';
+                    
+                    // Update suggestion when reps change
+                    repsInput.oninput = () => {
+                        const val = repsInput.value;
+                        if (val) {
+                            const suggestion = getSuggestedWeight(ex.name, val);
+                            const focusSuggestedWeight = document.getElementById('focusSuggestedWeight');
+                            const focusSuggestedValue = document.getElementById('focusSuggestedValue');
+                            const focusSuggestedBasis = document.getElementById('focusSuggestedBasis');
+                            
+                            if (suggestion && focusSuggestedWeight) {
+                                focusSuggestedValue.textContent = `${suggestion.weight} kg`;
+                                if (suggestion.type === 'direct') {
+                                    focusSuggestedBasis.textContent = `(1RM da ${suggestion.basedOn})`;
+                                } else {
+                                    focusSuggestedBasis.textContent = `(stimato da ${suggestion.basedOn})`;
+                                }
+                                focusSuggestedWeight.style.display = 'block';
+                            }
+                        }
+                    };
                 }
                 if (rpeInput) {
                     rpeInput.value = set.rpe || '';
@@ -2626,7 +2659,7 @@
                 if (nextExercisePreview && nextExerciseName && nextExerciseSets) {
                     let nextExIndex = currentExerciseIndex + 1;
                     if (supersetModeActive) nextExIndex++; // Skip the partner in preview
-                    
+
                     if (nextExIndex < currentWorkout.exercises.length) {
                         const nextEx = currentWorkout.exercises[nextExIndex];
                         nextExerciseName.textContent = nextEx.name || 'Esercizio';
@@ -2670,38 +2703,38 @@
                 let restTime = 90; // Default
                 let restLabel = 'RECUPERO';
                 
-                if (supersetModeActive) {
-                    // === COMBINED MODE REST LOGIC ===
-                    // We just completed a set for BOTH A and B.
-                    // So we are effectively at the "Inter-Superset" rest period.
-                    restTime = currentEx.interRest || 90;
-                    restLabel = 'RECUPERO SUPERSET';
-
-                } else if (currentEx.supersetId) {
-                    // === SEQUENTIAL MODE LOGIC (Fallback) ===
-                    const nextExIndex = currentExerciseIndex + 1;
-                    const nextEx = currentWorkout.exercises[nextExIndex];
-                    
-                    if (currentEx.supersetRole === 'A' && nextEx?.supersetId === currentEx.supersetId) {
-                        // Transitioning from A to B within superset
-                        restTime = currentEx.intraRest || 0;
-                        restLabel = 'TRANSIZIONE A→B';
+                if (currentEx.supersetId) {
+                    if (supersetModeActive) {
+                        // Combined Superset Mode (A+B just finished)
+                        // Use inter-superset rest (usually defined on A)
+                        restTime = currentEx.interRest || 90;
+                        restLabel = 'RECUPERO SUPERSET';
+                    } else {
+                        // Sequential Mode
+                        const nextExIndex = currentExerciseIndex + 1;
+                        const nextEx = currentWorkout.exercises[nextExIndex];
                         
-                        if (restTime === 0) {
-                            // No rest, go directly to exercise B
-                            isResting = false;
-                            currentExerciseIndex++;
-                            // Keep same set index for paired tracking
-                            updateFocusUI();
-                            return;
-                        }
-                    } else if (currentEx.supersetRole === 'B') {
-                        // After completing B, check if we need inter-superset rest
-                        const prevEx = currentWorkout.exercises[currentExerciseIndex - 1];
-                        if (prevEx?.supersetId === currentEx.supersetId && prevEx?.supersetRole === 'A') {
-                            // Use inter-superset rest from exercise A
-                            restTime = prevEx.interRest || 90;
-                            restLabel = 'RECUPERO SUPERSET';
+                        if (currentEx.supersetRole === 'A' && nextEx?.supersetId === currentEx.supersetId) {
+                            // Transitioning from A to B within superset
+                            restTime = currentEx.intraRest || 0;
+                            restLabel = 'TRANSIZIONE A→B';
+                            
+                            if (restTime === 0) {
+                                // No rest, go directly to exercise B
+                                isResting = false;
+                                currentExerciseIndex++;
+                                // Keep same set index for paired tracking
+                                updateFocusUI();
+                                return;
+                            }
+                        } else if (currentEx.supersetRole === 'B') {
+                            // After completing B, check if we need inter-superset rest
+                            const prevEx = currentWorkout.exercises[currentExerciseIndex - 1];
+                            if (prevEx?.supersetId === currentEx.supersetId && prevEx?.supersetRole === 'A') {
+                                // Use inter-superset rest from exercise A
+                                restTime = prevEx.interRest || 90;
+                                restLabel = 'RECUPERO SUPERSET';
+                            }
                         }
                     }
                 } else {
@@ -2781,53 +2814,55 @@
                     }
                 } else {
                     // Finished all sets of current exercise
+                    
                     // IF Sequential Mode (Alternating) - only if NOT in combined mode
-            if (isSuperset && ex.supersetRole === 'B' && !supersetModeActive) {
-                // After completing B, go back to A for next round
-                const prevEx = currentWorkout.exercises[currentExerciseIndex - 1];
-                if (prevEx?.supersetId === ex.supersetId && prevEx?.supersetRole === 'A') {
-                    // Check if A has more sets to do
-                    const completedRoundsA = prevEx.sets.filter(s => s.weight > 0).length;
+                    // If we are in combined mode, we finish A and B together, so we don't alternate sets individually.
+                    if (isSuperset && ex.supersetRole === 'B' && !supersetModeActive) {
+                        // After completing B, go back to A for next round
+                        const prevEx = currentWorkout.exercises[currentExerciseIndex - 1];
+                        if (prevEx?.supersetId === ex.supersetId && prevEx?.supersetRole === 'A') {
+                            // Check if A has more sets to do
+                            const completedRoundsA = prevEx.sets.filter(s => s.weight > 0).length;
+                            
+                            if (completedRoundsA < prevEx.sets.length) {
+                                // Go back to A
+                                currentExerciseIndex--;
+                                currentSetIndex = completedRoundsA;
+                                focusHistoryList.innerHTML = ''; // Clear for new round
+                                updateFocusUI();
+                                return;
+                            }
+                        }
+                    }
                     
-                    if (completedRoundsA < prevEx.sets.length) {
-                        // Go back to A
-                        currentExerciseIndex--;
-                        currentSetIndex = completedRoundsA;
-                        focusHistoryList.innerHTML = ''; // Clear for new round
-                        updateFocusUI();
-                        return;
+                    // Move to next exercise
+                    currentSetIndex = 0;
+                    currentExerciseIndex++;
+                    focusHistoryList.innerHTML = ''; // Clear history for new exercise
+                    
+                    // CHECK FOR COMPLETED SUPERSET PARTNER (Combined Mode)
+                    // If we just finished A (in combined mode), we are now at B.
+                    // But B is already done. So we should skip it.
+                    if (currentExerciseIndex < currentWorkout.exercises.length) {
+                        const newEx = currentWorkout.exercises[currentExerciseIndex];
+                        const prevEx = currentWorkout.exercises[currentExerciseIndex - 1];
+                        
+                        // If we just moved from A -> B, and B is the partner
+                        if (prevEx && prevEx.supersetId && newEx.supersetId === prevEx.supersetId && newEx.supersetRole === 'B') {
+                            // Check if B is already fully completed (e.g. via combined logging)
+                            // We check if all sets have weight logged
+                            const allSetsDone = newEx.sets.every(s => s.weight > 0);
+                            
+                            if (allSetsDone) {
+                                console.log('[Focus] Skipping completed superset partner:', newEx.name);
+                                currentExerciseIndex++;
+                                focusHistoryList.innerHTML = '';
+                            }
+                        }
                     }
                 }
+                updateFocusUI();
             }
-            
-            // Move to next exercise
-            currentSetIndex = 0;
-            currentExerciseIndex++;
-            focusHistoryList.innerHTML = ''; // Clear history for new exercise
-
-            // CHECK FOR COMPLETED SUPERSET PARTNER (Combined Mode)
-            // If we just finished A (in combined mode), we are now at B.
-            // But B is already done. So we should skip it.
-            if (currentExerciseIndex < currentWorkout.exercises.length) {
-                const newEx = currentWorkout.exercises[currentExerciseIndex];
-                const prevEx = currentWorkout.exercises[currentExerciseIndex - 1];
-                
-                // If we just moved from A -> B, and B is the partner
-                if (prevEx && prevEx.supersetId && newEx.supersetId === prevEx.supersetId && newEx.supersetRole === 'B') {
-                    // Check if B is already fully completed (e.g. via combined logging)
-                    // We check if all sets have weight logged
-                    const allSetsDone = newEx.sets.every(s => s.weight > 0);
-                    
-                    if (allSetsDone) {
-                        console.log('[Focus] Skipping completed superset partner:', newEx.name);
-                        currentExerciseIndex++;
-                        focusHistoryList.innerHTML = '';
-                    }
-                }
-            }
-        }
-        updateFocusUI();
-    }
 
             function finishWorkout(empty = false) {
                 sessionCompleted = true;
