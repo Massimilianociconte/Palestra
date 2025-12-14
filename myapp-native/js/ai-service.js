@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+import { exerciseNormalizer } from './exercise-normalizer.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -648,13 +649,26 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
         }
     ]
 }
+
+${exerciseNormalizer.getAINormalizationPrompt()}
 `;
             const result = await model.generateContent(prompt);
             let text = result.response.text();
             // Clean markdown if present
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            
+            const parsed = JSON.parse(text);
+            
+            // Normalizza i nomi degli esercizi per evitare duplicati semantici
+            if (parsed.exercises && Array.isArray(parsed.exercises)) {
+                const exerciseNames = parsed.exercises.map(ex => ex.name);
+                const normalizedNames = await exerciseNormalizer.normalizeWithAI(exerciseNames, this.apiKey);
+                parsed.exercises.forEach((ex, i) => {
+                    ex.name = normalizedNames[i] || ex.name;
+                });
+            }
 
-            return { success: true, data: JSON.parse(text) };
+            return { success: true, data: parsed };
         } catch (error) {
             console.error("AI Prediction Error:", error);
             return { success: false, message: error.message };

@@ -383,6 +383,7 @@
     <script type="module">
         import { firestoreService } from './js/firestore-service.js';
         import { MUSCLE_GROUPS } from './js/exercise-db.js';
+        import { prTracker } from './js/pr-tracker.js';
 
         // Set types configuration (Mirrored from Creator)
         const SET_TYPES = {
@@ -1185,6 +1186,25 @@
                 }
 
                 localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+                
+                // 🏆 RILEVAMENTO PR - Controlla se ci sono nuovi Personal Record
+                try {
+                    const newPRs = prTracker.detectPRsFromLog(logData);
+                    if (newPRs.length > 0) {
+                        console.log('🏆 Nuovi PR rilevati:', newPRs);
+                        // Notifica ogni PR
+                        for (const pr of newPRs) {
+                            await prTracker.notifyPR(pr);
+                            // Piccolo delay tra notifiche multiple
+                            if (newPRs.indexOf(pr) < newPRs.length - 1) {
+                                await new Promise(r => setTimeout(r, 500));
+                            }
+                        }
+                    }
+                } catch (prError) {
+                    console.warn('PR detection error:', prError);
+                }
+                
                 await syncLogsToCloud();
 
                 // Reset UI
