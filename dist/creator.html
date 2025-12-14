@@ -16,7 +16,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="IronFlow">
+    <meta name="apple-mobile-web-app-title" content="GymBro">
     <link rel="apple-touch-icon" href="assets/icon.svg">
 
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
@@ -184,6 +184,90 @@
             background: rgba(0, 243, 255, 0.1);
         }
 
+        /* Superset Styles */
+        .superset-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .superset-connector {
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            width: 10px;
+            height: 2px;
+            background: #ff6b6b;
+        }
+
+        .exercise-item.in-superset {
+            border-left: 3px solid #ff6b6b;
+            margin-left: 15px;
+        }
+
+        .superset-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--color-border);
+        }
+
+        .superset-btn {
+            background: transparent;
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .superset-btn:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .superset-rest-config {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 107, 107, 0.05);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: var(--radius-sm);
+        }
+
+        .superset-rest-config.visible {
+            display: block;
+        }
+
+        .rest-input-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .rest-input-row label {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin: 0;
+        }
+
+        .rest-input-row input {
+            width: 80px;
+            padding: 0.4rem;
+            font-size: 0.85rem;
+        }
+
         @media (max-width: 600px) {
             .set-item {
                 grid-template-columns: auto 1fr 50px 50px 50px 25px;
@@ -205,7 +289,7 @@
 
     <header class="header">
         <div class="container">
-            <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
+            <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
             <nav>
                 <div class="mobile-toggle" id="mobileToggle">☰</div>
                 <ul class="nav-links" id="navLinks">
@@ -219,7 +303,7 @@
         </div>
     </header>
 
-    <section class="section" style="padding-top: 120px;">
+    <section class="section" style="padding-top: 160px;">
         <div class="container">
             <h1 style="margin-bottom: var(--spacing-md);">Crea Nuova <span class="text-primary">Scheda</span></h1>
 
@@ -269,6 +353,10 @@
             amrap: { label: 'AMRAP', color: 'amrap' },
             pause: { label: 'Pausa', color: 'pause' }
         };
+        
+        // Superset configuration
+        let supersetGroups = {}; // { groupId: [exerciseIndex1, exerciseIndex2] }
+        let nextSupersetId = 1;
 
         document.addEventListener('DOMContentLoaded', () => {
             const exercisesList = document.getElementById('exercisesList');
@@ -340,6 +428,8 @@
             function addExerciseUI(data = null) {
                 const div = document.createElement('div');
                 div.className = 'exercise-item';
+                const exerciseIndex = exercisesList.querySelectorAll('.exercise-item').length;
+                div.dataset.exerciseIndex = exerciseIndex;
                 
                 // Convert old format (sets as number) to new format (sets as array)
                 let setsArray = [];
@@ -359,16 +449,29 @@
                         }
                     }
                 }
+                
+                // Check if part of superset
+                const supersetId = data?.supersetId || null;
+                const supersetRole = data?.supersetRole || null; // 'A' or 'B'
+                const intraRest = data?.intraRest || 0;
+                const interRest = data?.interRest || 90;
 
                 div.innerHTML = `
-                    <span class="remove-btn" onclick="this.parentElement.remove()">×</span>
+                    ${supersetId ? `<span class="superset-indicator">Superset ${supersetRole}</span>` : ''}
+                    <span class="remove-btn" onclick="this.parentElement.remove(); updateExerciseIndices();">×</span>
                     <div class="form-group">
                         <label>Esercizio</label>
                         <input type="text" class="ex-name" placeholder="es. Panca Piana" value="${data?.name || ''}">
                     </div>
-                    <div class="form-group">
-                        <label>Note</label>
-                        <input type="text" class="ex-notes" placeholder="Fermo 1s al petto" value="${data?.notes || ''}">
+                    <div class="form-group" style="display: grid; grid-template-columns: 3fr 1fr; gap: 10px;">
+                        <div>
+                            <label>Note</label>
+                            <input type="text" class="ex-notes" placeholder="Fermo 1s al petto" value="${data?.notes || ''}">
+                        </div>
+                        <div class="normal-rest-config" style="display: ${supersetId ? 'none' : 'block'};">
+                            <label>Recupero (s)</label>
+                            <input type="number" class="ex-rest" value="${data?.rest || 90}" placeholder="90">
+                        </div>
                     </div>
                     
                     <div class="sets-container">
@@ -389,7 +492,35 @@
                             <!-- Individual sets will be added here -->
                         </div>
                     </div>
+                    
+                    <div class="superset-controls">
+                        <button type="button" class="superset-btn create-superset-btn" title="Crea superset con l'esercizio successivo">
+                            🔗 Crea Superset
+                        </button>
+                        <button type="button" class="superset-btn remove-superset-btn" style="display: ${supersetId ? 'inline-block' : 'none'};" title="Rimuovi dal superset">
+                            ❌ Rimuovi Superset
+                        </button>
+                    </div>
+                    
+                    <div class="superset-rest-config ${supersetId && supersetRole === 'A' ? 'visible' : ''}" data-superset-id="${supersetId || ''}">
+                        <div style="font-size: 0.8rem; color: #ff6b6b; font-weight: 500; margin-bottom: 0.5rem;">⏱️ Tempi di Recupero Superset</div>
+                        <div class="rest-input-row">
+                            <label>Intra-Superset (A→B):</label>
+                            <input type="number" class="intra-rest-input" value="${intraRest}" min="0" max="60" placeholder="0"> sec
+                        </div>
+                        <div class="rest-input-row">
+                            <label>Inter-Superset (dopo round):</label>
+                            <input type="number" class="inter-rest-input" value="${interRest}" min="0" max="300" placeholder="90"> sec
+                        </div>
+                    </div>
                 `;
+                
+                // Store superset data
+                if (supersetId) {
+                    div.dataset.supersetId = supersetId;
+                    div.dataset.supersetRole = supersetRole;
+                    div.classList.add('in-superset');
+                }
 
                 exercisesList.appendChild(div);
 
@@ -406,6 +537,74 @@
                         addQuickSets(div, count, type);
                     });
                 });
+                
+                // Superset button handlers
+                const createSupersetBtn = div.querySelector('.create-superset-btn');
+                const removeSupersetBtn = div.querySelector('.remove-superset-btn');
+                
+                createSupersetBtn.addEventListener('click', () => {
+                    const allExercises = Array.from(exercisesList.querySelectorAll('.exercise-item'));
+                    const currentIndex = allExercises.indexOf(div);
+                    const nextExercise = allExercises[currentIndex + 1];
+                    
+                    if (!nextExercise) {
+                        alert('Aggiungi prima un altro esercizio per creare un superset.');
+                        return;
+                    }
+                    
+                    if (div.dataset.supersetId || nextExercise.dataset.supersetId) {
+                        alert('Uno degli esercizi è già in un superset. Rimuovilo prima.');
+                        return;
+                    }
+                    
+                    // Create superset
+                    const supersetId = 'ss_' + nextSupersetId++;
+                    
+                    // Mark exercise A
+                    div.dataset.supersetId = supersetId;
+                    div.dataset.supersetRole = 'A';
+                    div.classList.add('in-superset');
+                    const indicatorA = document.createElement('span');
+                    indicatorA.className = 'superset-indicator';
+                    indicatorA.textContent = 'Superset A';
+                    div.insertBefore(indicatorA, div.firstChild);
+                    div.querySelector('.superset-rest-config').classList.add('visible');
+                    div.querySelector('.superset-rest-config').dataset.supersetId = supersetId;
+                    div.querySelector('.remove-superset-btn').style.display = 'inline-block';
+                    createSupersetBtn.style.display = 'none';
+                    div.querySelector('.normal-rest-config').style.display = 'none';
+                    
+                    // Mark exercise B
+                    nextExercise.dataset.supersetId = supersetId;
+                    nextExercise.dataset.supersetRole = 'B';
+                    nextExercise.classList.add('in-superset');
+                    const indicatorB = document.createElement('span');
+                    indicatorB.className = 'superset-indicator';
+                    indicatorB.textContent = 'Superset B';
+                    nextExercise.insertBefore(indicatorB, nextExercise.firstChild);
+                    nextExercise.querySelector('.remove-superset-btn').style.display = 'inline-block';
+                    nextExercise.querySelector('.create-superset-btn').style.display = 'none';
+                    nextExercise.querySelector('.normal-rest-config').style.display = 'none';
+                });
+                
+                removeSupersetBtn.addEventListener('click', () => {
+                    const supersetId = div.dataset.supersetId;
+                    if (!supersetId) return;
+                    
+                    // Find all exercises in this superset
+                    const supersetExercises = exercisesList.querySelectorAll(`[data-superset-id="${supersetId}"]`);
+                    supersetExercises.forEach(ex => {
+                        delete ex.dataset.supersetId;
+                        delete ex.dataset.supersetRole;
+                        ex.classList.remove('in-superset');
+                        const indicator = ex.querySelector('.superset-indicator');
+                        if (indicator) indicator.remove();
+                        ex.querySelector('.superset-rest-config').classList.remove('visible');
+                        ex.querySelector('.remove-superset-btn').style.display = 'none';
+                        ex.querySelector('.create-superset-btn').style.display = 'inline-block';
+                        ex.querySelector('.normal-rest-config').style.display = 'block';
+                    });
+                });
 
                 // Add existing sets or default
                 if (setsArray.length > 0) {
@@ -416,6 +615,14 @@
                     // Add 3 default normal sets
                     addQuickSets(div, 3, 'normal');
                 }
+            }
+            
+            // Update exercise indices after removal
+            function updateExerciseIndices() {
+                const exercises = exercisesList.querySelectorAll('.exercise-item');
+                exercises.forEach((ex, idx) => {
+                    ex.dataset.exerciseIndex = idx;
+                });
             }
 
             if (addBtn) {
@@ -463,6 +670,7 @@
                     document.querySelectorAll('.exercise-item').forEach(item => {
                         const exName = item.querySelector('.ex-name').value;
                         const exNotes = item.querySelector('.ex-notes').value;
+                        const exRest = item.querySelector('.ex-rest').value;
                         
                         // Collect all sets
                         const sets = [];
@@ -478,13 +686,34 @@
                                 weight: 0 // Will be filled during workout
                             });
                         });
+                        
+                        // Collect superset data
+                        const supersetId = item.dataset.supersetId || null;
+                        const supersetRole = item.dataset.supersetRole || null;
+                        const intraRestInput = item.querySelector('.intra-rest-input');
+                        const interRestInput = item.querySelector('.inter-rest-input');
+                        const intraRest = intraRestInput ? parseInt(intraRestInput.value) || 0 : 0;
+                        const interRest = interRestInput ? parseInt(interRestInput.value) || 90 : 90;
 
                         if (exName || sets.length > 0) {
-                            exercises.push({
+                            const exerciseData = {
                                 name: exName,
                                 sets: sets,
-                                notes: exNotes
-                            });
+                                notes: exNotes,
+                                rest: exRest ? parseInt(exRest) : 90
+                            };
+                            
+                            // Add superset data if applicable
+                            if (supersetId) {
+                                exerciseData.supersetId = supersetId;
+                                exerciseData.supersetRole = supersetRole;
+                                if (supersetRole === 'A') {
+                                    exerciseData.intraRest = intraRest;
+                                    exerciseData.interRest = interRest;
+                                }
+                            }
+                            
+                            exercises.push(exerciseData);
                         }
                     });
 
@@ -528,6 +757,29 @@
                     alert('Scheda salvata con successo!');
                     window.location.href = 'user.html';
                 });
+            }
+            
+            // --- AUTO-SYNC MANAGER ---
+            // Sincronizza automaticamente all'avvio e ogni 5 minuti
+            const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti
+            
+            const performAutoSync = async () => {
+                try {
+                    console.log('🔄 [Creator] Auto-sync in corso...');
+                    await firestoreService.syncToCloud();
+                    console.log('✅ [Creator] Auto-sync completato:', new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.warn('⚠️ [Creator] Auto-sync fallito:', error.message);
+                }
+            };
+            
+            // Primo sync silenzioso dopo 2 secondi
+            setTimeout(performAutoSync, 2000);
+            
+            // Sync ogni 5 minuti
+            if (!window.autoSyncInterval) {
+                window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);
+                console.log('🔄 [Creator] Auto-sync attivato: ogni 5 minuti');
             }
         });
     </script>

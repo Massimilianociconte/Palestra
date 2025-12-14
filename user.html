@@ -1091,6 +1091,49 @@
                     profileContent.classList.remove('visible');
                     // If share link present but not logged in, user will see auth form first
                     // Once logged in, this subscription runs again and handles the import
+                    
+                    // Ferma l'auto-sync se l'utente si disconnette
+                    if (window.autoSyncInterval) {
+                        clearInterval(window.autoSyncInterval);
+                        window.autoSyncInterval = null;
+                        console.log('🛑 Auto-sync fermato (utente disconnesso)');
+                    }
+                }
+            });
+
+            // --- AUTO-SYNC MANAGER ---
+            // Sincronizza automaticamente all'avvio e ogni 5 minuti
+            const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti in millisecondi
+            
+            const performAutoSync = async () => {
+                try {
+                    const user = authService.getCurrentUser();
+                    if (!user) return;
+                    
+                    console.log('🔄 Auto-sync in corso...');
+                    await firestoreService.syncToCloud();
+                    console.log('✅ Auto-sync completato:', new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.warn('⚠️ Auto-sync fallito:', error.message);
+                }
+            };
+            
+            // Avvia auto-sync dopo il caricamento iniziale
+            authService.subscribe(async (user) => {
+                if (user) {
+                    // Pulisce eventuali timer esistenti
+                    if (window.autoSyncInterval) {
+                        clearInterval(window.autoSyncInterval);
+                    }
+                    
+                    // Primo sync silenzioso dopo 3 secondi (dopo che tutto è caricato)
+                    setTimeout(() => {
+                        performAutoSync();
+                    }, 3000);
+                    
+                    // Imposta il sync ogni 5 minuti
+                    window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);
+                    console.log('🔄 Auto-sync attivato: ogni 5 minuti');
                 }
             });
 

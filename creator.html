@@ -758,6 +758,29 @@
                     window.location.href = 'user.html';
                 });
             }
+            
+            // --- AUTO-SYNC MANAGER ---
+            // Sincronizza automaticamente all'avvio e ogni 5 minuti
+            const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti
+            
+            const performAutoSync = async () => {
+                try {
+                    console.log('🔄 [Creator] Auto-sync in corso...');
+                    await firestoreService.syncToCloud();
+                    console.log('✅ [Creator] Auto-sync completato:', new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.warn('⚠️ [Creator] Auto-sync fallito:', error.message);
+                }
+            };
+            
+            // Primo sync silenzioso dopo 2 secondi
+            setTimeout(performAutoSync, 2000);
+            
+            // Sync ogni 5 minuti
+            if (!window.autoSyncInterval) {
+                window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);
+                console.log('🔄 [Creator] Auto-sync attivato: ogni 5 minuti');
+            }
         });
     </script>
 </body>

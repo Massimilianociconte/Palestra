@@ -136,6 +136,107 @@
             color: white;
             font-weight: 600;
         }
+        
+        /* Custom Exercise Dropdown Styles */
+        .custom-dropdown-container {
+            position: relative;
+        }
+        
+        #exerciseDropdownTrigger:hover {
+            border-color: rgba(0,243,255,0.6);
+            background: linear-gradient(135deg, rgba(0,243,255,0.1), rgba(0,0,0,0.4));
+        }
+        
+        #exerciseDropdownTrigger.open {
+            border-color: var(--color-primary);
+            background: linear-gradient(135deg, rgba(0,243,255,0.15), rgba(0,0,0,0.4));
+        }
+        
+        #exerciseDropdownTrigger.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        
+        #exerciseDropdownPanel.open {
+            display: block !important;
+            animation: dropdownSlide 0.2s ease;
+        }
+        
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .exercise-option {
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+        
+        .exercise-option:hover {
+            background: rgba(0,243,255,0.1);
+            border-color: rgba(0,243,255,0.3);
+        }
+        
+        .exercise-option.selected {
+            background: rgba(0,243,255,0.15);
+            border-color: rgba(0,243,255,0.5);
+        }
+        
+        .exercise-option-name {
+            font-weight: 600;
+            color: white;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        
+        .exercise-option-details {
+            display: flex;
+            gap: 12px;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+        
+        .exercise-weight {
+            color: #00ff88;
+        }
+        
+        .exercise-sessions {
+            color: #ffd700;
+        }
+        
+        #exerciseSearchInput:focus {
+            border-color: var(--color-primary);
+            background: rgba(255,255,255,0.08);
+        }
+        
+        /* Scrollbar styling for dropdown */
+        #exerciseOptionsList::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #exerciseOptionsList::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+        
+        #exerciseOptionsList::-webkit-scrollbar-thumb {
+            background: rgba(0,243,255,0.3);
+            border-radius: 3px;
+        }
+        
+        #exerciseOptionsList::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,243,255,0.5);
+        }
     </style>
 </head>
 
@@ -466,27 +567,78 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0;">Progressione <span class="text-primary">Forza</span></h3>
                 </div>
-                <!-- Dropdown migliorato per selezione esercizi -->
-                <div style="margin-bottom: 1rem;">
-                    <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 0.4rem;">Seleziona esercizio:</label>
-                    <select id="strengthExerciseSelect" style="
+                
+                <!-- Custom Dropdown per selezione esercizi -->
+                <div class="exercise-selector custom-dropdown-container" style="margin-bottom: 1rem; position: relative;">
+                    <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 0.4rem;">
+                        🏋️ Seleziona esercizio
+                    </label>
+                    
+                    <!-- Hidden select per compatibilità -->
+                    <select id="strengthExerciseSelect" style="display: none;"></select>
+                    
+                    <!-- Custom dropdown trigger -->
+                    <div id="exerciseDropdownTrigger" style="
                         width: 100%;
-                        background: var(--color-surface);
-                        border: 2px solid var(--color-border);
+                        background: linear-gradient(135deg, rgba(0,243,255,0.05), rgba(0,0,0,0.3));
+                        border: 2px solid rgba(0,243,255,0.3);
                         color: white;
-                        padding: 12px 16px;
-                        border-radius: 10px;
-                        font-size: 0.9rem;
+                        padding: 14px 16px;
+                        border-radius: 12px;
+                        font-size: 0.95rem;
                         cursor: pointer;
-                        appearance: none;
-                        background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 4 5\"><path fill=\"%2300f3ff\" d=\"M2 0L0 2h4z\" transform=\"rotate(180 2 2.5)\"/></svg>');
-                        background-repeat: no-repeat;
-                        background-position: right 12px center;
-                        background-size: 12px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        transition: all 0.2s ease;
+                        box-sizing: border-box;
                     ">
-                        <!-- Populated dynamically from actual exercises -->
-                    </select>
+                        <span class="selected-exercise-name" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 10px;">Seleziona un esercizio...</span>
+                        <span class="dropdown-arrow" style="color: var(--color-primary); font-size: 0.8rem; transition: transform 0.2s ease;">▼</span>
+                    </div>
+                    
+                    <!-- Dropdown panel -->
+                    <div id="exerciseDropdownPanel" style="
+                        display: none;
+                        position: absolute;
+                        top: 100%;
+                        left: 0;
+                        right: 0;
+                        background: var(--color-surface);
+                        border: 2px solid rgba(0,243,255,0.3);
+                        border-radius: 12px;
+                        margin-top: 4px;
+                        z-index: 1000;
+                        max-height: 350px;
+                        overflow: hidden;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                    ">
+                        <!-- Search input -->
+                        <div style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <input type="text" id="exerciseSearchInput" placeholder="🔍 Cerca esercizio..." style="
+                                width: 100%;
+                                background: rgba(255,255,255,0.05);
+                                border: 1px solid rgba(255,255,255,0.1);
+                                color: white;
+                                padding: 10px 14px;
+                                border-radius: 8px;
+                                font-size: 0.9rem;
+                                outline: none;
+                                box-sizing: border-box;
+                            ">
+                        </div>
+                        
+                        <!-- Options list -->
+                        <div id="exerciseOptionsList" style="
+                            max-height: 280px;
+                            overflow-y: auto;
+                            padding: 8px;
+                        ">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
                 </div>
+                
                 <div id="strengthProgressChart"></div>
                 <div id="strengthProgressStats" style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;"></div>
             </div>
@@ -861,15 +1013,109 @@
                 const uniqueExercises = advancedMetrics.getUniqueExercises(0); // 0 = nessun filtro minimo
                 const strengthSelect = document.getElementById('strengthExerciseSelect');
                 
-                if (uniqueExercises.length > 0) {
-                    // Mostra TUTTI gli esercizi con info su sessioni e peso max
-                    strengthSelect.innerHTML = uniqueExercises.map((ex, i) => {
+                // Custom Dropdown Setup
+                const dropdownTrigger = document.getElementById('exerciseDropdownTrigger');
+                const dropdownPanel = document.getElementById('exerciseDropdownPanel');
+                const optionsList = document.getElementById('exerciseOptionsList');
+                const searchInput = document.getElementById('exerciseSearchInput');
+                
+                // Funzione per creare le opzioni del dropdown
+                const populateDropdownOptions = (exercises, filter = '') => {
+                    const filtered = filter 
+                        ? exercises.filter(ex => ex.name.toLowerCase().includes(filter.toLowerCase()))
+                        : exercises;
+                    
+                    if (filtered.length === 0) {
+                        optionsList.innerHTML = `
+                            <div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">
+                                Nessun esercizio trovato
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    optionsList.innerHTML = filtered.map((ex, i) => {
                         const sessionText = ex.count === 1 ? '1 sessione' : `${ex.count} sessioni`;
-                        return `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name} — ${ex.maxWeight}kg (${sessionText})</option>`;
+                        const isSelected = i === 0 && !filter;
+                        return `
+                            <div class="exercise-option ${isSelected ? 'selected' : ''}" data-value="${ex.name}">
+                                <div class="exercise-option-name">${ex.name}</div>
+                                <div class="exercise-option-details">
+                                    <span class="exercise-weight">💪 ${ex.maxWeight}kg</span>
+                                    <span class="exercise-sessions">📊 ${sessionText}</span>
+                                </div>
+                            </div>
+                        `;
                     }).join('');
+                    
+                    // Aggiunge event listeners alle opzioni
+                    optionsList.querySelectorAll('.exercise-option').forEach(option => {
+                        option.addEventListener('click', () => {
+                            const value = option.dataset.value;
+                            const name = option.querySelector('.exercise-option-name').textContent;
+                            
+                            // Aggiorna il trigger
+                            dropdownTrigger.querySelector('.selected-exercise-name').textContent = name;
+                            
+                            // Aggiorna la selezione visiva
+                            optionsList.querySelectorAll('.exercise-option').forEach(o => o.classList.remove('selected'));
+                            option.classList.add('selected');
+                            
+                            // Chiude il dropdown
+                            dropdownPanel.classList.remove('open');
+                            dropdownTrigger.classList.remove('open');
+                            
+                            // Aggiorna il select nascosto e renderizza il grafico
+                            strengthSelect.value = value;
+                            renderStrengthChart(value);
+                        });
+                    });
+                };
+                
+                if (uniqueExercises.length > 0) {
+                    // Popola il select nascosto per compatibilità
+                    strengthSelect.innerHTML = uniqueExercises.map((ex, i) => {
+                        return `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name}</option>`;
+                    }).join('');
+                    
+                    // Popola il dropdown custom
+                    populateDropdownOptions(uniqueExercises);
+                    
+                    // Imposta il primo esercizio come selezionato nel trigger
+                    dropdownTrigger.querySelector('.selected-exercise-name').textContent = uniqueExercises[0].name;
                 } else {
                     strengthSelect.innerHTML = '<option value="">Nessun esercizio registrato</option>';
+                    dropdownTrigger.querySelector('.selected-exercise-name').textContent = 'Nessun esercizio registrato';
+                    optionsList.innerHTML = `
+                        <div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">
+                            Registra almeno un allenamento per vedere gli esercizi.
+                        </div>
+                    `;
                 }
+                
+                // Toggle dropdown
+                dropdownTrigger.addEventListener('click', () => {
+                    const isOpen = dropdownPanel.classList.toggle('open');
+                    dropdownTrigger.classList.toggle('open');
+                    if (isOpen) {
+                        searchInput.focus();
+                        searchInput.value = '';
+                        populateDropdownOptions(uniqueExercises);
+                    }
+                });
+                
+                // Ricerca
+                searchInput.addEventListener('input', (e) => {
+                    populateDropdownOptions(uniqueExercises, e.target.value);
+                });
+                
+                // Chiudi dropdown cliccando fuori
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.custom-dropdown-container')) {
+                        dropdownPanel.classList.remove('open');
+                        dropdownTrigger.classList.remove('open');
+                    }
+                });
 
                 const renderStrengthChart = (exercise) => {
                     if (!exercise) {
@@ -2337,6 +2583,29 @@
             });
 
             renderEstimatedTable();
+            
+            // --- AUTO-SYNC MANAGER ---
+            // Sincronizza automaticamente all'avvio e ogni 5 minuti
+            const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti
+            
+            const performAutoSync = async () => {
+                try {
+                    console.log('🔄 [Analysis] Auto-sync in corso...');
+                    await firestoreService.syncToCloud();
+                    console.log('✅ [Analysis] Auto-sync completato:', new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.warn('⚠️ [Analysis] Auto-sync fallito:', error.message);
+                }
+            };
+            
+            // Primo sync silenzioso dopo 2 secondi
+            setTimeout(performAutoSync, 2000);
+            
+            // Sync ogni 5 minuti (solo se non già attivo da altra pagina)
+            if (!window.autoSyncInterval) {
+                window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);
+                console.log('🔄 [Analysis] Auto-sync attivato: ogni 5 minuti');
+            }
         });
     </script>
 </body>

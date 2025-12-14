@@ -954,14 +954,26 @@ export class AdvancedMetricsEngine {
         const thisExercises = new Set();
         thisWeek.forEach(log => (log.exercises || []).forEach(ex => thisExercises.add(ex.name)));
 
+        // Helper per estrarre minuti da durata (può essere "45 min", "45", o numero)
+        const parseDuration = (duration) => {
+            if (typeof duration === 'number') return duration;
+            if (typeof duration === 'string') {
+                const match = duration.match(/(\d+)/);
+                return match ? parseInt(match[1], 10) : 0;
+            }
+            return 0;
+        };
+
+        // Calcola durata media
+        const totalDuration = thisWeek.reduce((s, l) => s + parseDuration(l.duration), 0);
+        const avgDuration = thisWeek.length > 0 ? Math.round(totalDuration / thisWeek.length) : 0;
+
         return {
             sessions: thisWeek.length,
             totalVolume: thisVolume,
             volumeChange: parseFloat(volumeChange),
             uniqueExercises: thisExercises.size,
-            avgDuration: thisWeek.length 
-                ? Math.round(thisWeek.reduce((s, l) => s + (l.duration || 0), 0) / thisWeek.length)
-                : 0,
+            avgDuration: avgDuration,
             comparedToLastWeek: {
                 sessions: thisWeek.length - lastWeek.length,
                 volume: thisVolume - lastVolume
