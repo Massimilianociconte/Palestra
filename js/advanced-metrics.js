@@ -278,6 +278,74 @@ export class AdvancedMetricsEngine {
     }
 
     /**
+     * Normalizza il nome di un esercizio per il matching
+     * Rimuove varianti, parentesi, punteggiatura e normalizza
+     */
+    _normalizeExerciseName(name) {
+        if (!name) return '';
+        return name
+            .toLowerCase()
+            .trim()
+            // Rimuovi contenuto tra parentesi (varianti come "seduto", "in piedi", etc.)
+            .replace(/\s*\([^)]*\)\s*/g, ' ')
+            // Rimuovi numeri isolati (es. "30 kg" rimanenti)
+            .replace(/\b\d+\s*(kg|lb|lbs)?\b/gi, '')
+            // Normalizza spazi multipli
+            .replace(/\s+/g, ' ')
+            // Rimuovi punteggiatura
+            .replace(/[.,;:!?'"]/g, '')
+            .trim();
+    }
+
+    /**
+     * Verifica se due nomi di esercizi sono equivalenti
+     */
+    _exerciseNamesMatch(name1, name2) {
+        const norm1 = this._normalizeExerciseName(name1);
+        const norm2 = this._normalizeExerciseName(name2);
+        
+        // Match esatto dopo normalizzazione
+        if (norm1 === norm2) return true;
+        
+        // Uno contiene l'altro (per nomi abbreviati)
+        if (norm1.length >= 5 && norm2.length >= 5) {
+            if (norm1.includes(norm2) || norm2.includes(norm1)) return true;
+        }
+        
+        // Calcola similarità per nomi molto simili (typo tolerance)
+        const similarity = this._calculateSimilarity(norm1, norm2);
+        return similarity >= 0.85; // 85% similarità
+    }
+
+    /**
+     * Calcola similarità tra due stringhe (0-1)
+     * Usa Dice coefficient per efficienza
+     */
+    _calculateSimilarity(str1, str2) {
+        if (str1 === str2) return 1;
+        if (!str1 || !str2) return 0;
+        
+        // Crea bigrammi
+        const bigrams1 = new Set();
+        const bigrams2 = new Set();
+        
+        for (let i = 0; i < str1.length - 1; i++) {
+            bigrams1.add(str1.substring(i, i + 2));
+        }
+        for (let i = 0; i < str2.length - 1; i++) {
+            bigrams2.add(str2.substring(i, i + 2));
+        }
+        
+        // Conta intersezione
+        let intersection = 0;
+        bigrams1.forEach(bg => {
+            if (bigrams2.has(bg)) intersection++;
+        });
+        
+        return (2 * intersection) / (bigrams1.size + bigrams2.size);
+    }
+
+    /**
      * 4. GET UNIQUE EXERCISES FROM LOGS
      * Estrae TUTTI gli esercizi unici dai log (senza filtri minimi)
      * USA PESO REALE MASSIMO (non stimato)
@@ -333,23 +401,25 @@ export class AdvancedMetricsEngine {
     /**
      * 5. STRENGTH PROGRESSION
      * Traccia TUTTI i pesi fatti per un esercizio nel tempo
-     * Raccoglie ogni set con peso registrato, non solo il massimo per sessione
+     * Usa matching intelligente per raggruppare varianti dello stesso esercizio
      */
     calculateStrengthProgression(exerciseName, months = 3) {
         const cutoff = Date.now() - (months * 30 * DAY_MS);
         
-        // Usa TUTTI i log per trovare l'esercizio, poi filtra per data
+        // Usa TUTTI i log per trovare l'esercizio
         const allDataPoints = [];
-        const searchTerm = exerciseName.toLowerCase().trim();
         let exerciseFound = false;
+        const matchedNames = new Set(); // Traccia tutti i nomi matchati
 
         // Raccogli TUTTI i pesi fatti per questo esercizio (da tutti i log)
         this.logs.forEach(log => {
             (log.exercises || []).forEach(ex => {
-                const exName = (ex.name || '').toLowerCase().trim();
-                // Match esatto o contenuto
-                if (exName === searchTerm || exName.includes(searchTerm) || searchTerm.includes(exName)) {
+                const exName = (ex.name || '').trim();
+                
+                // Usa matching intelligente
+                if (this._exerciseNamesMatch(exName, exerciseName)) {
                     exerciseFound = true;
+                    matchedNames.add(exName);
                     const logTimestamp = new Date(log.date).getTime();
                     
                     // Raccogli OGNI set con peso (non solo il max della sessione)
@@ -363,7 +433,7 @@ export class AdvancedMetricsEngine {
                                 reps: r,
                                 timestamp: logTimestamp,
                                 setIndex: setIndex,
-                                exerciseName: ex.name
+                                exerciseName: exName
                             });
                         }
                     });

@@ -465,7 +465,25 @@
             <div class="card" style="margin-bottom: var(--spacing-md);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0;">Progressione <span class="text-primary">Forza</span></h3>
-                    <select id="strengthExerciseSelect" style="background: var(--color-surface); border: 1px solid var(--color-border); color: white; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; max-width: 200px;">
+                </div>
+                <!-- Dropdown migliorato per selezione esercizi -->
+                <div style="margin-bottom: 1rem;">
+                    <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 0.4rem;">Seleziona esercizio:</label>
+                    <select id="strengthExerciseSelect" style="
+                        width: 100%;
+                        background: var(--color-surface);
+                        border: 2px solid var(--color-border);
+                        color: white;
+                        padding: 12px 16px;
+                        border-radius: 10px;
+                        font-size: 0.9rem;
+                        cursor: pointer;
+                        appearance: none;
+                        background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 4 5\"><path fill=\"%2300f3ff\" d=\"M2 0L0 2h4z\" transform=\"rotate(180 2 2.5)\"/></svg>');
+                        background-repeat: no-repeat;
+                        background-position: right 12px center;
+                        background-size: 12px;
+                    ">
                         <!-- Populated dynamically from actual exercises -->
                     </select>
                 </div>
@@ -613,9 +631,9 @@
 
             <!-- PR Table - STIME RM SCIENTIFICHE -->
             <div class="card">
-                <h3 style="margin-bottom: 1rem;">📊 Stime Massimali <span class="text-primary">(Calcolo Scientifico)</span></h3>
-                <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
-                    Stime basate su formule ibride (Epley + Brzycki + Lombardi + Mayhew + Wathen) per massima accuratezza.
+                <h3 style="margin-bottom: 0.5rem;">📊 Stime Massimali <span class="text-primary">(Calcolo Scientifico)</span></h3>
+                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+                    Stime basate su formule ibride (Epley + Brzycki + Lombardi + Mayhew + Wathen).
                 </p>
                 
                 <div class="rm-selector" style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; flex-wrap: wrap; margin-bottom: 1rem;">
@@ -627,18 +645,21 @@
                     <button class="btn-rm" data-rm="12rm" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">12RM</button>
                 </div>
 
-                <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
-                            <th style="padding: 10px;">Esercizio</th>
-                            <th style="padding: 10px;" id="rmHeader">1RM (Stima)</th>
-                            <th style="padding: 10px;">Basato su</th>
-                        </tr>
-                    </thead>
-                    <tbody id="prTableBody">
-                        <!-- Dynamic Estimated PRs -->
-                    </tbody>
-                </table>
+                <!-- Container scrollabile per mobile -->
+                <div style="max-height: 350px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background: var(--color-surface); z-index: 1;">
+                            <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
+                                <th style="padding: 10px; font-size: 0.8rem;">Esercizio</th>
+                                <th style="padding: 10px; font-size: 0.8rem;" id="rmHeader">1RM</th>
+                                <th style="padding: 10px; font-size: 0.8rem;">Base</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prTableBody">
+                            <!-- Dynamic Estimated PRs -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
@@ -841,10 +862,11 @@
                 const strengthSelect = document.getElementById('strengthExerciseSelect');
                 
                 if (uniqueExercises.length > 0) {
-                    // Mostra TUTTI gli esercizi senza limite, ordinati per data più recente
-                    strengthSelect.innerHTML = uniqueExercises.map((ex, i) => 
-                        `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name} (max ${ex.maxWeight}kg)</option>`
-                    ).join('');
+                    // Mostra TUTTI gli esercizi con info su sessioni e peso max
+                    strengthSelect.innerHTML = uniqueExercises.map((ex, i) => {
+                        const sessionText = ex.count === 1 ? '1 sessione' : `${ex.count} sessioni`;
+                        return `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name} — ${ex.maxWeight}kg (${sessionText})</option>`;
+                    }).join('');
                 } else {
                     strengthSelect.innerHTML = '<option value="">Nessun esercizio registrato</option>';
                 }
@@ -880,7 +902,7 @@
                     
                     const trendIcon = progression.trend === 'up' ? '📈' : progression.trend === 'down' ? '📉' : '➡️';
                     const trendClass = progression.trend === 'up' ? 'up' : progression.trend === 'down' ? 'down' : 'stable';
-                    const sessionsText = progression.totalSessions ? `${progression.totalSessions} sessioni` : '';
+                    const sessionsCount = progression.totalSessions || progression.dataPoints.length;
                     
                     document.getElementById('strengthProgressStats').innerHTML = `
                         <div>
@@ -891,13 +913,13 @@
                             <div style="font-family: var(--font-display); font-size: 1.5rem;" class="metric-trend ${trendClass}">
                                 ${progression.change > 0 ? '+' : ''}${progression.change || 0} kg
                             </div>
-                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">${trendIcon} Variazione 3 mesi</div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">${trendIcon} Var. 3 mesi</div>
                         </div>
                         <div>
                             <div style="font-family: var(--font-display); font-size: 1.5rem; color: ${progression.changePercent >= 0 ? '#00ff88' : '#ff6b6b'};">
                                 ${progression.changePercent > 0 ? '+' : ''}${progression.changePercent}%
                             </div>
-                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">Progresso</div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">${sessionsCount} session${sessionsCount === 1 ? 'e' : 'i'}</div>
                         </div>
                     `;
                 };
