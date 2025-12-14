@@ -536,10 +536,32 @@
 
             <!-- DOMS Tracker -->
             <div class="card" id="domsTrackerCard" style="margin-bottom: var(--spacing-md);">
-                <div style="display:flex; justify-content: space-between; align-items:center; gap:1rem;">
-                    <h3 style="margin-bottom: 1rem;">DOMS Tracker Mirato</h3>
+                <div style="display:flex; justify-content: space-between; align-items:center; gap:1rem; flex-wrap: wrap;">
+                    <div>
+                        <h3 style="margin-bottom: 0.25rem;">DOMS Tracker <span class="text-primary">Muscolare</span></h3>
+                        <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0;">
+                            Monitora i tuoi dolori muscolari post-allenamento e i tempi di recupero
+                        </p>
+                    </div>
                     <small id="domsReportCount" style="color: var(--color-text-muted);"></small>
                 </div>
+                
+                <!-- Legenda DOMS -->
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.7rem;">
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <span style="color: #00ff88;">●</span>
+                        <span style="color: var(--color-text-muted);">Dolore lieve (1-3)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <span style="color: #ffcc00;">●</span>
+                        <span style="color: var(--color-text-muted);">Dolore moderato (4-6)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <span style="color: #ff6b6b;">●</span>
+                        <span style="color: var(--color-text-muted);">Dolore intenso (7-10)</span>
+                    </div>
+                </div>
+                
                 <div id="domsHotspotList" style="display:flex; flex-direction:column; gap:0.75rem;">
                     <p style="color: var(--color-text-muted);">Compila il questionario DOMS prima di ogni Focus Mode per
                         monitorare i recuperi specifici.</p>
@@ -1591,36 +1613,73 @@
                         const fatigueColor = h.avgIntensity >= 7 ? '#ff6b6b' : h.avgIntensity >= 4 ? '#ffcc00' : '#00ff88';
                         
                         return `
-                            <div style="display:flex; justify-content:space-between; gap:1rem; padding:0.65rem; border:1px solid rgba(255,255,255,0.05); border-radius:8px; background: rgba(255,255,255,0.02);">
+                            <div style="display:flex; justify-content:space-between; gap:1rem; padding:0.75rem; border:1px solid rgba(255,255,255,0.08); border-radius:10px; background: rgba(255,255,255,0.02);">
                                 <div>
-                                    <strong>${h.label}</strong>
-                                    <div style="font-size:0.8rem; color: var(--color-text-muted);">${h.totalSets || h.occurrences} set • RPE ${h.avgRpe || 'N/D'}</div>
+                                    <strong style="font-size: 0.95rem;">${h.label}</strong>
+                                    <div style="font-size:0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                                        📊 ${h.totalSets || h.occurrences} set totali • RPE medio ${h.avgRpe || 'N/D'}
+                                    </div>
                                 </div>
-                                <div style="text-align:right; font-size:0.75rem;">
-                                    <div style="color: ${fatigueColor}; font-weight: 600;">Fatica: ${fatigueLevel}</div>
-                                    <div style="color: var(--color-text-muted);">${lastDays !== null ? `${lastDays}g fa` : ''}</div>
+                                <div style="text-align:right; font-size:0.8rem;">
+                                    <div style="color: ${fatigueColor}; font-weight: 600; font-size: 0.9rem;">
+                                        ${fatigueLevel}
+                                    </div>
+                                    <div style="color: var(--color-text-muted); font-size: 0.7rem;">
+                                        ${lastDays !== null ? `Ultimo: ${lastDays === 0 ? 'oggi' : lastDays === 1 ? 'ieri' : lastDays + 'g fa'}` : ''}
+                                    </div>
                                 </div>
                             </div>
                         `;
                     }).join('');
                 } else {
-                    // Mostra dati DOMS reali
+                    // Mostra dati DOMS reali con spiegazioni chiare
                     domsHotspotList.innerHTML = hotspots.slice(0, 5).map(h => {
                         const lastDays = h.lastReportedAt ? Math.max(0, Math.round((Date.now() - new Date(h.lastReportedAt).getTime()) / DAY_MS)) : null;
-                        const avgRecovery = h.avgRecoveryDays ?? h.lastRecoveryDays ?? 'N/D';
-                        const avgIntensity = h.avgIntensity ?? h.lastIntensity ?? 'N/D';
+                        const avgRecovery = h.avgRecoveryDays ?? h.lastRecoveryDays;
+                        const avgIntensity = h.avgIntensity ?? h.lastIntensity;
                         const intensityColor = avgIntensity >= 7 ? '#ff6b6b' : avgIntensity >= 4 ? '#ffcc00' : '#00ff88';
                         
+                        // Calcola stato recupero
+                        let recoveryStatus = '';
+                        let recoveryIcon = '';
+                        if (avgRecovery !== null && avgRecovery !== undefined) {
+                            if (avgRecovery <= 1) {
+                                recoveryStatus = 'Recupero rapido';
+                                recoveryIcon = '⚡';
+                            } else if (avgRecovery <= 3) {
+                                recoveryStatus = 'Recupero normale';
+                                recoveryIcon = '✅';
+                            } else {
+                                recoveryStatus = 'Recupero lento';
+                                recoveryIcon = '⏳';
+                            }
+                        }
+                        
                         return `
-                            <div style="display:flex; justify-content:space-between; gap:1rem; padding:0.65rem; border:1px solid rgba(255,255,255,0.05); border-radius:8px;">
-                                <div>
-                                    <strong>${h.label}</strong>
-                                    <div style="font-size:0.8rem; color: var(--color-text-muted);">Segnalazioni: ${h.occurrences}</div>
+                            <div style="padding:0.85rem; border:1px solid rgba(255,255,255,0.08); border-radius:10px; background: linear-gradient(135deg, rgba(255,255,255,0.02), transparent);">
+                                <div style="display:flex; justify-content:space-between; align-items: flex-start; gap:1rem;">
+                                    <div>
+                                        <strong style="font-size: 1rem;">${h.label}</strong>
+                                        <div style="font-size:0.75rem; color: var(--color-text-muted); margin-top: 0.3rem;">
+                                            🔄 ${h.occurrences} segnalazion${h.occurrences === 1 ? 'e' : 'i'} DOMS
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="color: ${intensityColor}; font-weight: 700; font-size: 1.1rem;">
+                                            ${avgIntensity !== null && avgIntensity !== undefined ? avgIntensity + '/10' : 'N/D'}
+                                        </div>
+                                        <div style="font-size: 0.65rem; color: var(--color-text-muted);">Dolore medio</div>
+                                    </div>
                                 </div>
-                                <div style="text-align:right; font-size:0.75rem; color: var(--color-text-muted);">
-                                    <div>Intensità: <span style="color: ${intensityColor}; font-weight: 600;">${avgIntensity}/10</span></div>
-                                    <div>Recupero: ${avgRecovery}g</div>
-                                    <div>${lastDays !== null ? `${lastDays}g fa` : ''}</div>
+                                
+                                <div style="display: flex; justify-content: space-between; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.75rem;">
+                                    <div style="color: var(--color-text-muted);">
+                                        ${recoveryIcon} <strong style="color: var(--color-primary);">${avgRecovery !== null && avgRecovery !== undefined ? avgRecovery + ' giorni' : 'N/D'}</strong>
+                                        <span style="opacity: 0.7;"> tempo recupero medio</span>
+                                    </div>
+                                    <div style="color: var(--color-text-muted);">
+                                        ${lastDays !== null ? (lastDays === 0 ? '📍 Oggi' : lastDays === 1 ? '📍 Ieri' : '📍 ' + lastDays + 'g fa') : ''}
+                                    </div>
                                 </div>
                             </div>
                         `;
