@@ -913,7 +913,7 @@ function setupShareInterception(sharingHandler) {
             const result = await sharingHandler.shareWorkout(workout);
 
             if (result.success) {
-                sharingHandler.showShareModal(workout.name, result.shareUrl);
+                sharingHandler.showShareModal(workout.name, result.shareUrl, result.deepLink);
             } else {
                 alert('Errore: ' + result.error);
             }

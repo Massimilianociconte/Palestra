@@ -167,10 +167,15 @@ export class WorkoutSharingHandler {
     }
 
     // Show share modal with copy button and social sharing
-    showShareModal(workoutName, shareUrl) {
+    showShareModal(workoutName, shareUrl, deepLink = null) {
         const shareText = `Dai un'occhiata a questa scheda di allenamento: ${workoutName}`;
         const encodedUrl = encodeURIComponent(shareUrl);
         const encodedText = encodeURIComponent(shareText);
+
+        // Combine message for native share (includes deep link for app users)
+        const fullShareText = deepLink
+            ? `${shareText}\n\n📱 Apri nell'app: ${deepLink}\n🌐 Apri nel browser: ${shareUrl}`
+            : `${shareText}\n${shareUrl}`;
 
         const modalHTML = `
             <div id="workoutShareModal" style="
@@ -193,28 +198,56 @@ export class WorkoutSharingHandler {
                     </h3>
                     
                     <p style="margin-bottom: 1rem; color: var(--color-text-muted);">
-                        Condividi <strong style="color: var(--color-text);">${workoutName}</strong> con questo link:
+                        Condividi <strong style="color: var(--color-text);">${workoutName}</strong>
                     </p>
                     
-                    <div style="
-                        background: rgba(255,255,255,0.05);
-                        padding: 1rem;
-                        border-radius: var(--radius-sm);
-                        border: 1px solid var(--color-border);
-                        margin-bottom: 1rem;
-                        word-break: break-all;
-                        font-family: monospace;
-                        font-size: 0.85rem;
-                        color: var(--color-primary);
-                    ">
-                        ${shareUrl}
+                    <!-- App Deep Link (for users with app) -->
+                    ${deepLink ? `
+                    <div style="margin-bottom: 1rem;">
+                        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.3rem;">
+                            📱 <strong>Per chi ha l'app GymBro:</strong>
+                        </p>
+                        <div id="deepLinkBox" style="
+                            background: linear-gradient(135deg, rgba(0,243,255,0.1), rgba(0,153,255,0.1));
+                            padding: 0.8rem;
+                            border-radius: var(--radius-sm);
+                            border: 1px solid var(--color-primary);
+                            word-break: break-all;
+                            font-family: monospace;
+                            font-size: 0.8rem;
+                            color: var(--color-primary);
+                            cursor: pointer;
+                        " onclick="navigator.clipboard.writeText('${deepLink}').then(() => this.innerHTML = '✅ Copiato!')">
+                            ${deepLink}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Web Link (universal) -->
+                    <div style="margin-bottom: 1rem;">
+                        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.3rem;">
+                            🌐 <strong>Link universale (browser):</strong>
+                        </p>
+                        <div id="webLinkBox" style="
+                            background: rgba(255,255,255,0.05);
+                            padding: 0.8rem;
+                            border-radius: var(--radius-sm);
+                            border: 1px solid var(--color-border);
+                            word-break: break-all;
+                            font-family: monospace;
+                            font-size: 0.8rem;
+                            color: var(--color-text);
+                            cursor: pointer;
+                        " onclick="navigator.clipboard.writeText('${shareUrl}').then(() => this.innerHTML = '✅ Copiato!')">
+                            ${shareUrl}
+                        </div>
                     </div>
                     
                     <!-- Social Share Buttons -->
                     <div style="margin-bottom: 1rem;">
                         <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Condividi su:</p>
                         <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            <button class="share-social-btn" data-platform="native" style="
+                            <button class="share-social-btn" data-platform="native" data-fulltext="${encodeURIComponent(fullShareText)}" style="
                                 background: linear-gradient(135deg, #00f3ff, #0099ff);
                                 border: none;
                                 color: white;
@@ -308,7 +341,11 @@ export class WorkoutSharingHandler {
         modal.querySelectorAll('.share-social-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const platform = btn.dataset.platform;
-                this.shareToSocialPlatform(platform, shareUrl, shareText);
+                // For native share, use fullShareText if available (includes both app and web links)
+                const textToShare = btn.dataset.fulltext
+                    ? decodeURIComponent(btn.dataset.fulltext)
+                    : shareText;
+                this.shareToSocialPlatform(platform, shareUrl, textToShare);
             });
         });
 
