@@ -459,7 +459,8 @@ export class FirestoreService {
                     } : undefined,
                     domsTargets: Array.isArray(log.wellness?.sorenessMuscles) && log.wellness.sorenessMuscles.length
                         ? log.wellness.sorenessMuscles
-                        : undefined
+                        : undefined,
+                    domsExternalCause: log.wellness?.externalCause || undefined
                 };
             });
 

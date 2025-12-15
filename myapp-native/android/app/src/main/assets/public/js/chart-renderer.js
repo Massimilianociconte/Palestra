@@ -331,7 +331,7 @@ export class ChartRenderer {
     }
 
     /**
-     * CONSISTENCY CALENDAR - Heatmap stile GitHub
+     * CONSISTENCY CALENDAR - Calendario attività semplice e chiaro
      */
     static renderCalendar(containerId, calendarData) {
         const container = document.getElementById(containerId);
@@ -339,81 +339,155 @@ export class ChartRenderer {
 
         const { calendar, currentStreak, maxStreak, consistencyRate } = calendarData;
         
-        // Raggruppa per settimana
-        const weeks = [];
-        let currentWeek = [];
-        
-        calendar.forEach((day, i) => {
-            currentWeek.push(day);
-            if (currentWeek.length === 7 || i === calendar.length - 1) {
-                weeks.push([...currentWeek]);
-                currentWeek = [];
-            }
+        if (!calendar || calendar.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nessun dato disponibile</p>';
+            return;
+        }
+
+        // Mappa data -> dati
+        const dataByDate = {};
+        calendar.forEach(day => {
+            dataByDate[day.date] = day;
         });
 
+        // Calcola le 12 settimane da mostrare (ultime 12 settimane fino ad oggi)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Trova il lunedì di 12 settimane fa
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - (12 * 7) + 1);
+        // Vai al lunedì di quella settimana
+        const startDayOfWeek = startDate.getDay();
+        const daysFromMonday = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+        startDate.setDate(startDate.getDate() - daysFromMonday);
+
+        // Costruisci struttura: 7 righe (Lun-Dom) x N colonne (settimane)
+        const numWeeks = 13; // ~3 mesi
+        const rows = [[], [], [], [], [], [], []]; // 0=Lun, 1=Mar, ..., 6=Dom
+        const weekDates = []; // Prima data di ogni settimana per label mesi
+
+        for (let week = 0; week < numWeeks; week++) {
+            const weekStartDate = new Date(startDate);
+            weekStartDate.setDate(startDate.getDate() + week * 7);
+            weekDates.push(new Date(weekStartDate));
+            
+            for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+                const cellDate = new Date(weekStartDate);
+                cellDate.setDate(weekStartDate.getDate() + dayOfWeek);
+                const dateStr = cellDate.toISOString().split('T')[0];
+                
+                const dayData = dataByDate[dateStr];
+                const isFuture = cellDate > today;
+                
+                rows[dayOfWeek].push({
+                    date: cellDate,
+                    dateStr: dateStr,
+                    intensity: isFuture ? -1 : (dayData?.intensity || 0),
+                    volume: dayData?.volume || 0,
+                    isFuture: isFuture
+                });
+            }
+        }
+
         // Genera HTML
-        const dayLabels = ['D', 'L', 'M', 'M', 'G', 'V', 'S'];
+        const dayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+        const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
+        let html = `<div class="cal-wrapper">`;
         
-        let calendarHTML = '<div class="calendar-heatmap">';
+        // Header con mesi
+        html += `<div class="cal-header">`;
+        html += `<div class="cal-day-name"></div>`; // Spazio vuoto per allineare
         
-        // Day labels
-        calendarHTML += '<div style="display: flex;">';
-        calendarHTML += '<div class="calendar-day-labels">';
-        dayLabels.forEach((label, i) => {
-            if (i % 2 === 1) { // Show only odd days
-                calendarHTML += `<div class="calendar-day-label">${label}</div>`;
+        let lastMonth = -1;
+        weekDates.forEach((date, i) => {
+            const month = date.getMonth();
+            if (month !== lastMonth) {
+                html += `<div class="cal-month">${monthNames[month]}</div>`;
+                lastMonth = month;
             } else {
-                calendarHTML += `<div class="calendar-day-label"></div>`;
+                html += `<div class="cal-month"></div>`;
             }
         });
-        calendarHTML += '</div>';
+        html += `</div>`;
+
+        // Griglia
+        html += `<div class="cal-grid">`;
         
-        // Calendar grid
-        calendarHTML += '<div style="display: flex; gap: 3px;">';
-        weeks.forEach(week => {
-            calendarHTML += '<div class="calendar-row" style="flex-direction: column;">';
-            week.forEach(day => {
-                const title = `${day.date}: ${day.volume > 0 ? Math.round(day.volume/1000) + 'k volume' : 'Riposo'}`;
-                calendarHTML += `<div class="calendar-day" data-intensity="${day.intensity}" title="${title}"></div>`;
+        for (let row = 0; row < 7; row++) {
+            html += `<div class="cal-row">`;
+            
+            // Nome giorno
+            html += `<div class="cal-day-name">${dayNames[row]}</div>`;
+            
+            // Celle
+            rows[row].forEach(cell => {
+                if (cell.isFuture) {
+                    html += `<div class="cal-cell cal-future"></div>`;
+                } else {
+                    const dateFormatted = cell.date.toLocaleDateString('it-IT', { 
+                        weekday: 'short', day: 'numeric', month: 'short' 
+                    });
+                    const volText = cell.volume > 0 ? `${Math.round(cell.volume/1000)}k vol` : 'Riposo';
+                    html += `<div class="cal-cell cal-i${cell.intensity}" title="${dateFormatted}\n${volText}"></div>`;
+                }
             });
-            calendarHTML += '</div>';
-        });
-        calendarHTML += '</div></div>';
+            
+            html += `</div>`;
+        }
         
+        html += `</div>`;
+
+        // Legenda
+        html += `<div class="cal-legend">
+            <span>Meno</span>
+            <div class="cal-cell cal-i0"></div>
+            <div class="cal-cell cal-i1"></div>
+            <div class="cal-cell cal-i2"></div>
+            <div class="cal-cell cal-i3"></div>
+            <div class="cal-cell cal-i4"></div>
+            <span>Più</span>
+        </div>`;
+
         // Stats
-        calendarHTML += `
-            <div style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;">
-                <div>
-                    <div class="streak-badge">
-                        <span class="fire">🔥</span>
-                        <span class="count">${currentStreak}</span>
-                        <span>giorni</span>
-                    </div>
-                    <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.25rem;">Streak Attuale</div>
-                </div>
-                <div>
-                    <div style="font-family: var(--font-display); font-size: 1.5rem; color: var(--color-primary);">${consistencyRate}%</div>
-                    <div style="font-size: 0.7rem; color: var(--color-text-muted);">Costanza</div>
-                </div>
-                <div>
-                    <div style="font-family: var(--font-display); font-size: 1.5rem; color: #ff8844;">${maxStreak}</div>
-                    <div style="font-size: 0.7rem; color: var(--color-text-muted);">Record Streak</div>
-                </div>
+        html += `<div class="cal-stats">
+            <div class="cal-stat">
+                <span class="cal-stat-icon">🔥</span>
+                <span class="cal-stat-value">${currentStreak}</span>
+                <span class="cal-stat-label">Streak</span>
             </div>
-        `;
-        
-        calendarHTML += '</div>';
-        container.innerHTML = calendarHTML;
+            <div class="cal-stat">
+                <span class="cal-stat-value cal-primary">${consistencyRate}%</span>
+                <span class="cal-stat-label">Costanza</span>
+            </div>
+            <div class="cal-stat">
+                <span class="cal-stat-value cal-orange">${maxStreak}</span>
+                <span class="cal-stat-label">Record</span>
+            </div>
+        </div>`;
+
+        html += `</div>`;
+        container.innerHTML = html;
     }
 
     /**
-     * SCATTER PLOT - Correlazione
+     * SCATTER PLOT - Correlazione con jittering e validazione statistica
      */
     static renderScatter(containerId, dataPoints, options = {}) {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const { width = 350, height = 200, xLabel = 'X', yLabel = 'Y' } = options;
+        const { 
+            width = 350, 
+            height = 200, 
+            xLabel = 'X', 
+            yLabel = 'Y',
+            showTrendLine = true,
+            isStatisticallyValid = true,
+            jitterAmount = 0.15 // Quantità di jittering per evitare overplotting
+        } = options;
+        
         const padding = { top: 20, right: 20, bottom: 35, left: 45 };
         const chartWidth = width - padding.left - padding.right;
         const chartHeight = height - padding.top - padding.bottom;
@@ -426,38 +500,89 @@ export class ChartRenderer {
         const xValues = dataPoints.map(d => d.x);
         const yValues = dataPoints.map(d => d.y);
         
-        const xMin = Math.min(...xValues) * 0.9;
-        const xMax = Math.max(...xValues) * 1.1;
+        // Range fisso per sonno (1-10) per migliore visualizzazione
+        const isDiscreteSleepScale = xLabel.toLowerCase().includes('sonno');
+        const xMin = isDiscreteSleepScale ? 0.5 : Math.min(...xValues) * 0.9;
+        const xMax = isDiscreteSleepScale ? 10.5 : Math.max(...xValues) * 1.1;
         const yMin = Math.min(...yValues) * 0.9;
         const yMax = Math.max(...yValues) * 1.1;
 
         const xScale = (v) => padding.left + ((v - xMin) / (xMax - xMin)) * chartWidth;
         const yScale = (v) => padding.top + chartHeight - ((v - yMin) / (yMax - yMin)) * chartHeight;
 
-        // Points
+        // Funzione per generare jitter deterministico (basato sulla posizione)
+        const jitter = (value, index, axis) => {
+            // Usa un seed basato su indice e asse per consistenza
+            const seed = (index * 7 + (axis === 'x' ? 3 : 13)) % 17;
+            const noise = ((seed / 17) - 0.5) * 2 * jitterAmount;
+            return value + noise;
+        };
+
+        // Conta sovrapposizioni per determinare intensità del jitter
+        const overlapCount = this._countOverlaps(dataPoints);
+        const adaptiveJitter = overlapCount > 3 ? jitterAmount * 1.5 : jitterAmount;
+
+        // Points con jittering per evitare overplotting
         let points = '';
-        dataPoints.forEach(d => {
-            points += `<circle class="scatter-point" cx="${xScale(d.x)}" cy="${yScale(d.y)}" r="6" 
-                        data-x="${d.x}" data-y="${d.y.toFixed(1)}" />`;
+        dataPoints.forEach((d, i) => {
+            const jitteredX = jitter(d.x, i, 'x');
+            const jitteredY = d.y; // Solo jitter su X per dati discreti
+            points += `<circle class="scatter-point" 
+                        cx="${xScale(jitteredX)}" cy="${yScale(jitteredY)}" r="6" 
+                        data-x="${d.x}" data-y="${d.y.toFixed(1)}"
+                        data-original-x="${d.x}" />`;
         });
 
-        // Trend line (linear regression)
-        const n = dataPoints.length;
-        const sumX = xValues.reduce((a, b) => a + b, 0);
-        const sumY = yValues.reduce((a, b) => a + b, 0);
-        const sumXY = dataPoints.reduce((s, d) => s + d.x * d.y, 0);
-        const sumX2 = xValues.reduce((s, x) => s + x * x, 0);
-        
-        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        const intercept = (sumY - slope * sumX) / n;
-        
-        const trendY1 = slope * xMin + intercept;
-        const trendY2 = slope * xMax + intercept;
+        // Trend line (linear regression) - solo se statisticamente valido
+        let trendLineHtml = '';
+        if (showTrendLine && isStatisticallyValid) {
+            const n = dataPoints.length;
+            const sumX = xValues.reduce((a, b) => a + b, 0);
+            const sumY = yValues.reduce((a, b) => a + b, 0);
+            const sumXY = dataPoints.reduce((s, d) => s + d.x * d.y, 0);
+            const sumX2 = xValues.reduce((s, x) => s + x * x, 0);
+            
+            const denominator = n * sumX2 - sumX * sumX;
+            if (denominator !== 0) {
+                const slope = (n * sumXY - sumX * sumY) / denominator;
+                const intercept = (sumY - slope * sumX) / n;
+                
+                const trendY1 = slope * xMin + intercept;
+                const trendY2 = slope * xMax + intercept;
+
+                trendLineHtml = `
+                    <line class="scatter-trend-line" 
+                          x1="${xScale(xMin)}" y1="${yScale(trendY1)}"
+                          x2="${xScale(xMax)}" y2="${yScale(trendY2)}" />
+                `;
+            }
+        } else if (showTrendLine && !isStatisticallyValid) {
+            // Mostra linea tratteggiata grigia per indicare dati non validi
+            trendLineHtml = `
+                <line class="scatter-trend-line-invalid" 
+                      x1="${xScale(xMin)}" y1="${yScale((yMin + yMax) / 2)}"
+                      x2="${xScale(xMax)}" y2="${yScale((yMin + yMax) / 2)}"
+                      stroke="rgba(255,255,255,0.15)"
+                      stroke-dasharray="5,5" />
+            `;
+        }
+
+        // Griglia migliorata
+        let gridLines = '';
+        if (isDiscreteSleepScale) {
+            // Linee verticali per ogni valore di sonno (1-10)
+            for (let i = 1; i <= 10; i += 2) {
+                gridLines += `<line x1="${xScale(i)}" y1="${padding.top}" 
+                              x2="${xScale(i)}" y2="${padding.top + chartHeight}" 
+                              stroke="rgba(255,255,255,0.05)" />`;
+            }
+        }
 
         container.innerHTML = `
             <div class="scatter-container">
                 <svg class="scatter-svg" viewBox="0 0 ${width} ${height}">
                     <!-- Grid -->
+                    ${gridLines}
                     <line x1="${padding.left}" y1="${padding.top + chartHeight}" 
                           x2="${width - padding.right}" y2="${padding.top + chartHeight}" 
                           stroke="rgba(255,255,255,0.2)" />
@@ -466,9 +591,7 @@ export class ChartRenderer {
                           stroke="rgba(255,255,255,0.2)" />
                     
                     <!-- Trend line -->
-                    <line class="scatter-trend-line" 
-                          x1="${xScale(xMin)}" y1="${yScale(trendY1)}"
-                          x2="${xScale(xMax)}" y2="${yScale(trendY2)}" />
+                    ${trendLineHtml}
                     
                     <!-- Points -->
                     ${points}
@@ -479,6 +602,22 @@ export class ChartRenderer {
                 </svg>
             </div>
         `;
+    }
+
+    /**
+     * Conta quanti punti si sovrappongono (per adattare il jitter)
+     */
+    static _countOverlaps(dataPoints) {
+        const positions = {};
+        let overlaps = 0;
+        dataPoints.forEach(d => {
+            const key = `${Math.round(d.x)}_${Math.round(d.y * 10)}`;
+            if (positions[key]) {
+                overlaps++;
+            }
+            positions[key] = true;
+        });
+        return overlaps;
     }
 
     /**

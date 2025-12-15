@@ -354,6 +354,12 @@ class HealthConnectService {
 
     /**
      * Sincronizza tutti i dati health
+     * 
+     * LOGICA CORRETTA:
+     * - Passi, Calorie, Distanza, Minuti Attivi: MEDIA GIORNALIERA degli ultimi 7 giorni
+     * - Sonno: MEDIA GIORNALIERA degli ultimi 7 giorni (solo notti con dati)
+     * - HR, HRV, SpO2, etc.: Valore di OGGI
+     * - Peso, Altezza, Body Fat: ULTIMO valore registrato (ultimi 30 giorni)
      */
     async syncAllData() {
         try {
@@ -385,20 +391,21 @@ class HealthConnectService {
             console.log('Syncing state metrics from:', stateStart.toLocaleString());
 
             // Fetch tutti i tipi di dati (base + aggiuntivi)
+            // NOTA: Per passi, calorie, distanza usiamo le nuove funzioni che calcolano la MEDIA GIORNALIERA
             const [
-                steps, heartRate, weight, calories, distance, sleep,
-                activeMinutes, hrv, bodyFat, height, hydration,
+                stepsData, heartRate, weight, caloriesData, distanceData, sleepData,
+                activeMinutesData, hrv, bodyFat, height, hydration,
                 bloodPressure, bloodGlucose, oxygenSaturation
             ] = await Promise.allSettled([
-                // Dati base
-                this.fetchSteps(weekStartNanos, endNanos), // Weekly
+                // Dati base - con calcolo media giornaliera
+                this.fetchStepsWithDailyAverage(weekStartNanos, endNanos),
                 this.fetchHeartRate(todayStartNanos, endNanos), // Daily
                 this.fetchWeight(stateStartNanos, endNanos), // State metric
-                this.fetchCalories(weekStartNanos, endNanos), // Weekly
-                this.fetchDistance(weekStartNanos, endNanos), // Weekly
-                this.fetchSleep(weekStartNanos, endNanos), // Weekly (Average)
+                this.fetchCaloriesWithDailyAverage(weekStartNanos, endNanos),
+                this.fetchDistanceWithDailyAverage(weekStartNanos, endNanos),
+                this.fetchSleepWithDetails(weekStartNanos, endNanos), // Restituisce oggetto con media e dettagli
                 // Dati aggiuntivi
-                this.fetchActiveMinutes(weekStartNanos, endNanos), // Weekly
+                this.fetchActiveMinutesWithDailyAverage(weekStartNanos, endNanos),
                 this.fetchHRV(todayStartNanos, endNanos), // Daily
                 this.fetchBodyFat(stateStartNanos, endNanos), // State metric
                 this.fetchHeight(stateStartNanos, endNanos), // State metric
@@ -410,13 +417,13 @@ class HealthConnectService {
 
             // Log risultati
             console.log('Sync results:', {
-                steps: steps.status,
+                steps: stepsData.status,
                 heartRate: heartRate.status,
                 weight: weight.status,
-                calories: calories.status,
-                distance: distance.status,
-                sleep: sleep.status,
-                activeMinutes: activeMinutes.status,
+                calories: caloriesData.status,
+                distance: distanceData.status,
+                sleep: sleepData.status,
+                activeMinutes: activeMinutesData.status,
                 hrv: hrv.status,
                 bodyFat: bodyFat.status,
                 height: height.status,
@@ -428,8 +435,8 @@ class HealthConnectService {
 
             // Log errori
             const allResults = [
-                steps, heartRate, weight, calories, distance, sleep,
-                activeMinutes, hrv, bodyFat, height, hydration,
+                stepsData, heartRate, weight, caloriesData, distanceData, sleepData,
+                activeMinutesData, hrv, bodyFat, height, hydration,
                 bloodPressure, bloodGlucose, oxygenSaturation
             ];
             const names = [
@@ -451,17 +458,38 @@ class HealthConnectService {
                 }
             });
 
-            // Processa risultati
+            // Estrai i valori dalle nuove strutture dati
+            const stepsResult = stepsData.status === 'fulfilled' ? stepsData.value : null;
+            const caloriesResult = caloriesData.status === 'fulfilled' ? caloriesData.value : null;
+            const distanceResult = distanceData.status === 'fulfilled' ? distanceData.value : null;
+            const sleepResult = sleepData.status === 'fulfilled' ? sleepData.value : null;
+            const activeMinutesResult = activeMinutesData.status === 'fulfilled' ? activeMinutesData.value : null;
+
+            // Processa risultati - usa le MEDIE GIORNALIERE
             const healthData = {
-                // Dati base
-                steps: steps.status === 'fulfilled' ? steps.value : null,
+                // Dati base - MEDIE GIORNALIERE
+                steps: stepsResult?.dailyAverage || stepsResult || null,
+                stepsTotal: stepsResult?.total || null, // Totale settimanale per riferimento
+                stepsDaysWithData: stepsResult?.daysWithData || null,
+                
                 heartRate: heartRate.status === 'fulfilled' ? heartRate.value : null,
                 weight: weight.status === 'fulfilled' ? weight.value : null,
-                calories: calories.status === 'fulfilled' ? calories.value : null,
-                distance: distance.status === 'fulfilled' ? distance.value : null,
-                sleep: sleep.status === 'fulfilled' ? sleep.value : null,
+                
+                calories: caloriesResult?.dailyAverage || caloriesResult || null,
+                caloriesTotal: caloriesResult?.total || null,
+                caloriesDaysWithData: caloriesResult?.daysWithData || null,
+                
+                distance: distanceResult?.dailyAverage || distanceResult || null,
+                distanceTotal: distanceResult?.total || null,
+                distanceDaysWithData: distanceResult?.daysWithData || null,
+                
+                sleep: sleepResult?.dailyAverage || sleepResult || null,
+                sleepDaysWithData: sleepResult?.daysWithData || null,
+                
                 // Dati aggiuntivi
-                activeMinutes: activeMinutes.status === 'fulfilled' ? activeMinutes.value : null,
+                activeMinutes: activeMinutesResult?.dailyAverage || activeMinutesResult || null,
+                activeMinutesTotal: activeMinutesResult?.total || null,
+                
                 hrv: hrv.status === 'fulfilled' ? hrv.value : null,
                 bodyFat: bodyFat.status === 'fulfilled' ? bodyFat.value : null,
                 height: height.status === 'fulfilled' ? height.value : null,
@@ -473,7 +501,7 @@ class HealthConnectService {
                 source: 'google_fit'
             };
 
-            console.log('Health data collected:', healthData);
+            console.log('Health data collected (with daily averages):', healthData);
 
             // Converti in formato TOON
             const toonData = healthTOONEncoder.fromGoogleFit(healthData);
@@ -498,45 +526,75 @@ class HealthConnectService {
     }
 
     /**
-     * Fetch passi - ULTRA PRECISO
-     * Somma tutti i delta di passi nel periodo, gestendo correttamente i duplicati
+     * Fetch passi con MEDIA GIORNALIERA - CORRETTO
+     * Raggruppa i passi per giorno e calcola la media sui giorni con dati
      */
-    async fetchSteps(startTime, endTime) {
+    async fetchStepsWithDailyAverage(startTime, endTime) {
         const data = await this.fetchGoogleFitData('steps', startTime, endTime);
 
         if (!data.point || data.point.length === 0) {
             console.log('No steps data available');
-            return 0;
+            return { dailyAverage: 0, total: 0, daysWithData: 0, byDay: {} };
         }
 
-        // Google Fit può avere dati duplicati da diverse fonti (phone, watch, etc.)
-        // Usiamo un set per tracciare i timestamp e evitare duplicati
-        const stepsByTimestamp = new Map();
+        // Raggruppa i passi per giorno
+        const stepsByDay = {};
 
         data.point.forEach(point => {
             const steps = point.value?.[0]?.intVal || 0;
             const startNanos = point.startTimeNanos;
             const endNanos = point.endTimeNanos;
-
-            // Crea una chiave unica per questo intervallo temporale
-            const key = `${startNanos}-${endNanos}`;
-
+            
+            // Usa la data di fine dell'intervallo per attribuire i passi al giorno corretto
+            const dayKey = new Date(parseInt(endNanos) / 1000000).toISOString().split('T')[0];
+            
+            if (!stepsByDay[dayKey]) {
+                stepsByDay[dayKey] = new Map(); // Map per evitare duplicati per intervallo
+            }
+            
+            // Chiave unica per questo intervallo
+            const intervalKey = `${startNanos}-${endNanos}`;
+            
             // Se abbiamo già dati per questo intervallo, prendi il valore più alto
-            // (Google Fit a volte ha stime multiple, prendiamo la più accurata)
-            if (stepsByTimestamp.has(key)) {
-                const existing = stepsByTimestamp.get(key);
-                stepsByTimestamp.set(key, Math.max(existing, steps));
+            if (stepsByDay[dayKey].has(intervalKey)) {
+                const existing = stepsByDay[dayKey].get(intervalKey);
+                stepsByDay[dayKey].set(intervalKey, Math.max(existing, steps));
             } else {
-                stepsByTimestamp.set(key, steps);
+                stepsByDay[dayKey].set(intervalKey, steps);
             }
         });
 
-        // Somma tutti i passi unici
-        const totalSteps = Array.from(stepsByTimestamp.values()).reduce((sum, steps) => sum + steps, 0);
+        // Calcola totale per ogni giorno
+        const dailyTotals = {};
+        let totalSteps = 0;
+        
+        Object.entries(stepsByDay).forEach(([day, intervalsMap]) => {
+            const dayTotal = Array.from(intervalsMap.values()).reduce((sum, s) => sum + s, 0);
+            dailyTotals[day] = dayTotal;
+            totalSteps += dayTotal;
+        });
 
-        console.log(`Total steps: ${totalSteps.toLocaleString()} (${stepsByTimestamp.size} unique intervals, ${data.point.length} total data points)`);
+        const daysWithData = Object.keys(dailyTotals).length;
+        const dailyAverage = daysWithData > 0 ? Math.round(totalSteps / daysWithData) : 0;
 
-        return totalSteps;
+        console.log(`Steps: ${dailyAverage.toLocaleString()}/day average (${totalSteps.toLocaleString()} total over ${daysWithData} days)`);
+        console.log('Steps by day:', dailyTotals);
+
+        return {
+            dailyAverage,
+            total: totalSteps,
+            daysWithData,
+            byDay: dailyTotals
+        };
+    }
+
+    /**
+     * Fetch passi - LEGACY (per compatibilità)
+     * Somma tutti i delta di passi nel periodo, gestendo correttamente i duplicati
+     */
+    async fetchSteps(startTime, endTime) {
+        const result = await this.fetchStepsWithDailyAverage(startTime, endTime);
+        return result.total; // Ritorna il totale per compatibilità
     }
 
     /**
@@ -606,96 +664,155 @@ class HealthConnectService {
     }
 
     /**
-     * Fetch calorie - ULTRA PRECISO
-     * Gestisce duplicati da diverse fonti (phone, watch, etc.)
+     * Fetch calorie con MEDIA GIORNALIERA - CORRETTO
+     * Raggruppa le calorie per giorno e calcola la media sui giorni con dati
      */
-    async fetchCalories(startTime, endTime) {
+    async fetchCaloriesWithDailyAverage(startTime, endTime) {
         const data = await this.fetchGoogleFitData('calories', startTime, endTime);
         
         if (!data.point || data.point.length === 0) {
             console.log('No calories data available');
-            return 0;
+            return { dailyAverage: 0, total: 0, daysWithData: 0, byDay: {} };
         }
 
-        // Gestisci duplicati come per i passi
-        const caloriesByTimestamp = new Map();
+        // Raggruppa le calorie per giorno
+        const caloriesByDay = {};
 
         data.point.forEach(point => {
             const calories = point.value?.[0]?.fpVal || 0;
             const startNanos = point.startTimeNanos;
             const endNanos = point.endTimeNanos;
-            const key = `${startNanos}-${endNanos}`;
-
-            if (caloriesByTimestamp.has(key)) {
-                const existing = caloriesByTimestamp.get(key);
-                caloriesByTimestamp.set(key, Math.max(existing, calories));
+            
+            const dayKey = new Date(parseInt(endNanos) / 1000000).toISOString().split('T')[0];
+            
+            if (!caloriesByDay[dayKey]) {
+                caloriesByDay[dayKey] = new Map();
+            }
+            
+            const intervalKey = `${startNanos}-${endNanos}`;
+            
+            if (caloriesByDay[dayKey].has(intervalKey)) {
+                const existing = caloriesByDay[dayKey].get(intervalKey);
+                caloriesByDay[dayKey].set(intervalKey, Math.max(existing, calories));
             } else {
-                caloriesByTimestamp.set(key, calories);
+                caloriesByDay[dayKey].set(intervalKey, calories);
             }
         });
 
-        const totalCalories = Array.from(caloriesByTimestamp.values()).reduce((sum, cal) => sum + cal, 0);
+        // Calcola totale per ogni giorno
+        const dailyTotals = {};
+        let totalCalories = 0;
         
-        console.log(`Total calories: ${Math.round(totalCalories).toLocaleString()} kcal (${caloriesByTimestamp.size} unique intervals)`);
-        
-        return Math.round(totalCalories);
+        Object.entries(caloriesByDay).forEach(([day, intervalsMap]) => {
+            const dayTotal = Array.from(intervalsMap.values()).reduce((sum, c) => sum + c, 0);
+            dailyTotals[day] = Math.round(dayTotal);
+            totalCalories += dayTotal;
+        });
+
+        const daysWithData = Object.keys(dailyTotals).length;
+        const dailyAverage = daysWithData > 0 ? Math.round(totalCalories / daysWithData) : 0;
+
+        console.log(`Calories: ${dailyAverage.toLocaleString()} kcal/day average (${Math.round(totalCalories).toLocaleString()} total over ${daysWithData} days)`);
+        console.log('Calories by day:', dailyTotals);
+
+        return {
+            dailyAverage,
+            total: Math.round(totalCalories),
+            daysWithData,
+            byDay: dailyTotals
+        };
     }
 
     /**
-     * Fetch distanza - ULTRA PRECISO
-     * Gestisce duplicati da diverse fonti
+     * Fetch calorie - LEGACY (per compatibilità)
      */
-    async fetchDistance(startTime, endTime) {
+    async fetchCalories(startTime, endTime) {
+        const result = await this.fetchCaloriesWithDailyAverage(startTime, endTime);
+        return result.total;
+    }
+
+    /**
+     * Fetch distanza con MEDIA GIORNALIERA - CORRETTO
+     * Raggruppa la distanza per giorno e calcola la media sui giorni con dati
+     */
+    async fetchDistanceWithDailyAverage(startTime, endTime) {
         const data = await this.fetchGoogleFitData('distance', startTime, endTime);
         
         if (!data.point || data.point.length === 0) {
             console.log('No distance data available');
-            return 0;
+            return { dailyAverage: 0, total: 0, daysWithData: 0, byDay: {} };
         }
 
-        // Gestisci duplicati
-        const distanceByTimestamp = new Map();
+        // Raggruppa la distanza per giorno
+        const distanceByDay = {};
 
         data.point.forEach(point => {
             const distance = point.value?.[0]?.fpVal || 0;
             const startNanos = point.startTimeNanos;
             const endNanos = point.endTimeNanos;
-            const key = `${startNanos}-${endNanos}`;
-
-            if (distanceByTimestamp.has(key)) {
-                const existing = distanceByTimestamp.get(key);
-                distanceByTimestamp.set(key, Math.max(existing, distance));
+            
+            const dayKey = new Date(parseInt(endNanos) / 1000000).toISOString().split('T')[0];
+            
+            if (!distanceByDay[dayKey]) {
+                distanceByDay[dayKey] = new Map();
+            }
+            
+            const intervalKey = `${startNanos}-${endNanos}`;
+            
+            if (distanceByDay[dayKey].has(intervalKey)) {
+                const existing = distanceByDay[dayKey].get(intervalKey);
+                distanceByDay[dayKey].set(intervalKey, Math.max(existing, distance));
             } else {
-                distanceByTimestamp.set(key, distance);
+                distanceByDay[dayKey].set(intervalKey, distance);
             }
         });
 
-        const totalDistance = Array.from(distanceByTimestamp.values()).reduce((sum, dist) => sum + dist, 0);
+        // Calcola totale per ogni giorno
+        const dailyTotals = {};
+        let totalDistance = 0;
         
-        // Arrotonda a 2 decimali per precisione
-        const roundedDistance = Math.round(totalDistance * 100) / 100;
-        
-        console.log(`Total distance: ${(roundedDistance / 1000).toFixed(2)} km (${distanceByTimestamp.size} unique intervals)`);
-        
-        return roundedDistance; // In metri con 2 decimali
+        Object.entries(distanceByDay).forEach(([day, intervalsMap]) => {
+            const dayTotal = Array.from(intervalsMap.values()).reduce((sum, d) => sum + d, 0);
+            dailyTotals[day] = Math.round(dayTotal * 100) / 100; // metri con 2 decimali
+            totalDistance += dayTotal;
+        });
+
+        const daysWithData = Object.keys(dailyTotals).length;
+        const dailyAverage = daysWithData > 0 ? Math.round((totalDistance / daysWithData) * 100) / 100 : 0;
+
+        console.log(`Distance: ${(dailyAverage / 1000).toFixed(2)} km/day average (${(totalDistance / 1000).toFixed(2)} km total over ${daysWithData} days)`);
+        console.log('Distance by day (meters):', dailyTotals);
+
+        return {
+            dailyAverage, // metri
+            total: Math.round(totalDistance * 100) / 100,
+            daysWithData,
+            byDay: dailyTotals
+        };
     }
 
     /**
-     * Fetch sonno (media giornaliera) - ULTRA PRECISO
-     * Google Fit registra segmenti di sonno con diversi tipi (light, deep, REM, awake)
-     * Contiamo solo i segmenti di sonno effettivo (escludendo awake)
-     * 
-     * NOTA: Usiamo una media "Rolling" sugli ultimi 7 giorni, non la "Settimana Calendario".
-     * Questo significa che se oggi è lunedì e hai dormito 6h stanotte, ma hai dormito
-     * 8h nelle notti precedenti, la media sarà ~7.5h, mentre Google Fit mostrerà 6h
-     * (perché considera solo i giorni della settimana calendario corrente, che è appena iniziata).
+     * Fetch distanza - LEGACY (per compatibilità)
      */
-    async fetchSleep(startTime, endTime) {
+    async fetchDistance(startTime, endTime) {
+        const result = await this.fetchDistanceWithDailyAverage(startTime, endTime);
+        return result.total;
+    }
+
+    /**
+     * Fetch sonno con DETTAGLI - CORRETTO
+     * Restituisce media giornaliera E dettagli per giorno
+     * 
+     * NOTA IMPORTANTE: Il sonno viene attribuito al giorno in cui ci si SVEGLIA.
+     * Quindi se dormi dalle 23:00 del 27 Nov alle 07:00 del 28 Nov,
+     * quelle ore vengono attribuite al 28 Nov.
+     */
+    async fetchSleepWithDetails(startTime, endTime) {
         const data = await this.fetchGoogleFitData('sleep', startTime, endTime);
 
         if (!data.point || data.point.length === 0) {
             console.log('No sleep data available');
-            return 0;
+            return { dailyAverage: 0, daysWithData: 0, byDay: {} };
         }
 
         // Raggruppa i segmenti di sonno per giorno
@@ -743,10 +860,16 @@ class HealthConnectService {
             });
         });
 
+        // Calcola ore per ogni giorno
+        const dailyHours = {};
+        Object.entries(sleepByDay).forEach(([day, data]) => {
+            dailyHours[day] = Math.round((data.totalMinutes / 60) * 100) / 100;
+        });
+
         // Log dettagliato per debug
         console.log('Sleep data by day:', Object.entries(sleepByDay).map(([day, data]) => ({
             day,
-            hours: (data.totalMinutes / 60).toFixed(1),
+            hours: (data.totalMinutes / 60).toFixed(2),
             segments: data.segments.length
         })));
 
@@ -754,7 +877,7 @@ class HealthConnectService {
         const days = Object.keys(sleepByDay);
         if (days.length === 0) {
             console.log('No valid sleep days found');
-            return 0;
+            return { dailyAverage: 0, daysWithData: 0, byDay: {} };
         }
 
         const totalMinutes = Object.values(sleepByDay).reduce((sum, data) => sum + data.totalMinutes, 0);
@@ -764,20 +887,68 @@ class HealthConnectService {
         // Precisione a 2 decimali per maggiore accuratezza
         const preciseAvgHours = Math.round(avgHours * 100) / 100;
         
-        console.log(`Sleep average: ${preciseAvgHours.toFixed(2)} hours/night (${days.length} days with data, ${totalMinutes.toFixed(0)} total minutes)`);
+        console.log(`Sleep: ${preciseAvgHours.toFixed(2)} hours/night average (${days.length} nights with data)`);
+        console.log('Sleep by day (hours):', dailyHours);
 
-        return preciseAvgHours; // Ore con 2 decimali per precisione
+        return {
+            dailyAverage: preciseAvgHours,
+            daysWithData: days.length,
+            byDay: dailyHours
+        };
     }
 
     /**
-     * Fetch minuti attivi
+     * Fetch sonno - LEGACY (per compatibilità)
+     */
+    async fetchSleep(startTime, endTime) {
+        const result = await this.fetchSleepWithDetails(startTime, endTime);
+        return result.dailyAverage;
+    }
+
+    /**
+     * Fetch minuti attivi con MEDIA GIORNALIERA - CORRETTO
+     */
+    async fetchActiveMinutesWithDailyAverage(startTime, endTime) {
+        const data = await this.fetchGoogleFitData('activeMinutes', startTime, endTime);
+        
+        if (!data.point || data.point.length === 0) {
+            return { dailyAverage: 0, total: 0, daysWithData: 0, byDay: {} };
+        }
+
+        // Raggruppa per giorno
+        const minutesByDay = {};
+
+        data.point.forEach(point => {
+            const minutes = point.value?.[0]?.intVal || 0;
+            const endNanos = point.endTimeNanos;
+            const dayKey = new Date(parseInt(endNanos) / 1000000).toISOString().split('T')[0];
+            
+            if (!minutesByDay[dayKey]) {
+                minutesByDay[dayKey] = 0;
+            }
+            minutesByDay[dayKey] += minutes;
+        });
+
+        const daysWithData = Object.keys(minutesByDay).length;
+        const totalMinutes = Object.values(minutesByDay).reduce((sum, m) => sum + m, 0);
+        const dailyAverage = daysWithData > 0 ? Math.round(totalMinutes / daysWithData) : 0;
+
+        console.log(`Active minutes: ${dailyAverage} min/day average (${totalMinutes} total over ${daysWithData} days)`);
+
+        return {
+            dailyAverage,
+            total: totalMinutes,
+            daysWithData,
+            byDay: minutesByDay
+        };
+    }
+
+    /**
+     * Fetch minuti attivi - LEGACY (per compatibilità)
      */
     async fetchActiveMinutes(startTime, endTime) {
-        const data = await this.fetchGoogleFitData('activeMinutes', startTime, endTime);
-        const totalMinutes = data.point?.reduce((sum, point) => {
-            return sum + (point.value?.[0]?.intVal || 0);
-        }, 0) || 0;
-        return totalMinutes;
+        const result = await this.fetchActiveMinutesWithDailyAverage(startTime, endTime);
+        return result.total;
     }
 
     /**

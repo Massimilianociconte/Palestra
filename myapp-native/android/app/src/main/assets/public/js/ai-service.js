@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+import { exerciseNormalizer } from './exercise-normalizer.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -43,6 +44,19 @@ const buildRecentDomsBlock = (hotspots = [], windowDays = 4) => {
         const intensity = h.lastIntensity ?? h.avgIntensity;
         return `- ${h.label}: dolore ${intensity ?? 'N/D'}/10, ${since}g fa, REC stimato ${rec ?? 'N/D'}g`;
     }).join('\n');
+};
+
+// Extract external DOMS causes from recent logs (e.g., Padel, running, etc.)
+const buildExternalDomsBlock = (recentLogs = []) => {
+    const externalCauses = recentLogs
+        .filter(log => log.domsExternalCause)
+        .map(log => `- ${log.date}: "${log.domsExternalCause}"${log.domsTargets?.length ? ` (muscoli: ${log.domsTargets.join(', ')})` : ''}`)
+        .slice(0, 5); // Last 5 entries with external causes
+    
+    if (!externalCauses.length) {
+        return '';
+    }
+    return `\n**Cause Esterne DOMS (attività non-palestra):**\n${externalCauses.join('\n')}\n*Nota: Questi DOMS potrebbero non essere correlati all'allenamento in palestra.*`;
 };
 
 export class AIService {
@@ -167,9 +181,11 @@ export class AIService {
 ` : '';
 
             const domsHotspots = data?.domsInsights?.hotspots || [];
+            const externalDomsInfo = buildExternalDomsBlock(data.recentLogs || []);
             const domsBlock = `
 **DOMS Localizzati & Recupero**
 ${buildDomsSummaryBlock(domsHotspots)}
+${externalDomsInfo}
 `;
 
             // Health Data from Google Fit (already decoded by gatherDataForAI)
@@ -537,6 +553,7 @@ Usa Markdown con questa struttura OBBLIGATORIA:
 
             const toonLogs = this.encodeToTOON(data.recentLogs.slice(0, 10), 'lastWorkouts'); // Last 10 for better pattern detection
             const domsGuidance = buildRecentDomsBlock(data?.domsInsights?.hotspots || []);
+            const externalDomsInfo = buildExternalDomsBlock(data.recentLogs || []);
 
             // Include existing workouts in TOON format
             const existingWorkoutsTOON = data.existingWorkouts && data.existingWorkouts.length > 0
@@ -569,6 +586,7 @@ ${toonProgressions}
 
 **Segnalazioni DOMS recenti (<=4 giorni):**
 ${domsGuidance}
+${externalDomsInfo}
 
 **Profilo & Biometria Atleta:**
 - Età: ${data.profile.athleteParams?.age || 'N/D'}
@@ -631,13 +649,26 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
         }
     ]
 }
+
+${exerciseNormalizer.getAINormalizationPrompt()}
 `;
             const result = await model.generateContent(prompt);
             let text = result.response.text();
             // Clean markdown if present
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            
+            const parsed = JSON.parse(text);
+            
+            // Normalizza i nomi degli esercizi per evitare duplicati semantici
+            if (parsed.exercises && Array.isArray(parsed.exercises)) {
+                const exerciseNames = parsed.exercises.map(ex => ex.name);
+                const normalizedNames = await exerciseNormalizer.normalizeWithAI(exerciseNames, this.apiKey);
+                parsed.exercises.forEach((ex, i) => {
+                    ex.name = normalizedNames[i] || ex.name;
+                });
+            }
 
-            return { success: true, data: JSON.parse(text) };
+            return { success: true, data: parsed };
         } catch (error) {
             console.error("AI Prediction Error:", error);
             return { success: false, message: error.message };
@@ -651,6 +682,7 @@ Rispondi in formato JSON (senza markdown, solo JSON puro):
             const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
             const domsHotspots = payload?.domsHotspots || [];
+            const externalDomsInfo = buildExternalDomsBlock(payload?.recentLogs || []);
 
             // Convert metrics to TOON format for token efficiency
             const toonMetrics = this.encodeToTOON(payload.metrics, 'trendMetrics');
@@ -694,6 +726,7 @@ Obiettivo: ${payload.profile?.goal || payload.profile?.objective || 'N/D'}
 
 **DOMS Hotspots (TOON Format):**
 ${toonDomsHotspots}
+${externalDomsInfo}
 
 **Storico Trend (TOON Format):**
 ${toonHistoricalTrends}

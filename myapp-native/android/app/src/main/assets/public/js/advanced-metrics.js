@@ -3,6 +3,8 @@
  * Calcola metriche avanzate dai dati di allenamento esistenti
  */
 
+import { EXERCISE_DB } from './exercise-db.js';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export class AdvancedMetricsEngine {
@@ -181,6 +183,17 @@ export class AdvancedMetricsEngine {
             core: 0
         };
 
+        // Mapping from detailed muscles (EXERCISE_DB) to chart categories
+        const muscleCategoryMap = {
+            "chest": "chest", "upper-chest": "chest",
+            "lats": "back", "traps": "back", "rhomboids": "back", "lower-back": "back",
+            "front-delts": "shoulders", "side-delts": "shoulders", "rear-delts": "shoulders",
+            "biceps": "biceps", "forearms": "biceps",
+            "triceps": "triceps",
+            "quads": "legs", "hamstrings": "legs", "calves": "legs", "glutes": "legs",
+            "abs": "core", "core": "core"
+        };
+
         const muscleKeywords = {
             chest: ['panca', 'chest', 'pettoral', 'push up', 'dip', 'fly', 'croci'],
             back: ['lat', 'row', 'pull', 'dorsal', 'rematore', 'trazioni', 'pulldown'],
@@ -200,10 +213,36 @@ export class AdvancedMetricsEngine {
                     return sum + (w * r);
                 }, 0);
 
-                for (const [muscle, keywords] of Object.entries(muscleKeywords)) {
-                    if (keywords.some(kw => name.includes(kw))) {
-                        muscleVolume[muscle] += volume;
-                        break;
+                // 1. Try EXERCISE_DB first (Better precision)
+                const dbKey = Object.keys(EXERCISE_DB).find(k => name.includes(k));
+                let foundInDb = false;
+
+                if (dbKey) {
+                    const muscles = EXERCISE_DB[dbKey];
+                    // Map detailed muscles to broad categories
+                    const categories = new Set();
+                    muscles.forEach(m => {
+                        const cat = muscleCategoryMap[m];
+                        if (cat) categories.add(cat);
+                    });
+
+                    if (categories.size > 0) {
+                        foundInDb = true;
+                        categories.forEach(cat => {
+                            if (muscleVolume[cat] !== undefined) {
+                                muscleVolume[cat] += volume;
+                            }
+                        });
+                    }
+                }
+
+                // 2. Fallback to simple keywords if not found in DB
+                if (!foundInDb) {
+                    for (const [muscle, keywords] of Object.entries(muscleKeywords)) {
+                        if (keywords.some(kw => name.includes(kw))) {
+                            muscleVolume[muscle] += volume;
+                            break;
+                        }
                     }
                 }
             });
@@ -239,21 +278,96 @@ export class AdvancedMetricsEngine {
     }
 
     /**
+     * Normalizza il nome di un esercizio per il matching
+     * Rimuove varianti, parentesi, punteggiatura e normalizza
+     */
+    _normalizeExerciseName(name) {
+        if (!name) return '';
+        return name
+            .toLowerCase()
+            .trim()
+            // Rimuovi contenuto tra parentesi (varianti come "seduto", "in piedi", etc.)
+            .replace(/\s*\([^)]*\)\s*/g, ' ')
+            // Rimuovi numeri isolati (es. "30 kg" rimanenti)
+            .replace(/\b\d+\s*(kg|lb|lbs)?\b/gi, '')
+            // Normalizza spazi multipli
+            .replace(/\s+/g, ' ')
+            // Rimuovi punteggiatura
+            .replace(/[.,;:!?'"]/g, '')
+            .trim();
+    }
+
+    /**
+     * Verifica se due nomi di esercizi sono equivalenti
+     */
+    _exerciseNamesMatch(name1, name2) {
+        const norm1 = this._normalizeExerciseName(name1);
+        const norm2 = this._normalizeExerciseName(name2);
+        
+        // Match esatto dopo normalizzazione
+        if (norm1 === norm2) return true;
+        
+        // Uno contiene l'altro (per nomi abbreviati)
+        if (norm1.length >= 5 && norm2.length >= 5) {
+            if (norm1.includes(norm2) || norm2.includes(norm1)) return true;
+        }
+        
+        // Calcola similarità per nomi molto simili (typo tolerance)
+        const similarity = this._calculateSimilarity(norm1, norm2);
+        return similarity >= 0.85; // 85% similarità
+    }
+
+    /**
+     * Calcola similarità tra due stringhe (0-1)
+     * Usa Dice coefficient per efficienza
+     */
+    _calculateSimilarity(str1, str2) {
+        if (str1 === str2) return 1;
+        if (!str1 || !str2) return 0;
+        
+        // Crea bigrammi
+        const bigrams1 = new Set();
+        const bigrams2 = new Set();
+        
+        for (let i = 0; i < str1.length - 1; i++) {
+            bigrams1.add(str1.substring(i, i + 2));
+        }
+        for (let i = 0; i < str2.length - 1; i++) {
+            bigrams2.add(str2.substring(i, i + 2));
+        }
+        
+        // Conta intersezione
+        let intersection = 0;
+        bigrams1.forEach(bg => {
+            if (bigrams2.has(bg)) intersection++;
+        });
+        
+        return (2 * intersection) / (bigrams1.size + bigrams2.size);
+    }
+
+    /**
      * 4. GET UNIQUE EXERCISES FROM LOGS
-     * Estrae tutti gli esercizi unici dai log con almeno minOccurrences
+     * Estrae TUTTI gli esercizi unici dai log (senza filtri minimi)
      * USA PESO REALE MASSIMO (non stimato)
      */
-    getUniqueExercises(minOccurrences = 1) {
+    getUniqueExercises(minOccurrences = 0) {
         const exerciseCounts = {};
         const exerciseMaxWeight = {}; // PESO REALE MASSIMO
+        const exerciseLastDate = {}; // Data ultimo allenamento
 
         this.logs.forEach(log => {
             (log.exercises || []).forEach(ex => {
                 const name = (ex.name || '').trim();
                 if (!name) return;
 
-                // Conta occorrenze
+                // Conta occorrenze (sessioni in cui appare l'esercizio)
                 exerciseCounts[name] = (exerciseCounts[name] || 0) + 1;
+                
+                // Aggiorna data ultimo allenamento
+                const logDate = new Date(log.date).getTime();
+                if (!exerciseLastDate[name] || logDate > exerciseLastDate[name]) {
+                    exerciseLastDate[name] = logDate;
+                }
 
                 // Trova il PESO REALE MASSIMO sollevato (non stimato)
                 (ex.sets || []).forEach(set => {
@@ -267,67 +381,68 @@ export class AdvancedMetricsEngine {
             });
         });
 
-        // Filtra esercizi con almeno minOccurrences e ordina per peso reale massimo
+        // Ritorna TUTTI gli esercizi con almeno un peso registrato, ordinati per data più recente poi per peso
         return Object.entries(exerciseCounts)
-            .filter(([_, count]) => count >= minOccurrences)
             .filter(([name]) => exerciseMaxWeight[name] > 0)
             .map(([name, count]) => ({
                 name,
                 count,
-                maxWeight: Math.round(exerciseMaxWeight[name] || 0) // PESO REALE
+                maxWeight: Math.round(exerciseMaxWeight[name] || 0),
+                lastDate: exerciseLastDate[name] || 0
             }))
-            .sort((a, b) => b.maxWeight - a.maxWeight);
+            .sort((a, b) => {
+                // Prima ordina per data più recente
+                if (b.lastDate !== a.lastDate) return b.lastDate - a.lastDate;
+                // Poi per peso massimo
+                return b.maxWeight - a.maxWeight;
+            });
     }
 
     /**
      * 5. STRENGTH PROGRESSION
-     * Traccia progressione PESO REALE MASSIMO nel tempo
-     * NON usa stime 1RM, solo il peso effettivamente sollevato
+     * Traccia TUTTI i pesi fatti per un esercizio nel tempo
+     * Usa matching intelligente per raggruppare varianti dello stesso esercizio
      */
     calculateStrengthProgression(exerciseName, months = 3) {
         const cutoff = Date.now() - (months * 30 * DAY_MS);
-        const relevantLogs = this.logs.filter(log => new Date(log.date).getTime() >= cutoff);
-
-        const dataPoints = [];
-        const searchTerm = exerciseName.toLowerCase().trim();
-
-        // Verifica che l'esercizio esista nei log
+        
+        // Usa TUTTI i log per trovare l'esercizio
+        const allDataPoints = [];
         let exerciseFound = false;
+        const matchedNames = new Set(); // Traccia tutti i nomi matchati
 
-        relevantLogs.forEach(log => {
+        // Raccogli TUTTI i pesi fatti per questo esercizio (da tutti i log)
+        this.logs.forEach(log => {
             (log.exercises || []).forEach(ex => {
-                const exName = (ex.name || '').toLowerCase().trim();
-                // Match esatto o contenuto
-                if (exName === searchTerm || exName.includes(searchTerm)) {
+                const exName = (ex.name || '').trim();
+                
+                // Usa matching intelligente
+                if (this._exerciseNamesMatch(exName, exerciseName)) {
                     exerciseFound = true;
+                    matchedNames.add(exName);
+                    const logTimestamp = new Date(log.date).getTime();
                     
-                    // Trova il PESO REALE MASSIMO in questa sessione (non stimato)
-                    let maxWeight = 0;
-                    let maxWeightReps = 0;
-                    (ex.sets || []).forEach(set => {
+                    // Raccogli OGNI set con peso (non solo il max della sessione)
+                    (ex.sets || []).forEach((set, setIndex) => {
                         const w = parseFloat(set.weight) || 0;
                         const r = parseFloat(set.reps) || 0;
-                        if (w > 0 && w > maxWeight) {
-                            maxWeight = w;
-                            maxWeightReps = r;
+                        if (w > 0) {
+                            allDataPoints.push({
+                                date: log.date.split('T')[0],
+                                value: Math.round(w),
+                                reps: r,
+                                timestamp: logTimestamp,
+                                setIndex: setIndex,
+                                exerciseName: exName
+                            });
                         }
                     });
-                    
-                    if (maxWeight > 0) {
-                        dataPoints.push({
-                            date: log.date.split('T')[0],
-                            value: Math.round(maxWeight), // PESO REALE
-                            reps: maxWeightReps,
-                            timestamp: new Date(log.date).getTime(),
-                            exerciseName: ex.name
-                        });
-                    }
                 }
             });
         });
 
         // Se l'esercizio non esiste, ritorna stato vuoto
-        if (!exerciseFound) {
+        if (!exerciseFound || allDataPoints.length === 0) {
             return {
                 dataPoints: [],
                 current: 0,
@@ -335,37 +450,74 @@ export class AdvancedMetricsEngine {
                 change: 0,
                 changePercent: 0,
                 trend: 'no_data',
-                exerciseNotFound: true
+                exerciseNotFound: !exerciseFound
             };
         }
 
-        // Ordina per data
-        dataPoints.sort((a, b) => a.timestamp - b.timestamp);
+        // Ordina tutti i punti per data (timestamp)
+        allDataPoints.sort((a, b) => a.timestamp - b.timestamp);
 
-        // Calcola trend
-        if (dataPoints.length >= 2) {
-            const first = dataPoints[0].value;
-            const last = dataPoints[dataPoints.length - 1].value;
+        // Per il grafico: prendi il peso MASSIMO per ogni sessione (giorno)
+        // Questo evita duplicati nello stesso giorno ma mostra la progressione
+        const dataByDate = {};
+        allDataPoints.forEach(point => {
+            if (!dataByDate[point.date] || point.value > dataByDate[point.date].value) {
+                dataByDate[point.date] = point;
+            }
+        });
+        
+        // Converti in array ordinato per il grafico
+        const chartDataPoints = Object.values(dataByDate).sort((a, b) => a.timestamp - b.timestamp);
+
+        // Filtra solo gli ultimi N mesi per calcoli di trend
+        const recentDataPoints = chartDataPoints.filter(d => d.timestamp >= cutoff);
+
+        // Calcola statistiche basate sui dati recenti
+        if (recentDataPoints.length >= 2) {
+            const first = recentDataPoints[0].value;
+            const last = recentDataPoints[recentDataPoints.length - 1].value;
             const change = last - first;
-            const changePercent = ((change / first) * 100).toFixed(1);
+            const changePercent = first > 0 ? ((change / first) * 100).toFixed(1) : 0;
             
             return {
-                dataPoints,
+                dataPoints: chartDataPoints, // Tutti i dati per il grafico
+                recentDataPoints: recentDataPoints, // Solo ultimi N mesi
                 current: last,
                 initial: first,
                 change,
                 changePercent: parseFloat(changePercent),
-                trend: change > 0 ? 'up' : change < 0 ? 'down' : 'stable'
+                trend: change > 0 ? 'up' : change < 0 ? 'down' : 'stable',
+                totalSessions: chartDataPoints.length
+            };
+        } else if (recentDataPoints.length === 1) {
+            // Solo un dato recente - cerca dati più vecchi per confronto
+            const allTimeCurrent = chartDataPoints[chartDataPoints.length - 1].value;
+            const allTimeFirst = chartDataPoints[0].value;
+            const change = allTimeCurrent - allTimeFirst;
+            const changePercent = allTimeFirst > 0 ? ((change / allTimeFirst) * 100).toFixed(1) : 0;
+            
+            return {
+                dataPoints: chartDataPoints,
+                recentDataPoints: recentDataPoints,
+                current: allTimeCurrent,
+                initial: allTimeFirst,
+                change: chartDataPoints.length > 1 ? change : 0,
+                changePercent: chartDataPoints.length > 1 ? parseFloat(changePercent) : 0,
+                trend: chartDataPoints.length > 1 ? (change > 0 ? 'up' : change < 0 ? 'down' : 'stable') : 'insufficient_data',
+                totalSessions: chartDataPoints.length
             };
         }
 
+        // Un solo dato point
         return {
-            dataPoints,
-            current: dataPoints[0]?.value || 0,
-            initial: dataPoints[0]?.value || 0,
+            dataPoints: chartDataPoints,
+            recentDataPoints: [],
+            current: chartDataPoints[0]?.value || 0,
+            initial: chartDataPoints[0]?.value || 0,
             change: 0,
             changePercent: 0,
-            trend: 'insufficient_data'
+            trend: 'insufficient_data',
+            totalSessions: chartDataPoints.length
         };
     }
 
@@ -453,7 +605,7 @@ export class AdvancedMetricsEngine {
 
     /**
      * 6. SLEEP-PERFORMANCE CORRELATION
-     * Analizza correlazione tra sonno e performance
+     * Analizza correlazione tra sonno e performance con validazione statistica
      */
     calculateSleepPerformanceCorrelation() {
         const dataPoints = [];
@@ -480,7 +632,9 @@ export class AdvancedMetricsEngine {
             return {
                 correlation: null,
                 dataPoints,
-                insight: 'Dati insufficienti per calcolare la correlazione'
+                insight: 'Dati insufficienti per calcolare la correlazione',
+                isStatisticallyValid: false,
+                varianceWarning: null
             };
         }
 
@@ -492,24 +646,96 @@ export class AdvancedMetricsEngine {
         const sumX2 = dataPoints.reduce((s, d) => s + (d.sleep * d.sleep), 0);
         const sumY2 = dataPoints.reduce((s, d) => s + (d.performance * d.performance), 0);
 
+        // Calcola deviazione standard per X (sonno) e Y (performance)
+        const meanX = sumX / n;
+        const meanY = sumY / n;
+        const varianceX = (sumX2 / n) - (meanX * meanX);
+        const varianceY = (sumY2 / n) - (meanY * meanY);
+        const stdDevX = Math.sqrt(varianceX);
+        const stdDevY = Math.sqrt(varianceY);
+
+        // Verifica varianza sufficiente (problema identificato: dati in colonna verticale)
+        const MIN_STD_DEV_X = 0.8; // Minima deviazione standard per sonno (scala 1-10)
+        const hasLowVarianceX = stdDevX < MIN_STD_DEV_X;
+        const hasLowVarianceY = stdDevY < 0.5;
+
+        // Rileva outlier con leverage elevato (punto isolato che forza la regressione)
+        const leveragePoints = this._detectHighLeveragePoints(dataPoints, meanX, stdDevX);
+        const hasHighLeverageOutlier = leveragePoints.length > 0 && leveragePoints.length <= Math.floor(n * 0.15);
+
         const numerator = (n * sumXY) - (sumX * sumY);
         const denominator = Math.sqrt(((n * sumX2) - (sumX * sumX)) * ((n * sumY2) - (sumY * sumY)));
         
         const correlation = denominator !== 0 ? numerator / denominator : 0;
 
+        // Determina validità statistica
+        const isStatisticallyValid = !hasLowVarianceX && !hasHighLeverageOutlier && n >= 8;
+        
+        // Genera warning appropriati
+        let varianceWarning = null;
+        if (hasLowVarianceX) {
+            varianceWarning = 'Varia i tuoi voti sulla qualità del sonno per scoprire correlazioni significative';
+        } else if (hasHighLeverageOutlier) {
+            varianceWarning = 'Un singolo punto sta influenzando troppo la correlazione. Raccogli più dati variati';
+        }
+
+        // Soglie di correlazione corrette scientificamente
+        // r < 0.3 = debole, 0.3-0.5 = moderata, > 0.5 = forte
         let insight = '';
-        if (correlation > 0.5) insight = 'Forte correlazione positiva: dormi meglio, ti alleni meglio!';
-        else if (correlation > 0.2) insight = 'Correlazione moderata: il sonno influenza le tue performance';
-        else if (correlation > -0.2) insight = 'Correlazione debole: altri fattori influenzano di più';
-        else insight = 'Correlazione negativa: analizza altri fattori di recupero';
+        let correlationStrength = 'weak';
+        const absCorr = Math.abs(correlation);
+        
+        if (!isStatisticallyValid) {
+            insight = varianceWarning || 'Dati insufficienti per una correlazione affidabile';
+            correlationStrength = 'invalid';
+        } else if (absCorr >= 0.5) {
+            insight = correlation > 0 
+                ? 'Forte correlazione positiva: dormi meglio, ti alleni meglio!' 
+                : 'Forte correlazione negativa: analizza i fattori di recupero';
+            correlationStrength = 'strong';
+        } else if (absCorr >= 0.3) {
+            insight = correlation > 0
+                ? 'Correlazione moderata: il sonno sembra influenzare le performance'
+                : 'Correlazione moderata negativa: il sonno potrebbe non essere ottimale';
+            correlationStrength = 'moderate';
+        } else {
+            insight = 'Correlazione debole: altri fattori influenzano maggiormente le performance';
+            correlationStrength = 'weak';
+        }
 
         return {
             correlation: Math.round(correlation * 100) / 100,
             dataPoints,
             insight,
             avgSleep: (sumX / n).toFixed(1),
-            avgPerformance: (sumY / n).toFixed(1)
+            avgPerformance: (sumY / n).toFixed(1),
+            // Nuovi campi per validità statistica
+            isStatisticallyValid,
+            varianceWarning,
+            correlationStrength,
+            stats: {
+                n,
+                stdDevX: Math.round(stdDevX * 100) / 100,
+                stdDevY: Math.round(stdDevY * 100) / 100,
+                hasLowVarianceX,
+                hasHighLeverageOutlier,
+                leveragePointsCount: leveragePoints.length
+            }
         };
+    }
+
+    /**
+     * Rileva punti con alto leverage (outlier che influenzano la regressione)
+     */
+    _detectHighLeveragePoints(dataPoints, meanX, stdDevX) {
+        if (stdDevX === 0) return [];
+        
+        // Un punto ha alto leverage se è molto distante dalla media su X
+        const threshold = 2.5; // Oltre 2.5 deviazioni standard
+        return dataPoints.filter(d => {
+            const zScore = Math.abs((d.sleep - meanX) / stdDevX);
+            return zScore > threshold;
+        });
     }
 
     /**
@@ -728,14 +954,26 @@ export class AdvancedMetricsEngine {
         const thisExercises = new Set();
         thisWeek.forEach(log => (log.exercises || []).forEach(ex => thisExercises.add(ex.name)));
 
+        // Helper per estrarre minuti da durata (può essere "45 min", "45", o numero)
+        const parseDuration = (duration) => {
+            if (typeof duration === 'number') return duration;
+            if (typeof duration === 'string') {
+                const match = duration.match(/(\d+)/);
+                return match ? parseInt(match[1], 10) : 0;
+            }
+            return 0;
+        };
+
+        // Calcola durata media
+        const totalDuration = thisWeek.reduce((s, l) => s + parseDuration(l.duration), 0);
+        const avgDuration = thisWeek.length > 0 ? Math.round(totalDuration / thisWeek.length) : 0;
+
         return {
             sessions: thisWeek.length,
             totalVolume: thisVolume,
             volumeChange: parseFloat(volumeChange),
             uniqueExercises: thisExercises.size,
-            avgDuration: thisWeek.length 
-                ? Math.round(thisWeek.reduce((s, l) => s + (l.duration || 0), 0) / thisWeek.length)
-                : 0,
+            avgDuration: avgDuration,
             comparedToLastWeek: {
                 sessions: thisWeek.length - lastWeek.length,
                 volume: thisVolume - lastVolume

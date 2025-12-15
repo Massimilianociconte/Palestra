@@ -32,6 +32,9 @@ async function init() {
     // Initialize workout sharing
     const workoutSharingHandler = new WorkoutSharingHandler(firestoreService);
 
+    // Setup deep link listener for Capacitor (handles gymbro:// URLs)
+    WorkoutSharingHandler.setupDeepLinkListener(firestoreService);
+
     // Inject AI targeting chips into AI Predictor section
     injectAITargetingUI();
 
@@ -62,10 +65,10 @@ async function init() {
 async function setupSessionRecovery() {
     try {
         const savedSession = await sessionRecoveryManager.init();
-        
+
         if (savedSession) {
             console.log('🔄 Found interrupted session, showing recovery modal...');
-            
+
             // Show recovery modal
             sessionRecoveryManager.showRecoveryModal(
                 savedSession,
@@ -90,15 +93,15 @@ function restoreSession(sessionState) {
     try {
         // Store the session state for the focus mode to pick up
         window.pendingSessionRestore = sessionState;
-        
+
         // Find and click the start button for the workout
         const workoutId = sessionState.workoutId;
         const workoutName = sessionState.workout?.name;
-        
+
         // Try to find the workout in the list and start it
         const workoutItems = document.querySelectorAll('.workout-list-item');
         let found = false;
-        
+
         workoutItems.forEach((item, index) => {
             const nameEl = item.querySelector('strong');
             if (nameEl && nameEl.textContent.includes(workoutName)) {
@@ -112,7 +115,7 @@ function restoreSession(sessionState) {
                 }
             }
         });
-        
+
         if (!found) {
             // Workout not found in list, show error
             alert(`Impossibile trovare la scheda "${workoutName}". Potrebbe essere stata eliminata.`);
@@ -138,7 +141,7 @@ function setupFocusModeTracking() {
         mutations.forEach((mutation) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                 const isVisible = focusModal.style.display !== 'none';
-                
+
                 if (isVisible) {
                     // Focus mode opened - start tracking
                     startSessionTracking();
@@ -149,7 +152,7 @@ function setupFocusModeTracking() {
             }
         });
     });
-    
+
     modalObserver.observe(focusModal, { attributes: true, attributeFilter: ['style'] });
     console.log('📊 Focus mode tracking initialized');
 }
@@ -157,7 +160,7 @@ function setupFocusModeTracking() {
 // Start tracking the current session
 function startSessionTracking() {
     console.log('🎯 Focus mode opened - starting session tracking');
-    
+
     // Give the focus mode a moment to initialize
     setTimeout(() => {
         // Create a state getter function that reads from the DOM
@@ -166,13 +169,13 @@ function startSessionTracking() {
                 // Get current workout from window (set by focus mode)
                 const currentWorkout = window.currentFocusWorkout;
                 if (!currentWorkout) return null;
-                
+
                 // Get current exercise and set indices
                 const exerciseNameEl = document.getElementById('focusExerciseName');
                 const setCounterEl = document.getElementById('focusSetCounter');
                 const timerAreaEl = document.getElementById('focusTimerArea');
                 const timerEl = document.getElementById('focusTimer');
-                
+
                 // Parse set counter (e.g., "Set 2/4")
                 let currentSetIndex = 0;
                 if (setCounterEl) {
@@ -181,7 +184,7 @@ function startSessionTracking() {
                         currentSetIndex = parseInt(match[1]) - 1;
                     }
                 }
-                
+
                 // Find current exercise index
                 let currentExerciseIndex = 0;
                 if (exerciseNameEl && currentWorkout.exercises) {
@@ -191,10 +194,10 @@ function startSessionTracking() {
                     );
                     if (currentExerciseIndex === -1) currentExerciseIndex = 0;
                 }
-                
+
                 // Check if resting
                 const isResting = timerAreaEl && timerAreaEl.style.display !== 'none';
-                
+
                 // Get remaining rest time
                 let remainingRestTime = 0;
                 if (isResting && timerEl) {
@@ -204,7 +207,7 @@ function startSessionTracking() {
                         remainingRestTime = (min * 60) + sec;
                     }
                 }
-                
+
                 // Get completed sets from history
                 const historyItems = document.querySelectorAll('#focusHistoryList .history-item');
                 const completedSets = Array.from(historyItems).map(item => {
@@ -220,7 +223,7 @@ function startSessionTracking() {
                     }
                     return null;
                 }).filter(Boolean);
-                
+
                 return {
                     workout: currentWorkout,
                     workoutId: currentWorkout.id,
@@ -237,13 +240,13 @@ function startSessionTracking() {
                 return null;
             }
         };
-        
+
         // Start auto-save with the state getter
         sessionRecoveryManager.startAutoSave(getStateCallback);
-        
+
         // Also trigger critical saves on important events
         setupCriticalSaveTriggers();
-        
+
     }, 1000); // Wait 1 second for focus mode to initialize
 }
 
@@ -256,23 +259,23 @@ function setupCriticalSaveTriggers() {
             sessionRecoveryManager.criticalSave();
         });
     }
-    
+
     // Save on weight/reps input change
     const weightInput = document.getElementById('focusWeightInput');
     const repsInput = document.getElementById('focusRepsInput');
-    
+
     if (weightInput) {
         weightInput.addEventListener('change', () => {
             sessionRecoveryManager.criticalSave();
         });
     }
-    
+
     if (repsInput) {
         repsInput.addEventListener('change', () => {
             sessionRecoveryManager.criticalSave();
         });
     }
-    
+
     console.log('💾 Critical save triggers installed');
 }
 
@@ -280,7 +283,7 @@ function setupCriticalSaveTriggers() {
 function handleFocusModeClose() {
     // Check if session was completed normally
     const sessionCompleted = window.focusModeSessionCompleted;
-    
+
     if (sessionCompleted) {
         // Session completed normally - clear saved session
         console.log('✅ Session completed normally - clearing saved state');
@@ -297,7 +300,7 @@ function handleFocusModeClose() {
 function setupMediaSessionIntegration() {
     let lastTimerValue = null;
     let timerStarted = false;
-    
+
     // 1. Audio Trigger on Start (Delegated) - CRITICAL for lockscreen
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.start-workout');
@@ -318,12 +321,12 @@ function setupMediaSessionIntegration() {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                     const isVisible = timerArea.style.display !== 'none';
-                    
+
                     if (isVisible && !timerStarted) {
                         // Timer area just became visible - REST STARTED
                         console.log('🔔 Rest period detected - activating lockscreen timer');
                         timerStarted = true;
-                        
+
                         // Get initial timer value
                         const timerElement = document.getElementById('focusTimer');
                         if (timerElement) {
@@ -333,7 +336,7 @@ function setupMediaSessionIntegration() {
                                 const totalSeconds = (min * 60) + sec;
                                 if (!isNaN(totalSeconds) && totalSeconds > 0) {
                                     // Use startTimerDisplay for native lockscreen notification
-                                    mediaSessionManager.startTimerDisplay(totalSeconds, 
+                                    mediaSessionManager.startTimerDisplay(totalSeconds,
                                         (remaining) => {
                                             // onTick callback - UI updates handled by DOM observer
                                         },
@@ -351,10 +354,10 @@ function setupMediaSessionIntegration() {
                         console.log('✅ Rest period ended');
                         timerStarted = false;
                         lastTimerValue = null;
-                        
+
                         // Stop the native timer notification
                         mediaSessionManager.stopTimerDisplay();
-                        
+
                         // Update lockscreen to show exercise info
                         const exerciseElement = document.getElementById('focusExerciseName');
                         if (exerciseElement) {
@@ -387,7 +390,7 @@ function setupMediaSessionIntegration() {
                 if (!isNaN(totalSeconds) && totalSeconds !== lastTimerValue) {
                     lastTimerValue = totalSeconds;
                     mediaSessionManager.updateTimer(totalSeconds);
-                    
+
                     // Log every 10 seconds for debugging
                     if (totalSeconds % 10 === 0) {
                         console.log(`⏱️ Lockscreen timer: ${min}:${sec.toString().padStart(2, '0')}`);
@@ -427,7 +430,7 @@ function setupMediaSessionIntegration() {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                     const isVisible = focusModal.style.display !== 'none';
-                    
+
                     if (!isVisible) {
                         // Focus mode closed - end workout session
                         console.log('🏁 Focus mode closed - ending media session');
@@ -570,13 +573,13 @@ function setupAIGenerationInterception() {
 
             // Use gatherDataForAI to get complete data including recent logs, PRs, health data
             const baseData = await firestoreService.gatherDataForAI();
-            
+
             // Add user request to the gathered data
             const payload = {
                 ...baseData,
                 userRequest: userRequest
             };
-            
+
             // Track if this is a personalized request
             const isPersonalized = !!(userRequest.style || userRequest.customText);
 
@@ -587,7 +590,7 @@ function setupAIGenerationInterception() {
             if (result.success) {
                 // Render result
                 const suggestion = result.data;
-                
+
                 // Save to AI plan history (for storico)
                 const plan = {
                     ...suggestion,
@@ -649,13 +652,13 @@ function setupAIGenerationInterception() {
                         // If it's a number, return as string
                         return str.trim();
                     };
-                    
+
                     // Parse sets count from AI format
                     const parseSetsCount = (setsStr) => {
                         const num = parseInt(setsStr);
                         return isNaN(num) || num < 1 ? 3 : num;
                     };
-                    
+
                     // === CALCOLO PESO SUGGERITO ===
                     // Percentuali NSCA per convertire 1RM in peso per X reps
                     const rmPercentages = {
@@ -663,7 +666,7 @@ function setupAIGenerationInterception() {
                         6: 0.85, 7: 0.83, 8: 0.80, 9: 0.77, 10: 0.75,
                         11: 0.73, 12: 0.70, 13: 0.68, 14: 0.66, 15: 0.64
                     };
-                    
+
                     // Normalizza nome esercizio per matching (versione aggressiva)
                     const normalizeExerciseName = (name) => {
                         return (name || '').toLowerCase().trim()
@@ -678,22 +681,22 @@ function setupAIGenerationInterception() {
                             .replace(/\s+/g, ' ')
                             .trim();
                     };
-                    
+
                     // Accedi alle stime 1RM dal payload
                     const exerciseEstimates = payload?.exerciseEstimates || {};
                     console.log('📊 AI Workout - exerciseEstimates disponibili:', Object.keys(exerciseEstimates).length, exerciseEstimates);
-                    
+
                     // Calcola peso suggerito basato su 1RM e reps target
                     const calculateSuggestedWeight = (exerciseName, targetReps) => {
                         const name = normalizeExerciseName(exerciseName);
-                        
+
                         // Parsa le reps target
                         let reps = parseInt(targetReps);
                         if (isNaN(reps) || reps < 1) reps = 10;
                         if (reps > 15) reps = 15;
-                        
+
                         const percentage = rmPercentages[reps] || 0.70;
-                        
+
                         // STEP 1: Cerca match ESATTO (nome normalizzato identico)
                         const exactMatch = exerciseEstimates[name];
                         if (exactMatch && exactMatch.est1RM) {
@@ -705,19 +708,19 @@ function setupAIGenerationInterception() {
                                 type: 'direct'
                             };
                         }
-                        
+
                         // STEP 2: Cerca match con nome base (prima parola/e principali)
                         const nameWords = name.split(' ').filter(w => w.length > 2);
                         let bestMatch = null;
                         let bestScore = 0;
-                        
+
                         for (const [estName, estData] of Object.entries(exerciseEstimates)) {
                             const estWords = estName.split(' ').filter(w => w.length > 2);
-                            
+
                             // Calcola quante parole in comune
                             const commonWords = nameWords.filter(w => estWords.includes(w));
                             const score = commonWords.length;
-                            
+
                             // Match diretto se tutte le parole principali combaciano
                             if (score >= Math.min(nameWords.length, estWords.length) && score >= 2) {
                                 if (score > bestScore) {
@@ -730,7 +733,7 @@ function setupAIGenerationInterception() {
                                 bestMatch = { estName, estData, isDirect: false };
                             }
                         }
-                        
+
                         if (bestMatch) {
                             const factor = bestMatch.isDirect ? 1.0 : 0.85;
                             const suggestedWeight = Math.round(bestMatch.estData.est1RM * percentage * factor * 2) / 2;
@@ -741,21 +744,21 @@ function setupAIGenerationInterception() {
                                 type: bestMatch.isDirect ? 'direct' : 'similar'
                             };
                         }
-                        
+
                         return null;
                     };
-                    
+
                     return {
                         id: Date.now(),
                         name: suggestion.suggestion || 'Allenamento AI',
                         exercises: suggestion.exercises ? suggestion.exercises.map(ex => {
                             const setsCount = parseSetsCount(ex.sets);
                             const repsValue = parseReps(ex.reps);
-                            
+
                             // Calcola peso suggerito per questo esercizio
                             const weightSuggestion = calculateSuggestedWeight(ex.name, repsValue);
                             console.log(`💪 ${ex.name} (${repsValue} reps):`, weightSuggestion ? `${weightSuggestion.weight}kg (${weightSuggestion.type})` : 'Nessun suggerimento');
-                            
+
                             // Create individual set objects (not references to same object)
                             const setsArray = [];
                             for (let i = 0; i < setsCount; i++) {
@@ -765,17 +768,17 @@ function setupAIGenerationInterception() {
                                     rpe: 8,
                                     target: repsValue // Also set target for display
                                 };
-                                
+
                                 // Aggiungi peso suggerito se disponibile
                                 if (weightSuggestion) {
                                     setObj.suggestedWeight = weightSuggestion.weight;
                                     setObj.suggestedBasis = weightSuggestion.basedOn;
                                     setObj.suggestedType = weightSuggestion.type;
                                 }
-                                
+
                                 setsArray.push(setObj);
                             }
-                            
+
                             return {
                                 name: ex.name || 'Esercizio',
                                 sets: setsArray,

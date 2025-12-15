@@ -27,10 +27,14 @@ export class WorkoutSharingHandler {
             }
             const shareUrl = `${baseUrl}?s=${shortId}`;
 
+            // Deep link for direct app opening (Android/iOS)
+            const deepLink = `gymbro://workout?id=${shortId}`;
+
             return {
                 success: true,
                 shortId: shortId,
-                shareUrl: shareUrl
+                shareUrl: shareUrl,
+                deepLink: deepLink
             };
         } catch (error) {
             console.error('Error sharing workout:', error);
@@ -84,7 +88,7 @@ export class WorkoutSharingHandler {
         }
     }
 
-    // Check URL for shared workout on page load
+    // Check URL for shared workout on page load (supports both web URLs and deep links)
     async checkForSharedWorkout() {
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -94,6 +98,17 @@ export class WorkoutSharingHandler {
         // Fallback to old format for backward compatibility
         if (!shareId) {
             shareId = urlParams.get('shareId');
+        }
+
+        // Check for gymbro:// deep link format (from Capacitor App plugin)
+        if (!shareId && window.location.href.includes('gymbro://')) {
+            try {
+                const deepLinkUrl = new URL(window.location.href.replace('gymbro://', 'https://'));
+                shareId = deepLinkUrl.searchParams.get('id');
+                console.log('Deep link workout detected:', shareId);
+            } catch (e) {
+                console.warn('Could not parse deep link:', e);
+            }
         }
 
         if (shareId) {
@@ -110,12 +125,53 @@ export class WorkoutSharingHandler {
         return null;
     }
 
+    // Setup Capacitor deep link listener (call this once on app init)
+    static setupDeepLinkListener(firestoreService) {
+        // Only run in Capacitor environment
+        if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+            import('@capacitor/app').then(({ App }) => {
+                App.addListener('appUrlOpen', async (event) => {
+                    console.log('Deep link received:', event.url);
+
+                    // Parse gymbro://workout?id=ABC123
+                    if (event.url.startsWith('gymbro://')) {
+                        try {
+                            const url = new URL(event.url.replace('gymbro://', 'https://'));
+                            const shareId = url.searchParams.get('id');
+
+                            if (shareId) {
+                                // Import the workout
+                                const handler = new WorkoutSharingHandler(firestoreService);
+                                const result = await handler.importWorkout(shareId);
+
+                                if (result.success) {
+                                    handler.showImportSuccess(result.workout.name);
+                                    // Reload workouts list
+                                    if (typeof window.renderWorkouts === 'function') {
+                                        window.renderWorkouts();
+                                    }
+                                } else {
+                                    handler.showImportError(result.error);
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error handling deep link:', e);
+                        }
+                    }
+                });
+                console.log('🔗 Deep link listener installed');
+            }).catch(e => {
+                console.warn('Could not load Capacitor App plugin:', e);
+            });
+        }
+    }
+
     // Show share modal with copy button and social sharing
     showShareModal(workoutName, shareUrl) {
         const shareText = `Dai un'occhiata a questa scheda di allenamento: ${workoutName}`;
         const encodedUrl = encodeURIComponent(shareUrl);
         const encodedText = encodeURIComponent(shareText);
-        
+
         const modalHTML = `
             <div id="workoutShareModal" style="
                 position: fixed;
@@ -247,7 +303,7 @@ export class WorkoutSharingHandler {
         const feedback = document.getElementById('shareCopyFeedback');
 
         closeBtn.addEventListener('click', () => modal.remove());
-        
+
         // Social share button handlers
         modal.querySelectorAll('.share-social-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -284,7 +340,7 @@ export class WorkoutSharingHandler {
     shareToSocialPlatform(platform, shareUrl, shareText) {
         const encodedUrl = encodeURIComponent(shareUrl);
         const encodedText = encodeURIComponent(shareText);
-        
+
         const socialUrls = {
             whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
             telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
@@ -292,7 +348,7 @@ export class WorkoutSharingHandler {
             facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
             email: `mailto:?subject=${encodeURIComponent('Scheda di Allenamento')}&body=${encodedText}%20${encodedUrl}`
         };
-        
+
         if (platform === 'native' && navigator.share) {
             navigator.share({
                 title: 'Scheda di Allenamento',

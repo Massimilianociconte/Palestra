@@ -1,30 +1,49 @@
 // Session Recovery Manager for Focus Mode
 // ROBUST system for saving and restoring interrupted workout sessions
 // Handles: crashes, accidental exits, tab switches, PWA issues, browser kills
+// ENHANCED: Native APK support via Capacitor, aggressive crash recovery
 
 const STORAGE_KEY = 'ironflow_focus_session_state';
 const BACKUP_KEY = 'ironflow_focus_session_backup';
+const NATIVE_BACKUP_KEY = 'ironflow_native_session_backup';
 const STALE_THRESHOLD = 4 * 60 * 60 * 1000; // 4 hours (increased from 2)
-const AUTO_SAVE_INTERVAL = 10000; // 10 seconds (reduced from 30)
-const CRITICAL_SAVE_DEBOUNCE = 500; // 500ms debounce for critical saves
+const AUTO_SAVE_INTERVAL = 5000; // 5 seconds (reduced for better crash recovery)
+const CRITICAL_SAVE_DEBOUNCE = 300; // 300ms debounce for critical saves
+const HEARTBEAT_INTERVAL = 2000; // 2 seconds heartbeat for crash detection
 
 export class SessionRecoveryManager {
     constructor() {
         this.autoSaveInterval = null;
+        this.heartbeatInterval = null;
         this.sessionState = null;
         this.getStateCallback = null;
         this.criticalSaveTimeout = null;
         this.isInitialized = false;
         this.db = null; // IndexedDB reference
+        this.isNativeApp = false; // Capacitor native app detection
+        this.lastHeartbeat = Date.now();
+        this.crashDetected = false;
     }
 
     // Initialize and check for existing session
     async init() {
+        // Detect if running in Capacitor native app
+        this.isNativeApp = typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform();
+        console.log(`🔧 Session Recovery: ${this.isNativeApp ? 'Native APK' : 'Web/PWA'} mode`);
+        
         // Setup emergency save handlers FIRST
         this.setupEmergencyHandlers();
         
+        // Setup native app specific handlers
+        if (this.isNativeApp) {
+            this.setupNativeHandlers();
+        }
+        
         // Try to open IndexedDB for backup storage
         await this.initIndexedDB();
+        
+        // Check for crash (heartbeat was not updated)
+        await this.detectCrash();
         
         this.isInitialized = true;
         
@@ -33,6 +52,10 @@ export class SessionRecoveryManager {
 
         if (savedState && !this.isStale(savedState)) {
             console.log('🔄 Found recoverable session from', new Date(savedState.timestamp).toLocaleString());
+            if (this.crashDetected) {
+                console.log('💥 Session recovered after crash/force close');
+                savedState.wasRecoveredFromCrash = true;
+            }
             return savedState; // Return for recovery prompt
         } else if (savedState) {
             // Clear stale session
@@ -41,6 +64,57 @@ export class SessionRecoveryManager {
         }
 
         return null;
+    }
+    
+    // Detect if app crashed (heartbeat wasn't properly stopped)
+    async detectCrash() {
+        try {
+            const lastHeartbeat = localStorage.getItem('ironflow_session_heartbeat');
+            const sessionActive = localStorage.getItem('ironflow_session_active');
+            
+            if (sessionActive === 'true' && lastHeartbeat) {
+                const timeSinceHeartbeat = Date.now() - parseInt(lastHeartbeat);
+                // If heartbeat is older than 30 seconds but session was active, it was a crash
+                if (timeSinceHeartbeat > 30000) {
+                    this.crashDetected = true;
+                    console.log('💥 Crash detected! Last heartbeat:', Math.round(timeSinceHeartbeat / 1000), 'seconds ago');
+                }
+            }
+        } catch (e) {
+            console.warn('Crash detection failed:', e);
+        }
+    }
+    
+    // Setup native app specific handlers (Capacitor)
+    setupNativeHandlers() {
+        // Listen for Capacitor App state changes
+        if (window.Capacitor?.Plugins?.App) {
+            const { App } = window.Capacitor.Plugins;
+            
+            // App going to background
+            App.addListener('appStateChange', ({ isActive }) => {
+                if (!isActive) {
+                    this.emergencySave('native-background');
+                    console.log('📱 App going to background - session saved');
+                } else {
+                    // App coming to foreground - verify session
+                    this.verifySessionIntegrity();
+                    console.log('📱 App resumed - verifying session');
+                }
+            });
+            
+            // App being terminated
+            App.addListener('backButton', () => {
+                this.emergencySave('native-backbutton');
+            });
+            
+            console.log('📱 Native Capacitor handlers installed');
+        }
+        
+        // Additional native-specific storage using Capacitor Preferences
+        if (window.Capacitor?.Plugins?.Preferences) {
+            console.log('📱 Capacitor Preferences available for backup');
+        }
     }
 
     // Initialize IndexedDB for more reliable storage
@@ -200,28 +274,45 @@ export class SessionRecoveryManager {
     // Get saved session from all storage locations
     async getSavedSession() {
         try {
+            // Collect all available sessions
+            const sessions = [];
+            
             // Try localStorage first (fastest)
-            let saved = this.getFromLocalStorage();
+            const localSession = this.getFromLocalStorage();
+            if (localSession && !this.isStale(localSession)) {
+                sessions.push({ source: 'localStorage', data: localSession });
+            }
             
-            // If not found or stale, try backup
-            if (!saved || this.isStale(saved)) {
-                const backup = this.getBackupFromLocalStorage();
-                if (backup && !this.isStale(backup)) {
-                    saved = backup;
-                    console.log('📦 Restored from backup localStorage');
+            // Try backup localStorage
+            const backupSession = this.getBackupFromLocalStorage();
+            if (backupSession && !this.isStale(backupSession)) {
+                sessions.push({ source: 'backup', data: backupSession });
+            }
+            
+            // Try IndexedDB
+            const idbSession = await this.getFromIndexedDB();
+            if (idbSession && !this.isStale(idbSession)) {
+                sessions.push({ source: 'IndexedDB', data: idbSession });
+            }
+            
+            // Try native storage (Capacitor)
+            if (this.isNativeApp) {
+                const nativeSession = await this.getFromNativeStorage();
+                if (nativeSession && !this.isStale(nativeSession)) {
+                    sessions.push({ source: 'NativeStorage', data: nativeSession });
                 }
             }
             
-            // If still not found, try IndexedDB
-            if (!saved || this.isStale(saved)) {
-                const idbSaved = await this.getFromIndexedDB();
-                if (idbSaved && !this.isStale(idbSaved)) {
-                    saved = idbSaved;
-                    console.log('📦 Restored from IndexedDB');
-                }
-            }
+            // Return the most recent valid session
+            if (sessions.length === 0) return null;
             
-            return saved;
+            // Sort by timestamp (most recent first)
+            sessions.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+            
+            const best = sessions[0];
+            console.log(`📦 Restored from ${best.source} (${sessions.length} backups found)`);
+            
+            return best.data;
         } catch (error) {
             console.error('Error reading saved session:', error);
             return null;
@@ -307,6 +398,38 @@ export class SessionRecoveryManager {
         
         // IndexedDB
         await this.saveToIndexedDB(sessionState);
+        
+        // Native Capacitor Preferences (for APK)
+        if (this.isNativeApp) {
+            await this.saveToNativeStorage(sessionState);
+        }
+    }
+    
+    // Save to Capacitor Preferences (native storage)
+    async saveToNativeStorage(sessionState) {
+        if (!window.Capacitor?.Plugins?.Preferences) return;
+        
+        try {
+            await window.Capacitor.Plugins.Preferences.set({
+                key: NATIVE_BACKUP_KEY,
+                value: JSON.stringify(sessionState)
+            });
+        } catch (e) {
+            console.warn('Native storage save failed:', e);
+        }
+    }
+    
+    // Get from Capacitor Preferences (native storage)
+    async getFromNativeStorage() {
+        if (!window.Capacitor?.Plugins?.Preferences) return null;
+        
+        try {
+            const result = await window.Capacitor.Plugins.Preferences.get({ key: NATIVE_BACKUP_KEY });
+            return result.value ? JSON.parse(result.value) : null;
+        } catch (e) {
+            console.warn('Native storage read failed:', e);
+            return null;
+        }
     }
 
     // Check if session is stale
@@ -355,21 +478,50 @@ export class SessionRecoveryManager {
         this.getStateCallback = getStateCallback;
         this.stopAutoSave(); // Clear any existing interval
 
+        // Mark session as active
+        localStorage.setItem('ironflow_session_active', 'true');
+        
         // Initial save
         const initialState = getStateCallback();
         if (initialState) {
             this.saveSession(initialState);
         }
 
-        // Start interval
+        // Start auto-save interval
         this.autoSaveInterval = setInterval(() => {
             const currentState = getStateCallback();
             if (currentState) {
                 this.saveSession(currentState);
             }
         }, AUTO_SAVE_INTERVAL);
+        
+        // Start heartbeat interval (for crash detection)
+        this.heartbeatInterval = setInterval(() => {
+            this.updateHeartbeat();
+        }, HEARTBEAT_INTERVAL);
+        
+        // Initial heartbeat
+        this.updateHeartbeat();
 
-        console.log(`⏰ Auto-save started (every ${AUTO_SAVE_INTERVAL / 1000}s)`);
+        console.log(`⏰ Auto-save started (every ${AUTO_SAVE_INTERVAL / 1000}s) with heartbeat`);
+    }
+    
+    // Update heartbeat timestamp
+    updateHeartbeat() {
+        try {
+            this.lastHeartbeat = Date.now();
+            localStorage.setItem('ironflow_session_heartbeat', this.lastHeartbeat.toString());
+            
+            // Also save to native storage if available
+            if (this.isNativeApp && window.Capacitor?.Plugins?.Preferences) {
+                window.Capacitor.Plugins.Preferences.set({
+                    key: 'session_heartbeat',
+                    value: this.lastHeartbeat.toString()
+                }).catch(() => {});
+            }
+        } catch (e) {
+            // Ignore heartbeat errors
+        }
     }
 
     // Stop auto-save interval
@@ -379,10 +531,19 @@ export class SessionRecoveryManager {
             this.autoSaveInterval = null;
         }
         
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
+        
         if (this.criticalSaveTimeout) {
             clearTimeout(this.criticalSaveTimeout);
             this.criticalSaveTimeout = null;
         }
+        
+        // Mark session as inactive (clean shutdown)
+        localStorage.setItem('ironflow_session_active', 'false');
+        localStorage.removeItem('ironflow_session_heartbeat');
     }
 
     // Clear saved session from all storages
@@ -390,6 +551,8 @@ export class SessionRecoveryManager {
         // localStorage
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(BACKUP_KEY);
+        localStorage.removeItem('ironflow_session_active');
+        localStorage.removeItem('ironflow_session_heartbeat');
         
         // IndexedDB
         if (this.db) {
@@ -402,8 +565,19 @@ export class SessionRecoveryManager {
             }
         }
         
+        // Native Capacitor Preferences
+        if (this.isNativeApp && window.Capacitor?.Plugins?.Preferences) {
+            try {
+                await window.Capacitor.Plugins.Preferences.remove({ key: NATIVE_BACKUP_KEY });
+                await window.Capacitor.Plugins.Preferences.remove({ key: 'session_heartbeat' });
+            } catch (error) {
+                console.warn('Native storage clear failed:', error);
+            }
+        }
+        
         this.sessionState = null;
         this.getStateCallback = null;
+        this.crashDetected = false;
         this.stopAutoSave();
         
         console.log('🗑️ Session cleared from all storages');
