@@ -11,7 +11,7 @@
         rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00f3ff">
-    
+
     <!-- iOS Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -91,14 +91,18 @@
         }
 
         @media (max-width: 480px) {
-            .set-row, .set-header {
+
+            .set-row,
+            .set-header {
                 grid-template-columns: 30px 1fr 1fr 1fr 30px !important;
                 gap: 4px !important;
             }
+
             .set-input {
                 padding: 0.4rem 0.2rem !important;
                 font-size: 0.9rem !important;
             }
+
             .set-label {
                 font-size: 0.8rem !important;
             }
@@ -144,124 +148,141 @@
             letter-spacing: 0.05em;
         }
     </style>
-<style>
-    /* ... existing styles ... */
-    .exercise-log-item {
-        margin-bottom: 1.5rem;
-        background: var(--color-surface);
-        padding: 1rem;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--color-border);
-        position: relative;
-    }
-    .exercise-log-item.in-superset {
-        border-left: 3px solid #ff6b6b;
-        background: linear-gradient(to right, rgba(255, 107, 107, 0.05), var(--color-surface));
-    }
-    .superset-indicator {
-        display: inline-block;
-        background: #ff6b6b;
-        color: white;
-        font-size: 0.7rem;
-        padding: 2px 6px;
-        border-radius: 4px;
-        margin-bottom: 0.5rem;
-        font-weight: bold;
-    }
-    .superset-controls {
-        margin-top: 1rem;
-        padding-top: 0.5rem;
-        border-top: 1px dashed var(--color-border);
-        display: flex !important;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-    .superset-btn {
-        background: none;
-        border: 1px solid var(--color-border);
-        color: var(--color-text-muted);
-        padding: 0.3rem 0.6rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .superset-btn:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--color-text-main);
-    }
-    .superset-rest-config {
-        display: none;
-        margin-top: 0.5rem;
-        padding: 0.5rem;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 4px;
-    }
-    .superset-rest-config.visible {
-        display: block;
-    }
-    .rest-input-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.8rem;
-        margin-bottom: 0.3rem;
-    }
-    .rest-input-row input {
-        width: 50px;
-        background: var(--color-bg);
-        border: 1px solid var(--color-border);
-        color: white;
-        padding: 0.2rem;
-        text-align: center;
-        border-radius: 4px;
-    }
-    .set-type-select {
-        background: var(--color-bg);
-        border: 1px solid var(--color-border);
-        color: var(--color-text-main);
-        border-radius: 4px;
-        padding: 0.2rem;
-        font-size: 0.8rem;
-        width: 80px;
-    }
-    /* Grid layout for set row */
-    .set-row {
-        display: grid;
-        grid-template-columns: 30px 80px 1fr 1fr 1fr 30px;
-        gap: 0.5rem;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
+    <style>
+        /* ... existing styles ... */
+        .exercise-log-item {
+            margin-bottom: 1.5rem;
+            background: var(--color-surface);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            position: relative;
+        }
 
-    @media (max-width: 480px) {
-        .set-row, .set-header {
-            grid-template-columns: 20px 60px 1fr 1fr 1fr 20px !important;
-            gap: 2px !important;
+        .exercise-log-item.in-superset {
+            border-left: 3px solid #ff6b6b;
+            background: linear-gradient(to right, rgba(255, 107, 107, 0.05), var(--color-surface));
         }
-        .set-input {
-            padding: 0.4rem 0.1rem !important;
-            font-size: 0.85rem !important;
+
+        .superset-indicator {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
         }
+
+        .superset-controls {
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--color-border);
+            display: flex !important;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .superset-btn {
+            background: none;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .superset-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text-main);
+        }
+
+        .superset-rest-config {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .superset-rest-config.visible {
+            display: block;
+        }
+
+        .rest-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .rest-input-row input {
+            width: 50px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: white;
+            padding: 0.2rem;
+            text-align: center;
+            border-radius: 4px;
+        }
+
         .set-type-select {
-            width: 100% !important;
-            font-size: 0.75rem !important;
-            padding: 0.1rem !important;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-main);
+            border-radius: 4px;
+            padding: 0.2rem;
+            font-size: 0.8rem;
+            width: 80px;
         }
-        .set-label {
-            font-size: 0.75rem !important;
+
+        /* Grid layout for set row */
+        .set-row {
+            display: grid;
+            grid-template-columns: 30px 80px 1fr 1fr 1fr 30px;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
         }
-    }
-    .set-header {
-        display: grid;
-        grid-template-columns: 30px 80px 1fr 1fr 1fr 30px;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-        font-size: 0.8rem;
-        color: var(--color-text-muted);
-        text-align: center;
-    }
-</style>
+
+        @media (max-width: 480px) {
+
+            .set-row,
+            .set-header {
+                grid-template-columns: 20px 60px 1fr 1fr 1fr 20px !important;
+                gap: 2px !important;
+            }
+
+            .set-input {
+                padding: 0.4rem 0.1rem !important;
+                font-size: 0.85rem !important;
+            }
+
+            .set-type-select {
+                width: 100% !important;
+                font-size: 0.75rem !important;
+                padding: 0.1rem !important;
+            }
+
+            .set-label {
+                font-size: 0.75rem !important;
+            }
+        }
+
+        .set-header {
+            display: grid;
+            grid-template-columns: 30px 80px 1fr 1fr 1fr 30px;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -319,7 +340,8 @@
                     </div>
                 </div>
 
-                <div class="wellness-grid" style="display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:0.75rem; margin-bottom:1rem;">
+                <div class="wellness-grid"
+                    style="display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:0.75rem; margin-bottom:1rem;">
                     <div>
                         <label style="font-size: 0.85rem; color: var(--color-text-muted);">Sonno (1-10)</label>
                         <input type="number" id="logSleepQuality" class="set-input" min="1" max="10" placeholder="7">
@@ -337,25 +359,40 @@
                         <input type="number" id="logSorenessLevel" class="set-input" min="1" max="10" placeholder="3">
                     </div>
                 </div>
-                
+
                 <!-- DOMS Details Section -->
-                <div id="domsDetailsSection" style="background: rgba(255,255,255,0.03); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                        <label style="font-size: 0.9rem; color: var(--color-text-muted); font-weight: 500;">💪 Dettagli DOMS</label>
-                        <button type="button" id="toggleDomsDetails" style="background: none; border: none; color: var(--color-primary); cursor: pointer; font-size: 0.8rem;">Espandi ▼</button>
+                <div id="domsDetailsSection"
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="font-size: 0.9rem; color: var(--color-text-muted); font-weight: 500;">💪 Dettagli
+                            DOMS</label>
+                        <button type="button" id="toggleDomsDetails"
+                            style="background: none; border: none; color: var(--color-primary); cursor: pointer; font-size: 0.8rem;">Espandi
+                            ▼</button>
                     </div>
                     <div id="domsDetailsContent" style="display: none;">
                         <div style="margin-bottom: 1rem;">
-                            <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Gruppi Muscolari Doloranti</label>
+                            <label
+                                style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Gruppi
+                                Muscolari Doloranti</label>
                             <div id="logSorenessMusclePicker" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
                                 <!-- Muscle chips will be generated here -->
                             </div>
-                            <small id="logSorenessMuscleHint" style="display: block; margin-top: 0.5rem; color: var(--color-text-muted); font-size: 0.75rem;">Nessun gruppo selezionato</small>
+                            <small id="logSorenessMuscleHint"
+                                style="display: block; margin-top: 0.5rem; color: var(--color-text-muted); font-size: 0.75rem;">Nessun
+                                gruppo selezionato</small>
                         </div>
                         <div>
-                            <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Causa DOMS / Dolore (opzionale)</label>
-                            <input type="text" id="logExternalCause" class="set-input" style="width: 100%; text-align: left;" placeholder="es. Partita di Padel, Corsa 10km, Trasloco...">
-                            <small style="display: block; margin-top: 0.25rem; color: var(--color-text-muted); font-size: 0.7rem;">Se il dolore è dovuto ad attività esterne alla palestra</small>
+                            <label
+                                style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Causa
+                                DOMS / Dolore (opzionale)</label>
+                            <input type="text" id="logExternalCause" class="set-input"
+                                style="width: 100%; text-align: left;"
+                                placeholder="es. Partita di Padel, Corsa 10km, Trasloco...">
+                            <small
+                                style="display: block; margin-top: 0.25rem; color: var(--color-text-muted); font-size: 0.7rem;">Se
+                                il dolore è dovuto ad attività esterne alla palestra</small>
                         </div>
                     </div>
                 </div>
@@ -397,35 +434,35 @@
 
         // Generate set type options HTML
         function getSetTypeOptions(selectedType = 'normal') {
-            return Object.entries(SET_TYPES).map(([key, val]) => 
+            return Object.entries(SET_TYPES).map(([key, val]) =>
                 `<option value="${key}" ${key === selectedType ? 'selected' : ''}>${val.label}</option>`
             ).join('');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             let nextSupersetId = 1;
-            
+
             // DOMS Muscle Picker Setup
             const logSorenessMusclePicker = document.getElementById('logSorenessMusclePicker');
             const logSorenessMuscleHint = document.getElementById('logSorenessMuscleHint');
             const logExternalCause = document.getElementById('logExternalCause');
             const toggleDomsDetails = document.getElementById('toggleDomsDetails');
             const domsDetailsContent = document.getElementById('domsDetailsContent');
-            
+
             let selectedLogSorenessMuscles = new Set();
-            
+
             // Toggle DOMS details section
             toggleDomsDetails.addEventListener('click', () => {
                 const isHidden = domsDetailsContent.style.display === 'none';
                 domsDetailsContent.style.display = isHidden ? 'block' : 'none';
                 toggleDomsDetails.textContent = isHidden ? 'Comprimi ▲' : 'Espandi ▼';
             });
-            
+
             // Build muscle picker chips
             function buildLogSorenessPicker() {
                 if (!logSorenessMusclePicker) return;
                 logSorenessMusclePicker.innerHTML = '';
-                
+
                 Object.entries(MUSCLE_GROUPS).forEach(([id, meta]) => {
                     const chip = document.createElement('button');
                     chip.type = 'button';
@@ -442,7 +479,7 @@
                         cursor: pointer;
                         transition: all 0.2s ease;
                     `;
-                    
+
                     chip.addEventListener('click', () => {
                         if (selectedLogSorenessMuscles.has(id)) {
                             selectedLogSorenessMuscles.delete(id);
@@ -455,11 +492,11 @@
                         }
                         updateLogSorenessHint();
                     });
-                    
+
                     logSorenessMusclePicker.appendChild(chip);
                 });
             }
-            
+
             function updateLogSorenessHint() {
                 if (!logSorenessMuscleHint) return;
                 if (selectedLogSorenessMuscles.size === 0) {
@@ -469,7 +506,7 @@
                     logSorenessMuscleHint.textContent = `Selezionati: ${labels.join(', ')}`;
                 }
             }
-            
+
             function syncLogSorenessChips() {
                 if (!logSorenessMusclePicker) return;
                 logSorenessMusclePicker.querySelectorAll('.doms-chip').forEach(chip => {
@@ -484,13 +521,13 @@
                 });
                 updateLogSorenessHint();
             }
-            
+
             function clearLogSorenessSelection() {
                 selectedLogSorenessMuscles.clear();
                 syncLogSorenessChips();
                 if (logExternalCause) logExternalCause.value = '';
             }
-            
+
             // Initialize muscle picker
             buildLogSorenessPicker();
             // DOM Elements
@@ -635,7 +672,7 @@
                     }
 
                     const unitLabel = unitService && unitService.getSystem() === 'imperial' ? 'Lbs' : 'Kg';
-                    
+
                     // Superset Indicator
                     let supersetIndicator = '';
                     if (ex.supersetId) {
@@ -659,7 +696,7 @@
                             </div>
                         `;
                     } else if (!ex.supersetId) {
-                         restConfigHtml = `
+                        restConfigHtml = `
                             <div class="normal-rest-config" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
                                 <label>Recupero:</label>
                                 <input type="number" class="ex-rest" value="${ex.rest || 90}" placeholder="90" style="width: 50px; background: var(--color-bg); border: 1px solid var(--color-border); color: white; padding: 0.2rem; text-align: center; border-radius: 4px;"> sec
@@ -745,7 +782,7 @@
                             </div>
                         `;
                     }
-                    
+
                     // Superset Controls
                     const supersetControlsHtml = `
                         <div class="superset-controls">
@@ -880,7 +917,7 @@
                         // Insert before superset controls
                         const supersetControls = exerciseDiv.querySelector('.superset-controls');
                         exerciseDiv.insertBefore(newSetRow, supersetControls);
-                        
+
                         attachExerciseControls(); // Re-attach listeners
                     });
                 });
@@ -912,12 +949,12 @@
                     btn.addEventListener('click', (e) => {
                         if (confirm('Rimuovere questo esercizio?')) {
                             const exerciseDiv = e.target.closest('.exercise-log-item');
-                            
+
                             // If in superset, decouple first
                             if (exerciseDiv.dataset.supersetId) {
                                 decoupleSuperset(exerciseDiv.dataset.supersetId);
                             }
-                            
+
                             exerciseDiv.remove();
 
                             // Renumber remaining exercises
@@ -928,7 +965,7 @@
                         }
                     });
                 });
-                
+
                 // Superset Creation Buttons
                 document.querySelectorAll('.create-superset-btn').forEach(btn => {
                     btn.replaceWith(btn.cloneNode(true));
@@ -939,32 +976,32 @@
                         const allExercises = Array.from(document.querySelectorAll('.exercise-log-item'));
                         const currentIndex = allExercises.indexOf(currentExDiv);
                         const nextExDiv = allExercises[currentIndex + 1];
-                        
+
                         if (!nextExDiv) {
                             alert('Aggiungi prima un altro esercizio per creare un superset.');
                             return;
                         }
-                        
+
                         if (currentExDiv.dataset.supersetId || nextExDiv.dataset.supersetId) {
                             alert('Uno degli esercizi è già in un superset. Rimuovilo prima.');
                             return;
                         }
-                        
+
                         // Create Superset ID
                         const supersetId = 'ss_' + Date.now() + '_' + nextSupersetId++;
-                        
+
                         // Update UI for A
                         currentExDiv.dataset.supersetId = supersetId;
                         currentExDiv.dataset.supersetRole = 'A';
                         currentExDiv.classList.add('in-superset');
-                        
+
                         // Add Indicator A
                         const indicatorA = document.createElement('span');
                         indicatorA.className = 'superset-indicator';
                         indicatorA.textContent = 'Superset A';
                         const headerA = currentExDiv.querySelector('.exercise-name-input').parentElement.parentElement; // messy selector, better insert at top
                         currentExDiv.insertBefore(indicatorA, currentExDiv.firstChild);
-                        
+
                         // Add Rest Config A
                         const restConfigA = `
                             <div class="superset-rest-config visible" data-superset-id="${supersetId}">
@@ -982,35 +1019,35 @@
                         // Remove normal rest config
                         const normalRestA = currentExDiv.querySelector('.normal-rest-config');
                         if (normalRestA) normalRestA.remove();
-                        
+
                         // Insert new rest config after header
                         currentExDiv.querySelector('.exercise-name-input').parentElement.insertAdjacentHTML('afterend', restConfigA);
-                        
+
                         // Update Buttons A
                         currentExDiv.querySelector('.create-superset-btn').style.display = 'none';
                         currentExDiv.querySelector('.remove-superset-btn').style.display = 'block';
-                        
+
                         // Update UI for B
                         nextExDiv.dataset.supersetId = supersetId;
                         nextExDiv.dataset.supersetRole = 'B';
                         nextExDiv.classList.add('in-superset');
-                        
+
                         // Add Indicator B
                         const indicatorB = document.createElement('span');
                         indicatorB.className = 'superset-indicator';
                         indicatorB.textContent = 'Superset B';
                         nextExDiv.insertBefore(indicatorB, nextExDiv.firstChild);
-                        
+
                         // Remove normal rest config B
                         const normalRestB = nextExDiv.querySelector('.normal-rest-config');
                         if (normalRestB) normalRestB.remove();
-                        
+
                         // Update Buttons B
                         nextExDiv.querySelector('.create-superset-btn').style.display = 'none';
                         nextExDiv.querySelector('.remove-superset-btn').style.display = 'block';
                     });
                 });
-                
+
                 // Superset Removal Buttons
                 document.querySelectorAll('.remove-superset-btn').forEach(btn => {
                     btn.replaceWith(btn.cloneNode(true));
@@ -1025,7 +1062,7 @@
                     });
                 });
             }
-            
+
             // Helper to break a superset
             function decoupleSuperset(supersetId) {
                 const exercises = document.querySelectorAll(`.exercise-log-item[data-superset-id="${supersetId}"]`);
@@ -1033,18 +1070,18 @@
                     delete exDiv.dataset.supersetId;
                     delete exDiv.dataset.supersetRole;
                     exDiv.classList.remove('in-superset');
-                    
+
                     // Remove Indicator
                     const indicator = exDiv.querySelector('.superset-indicator');
                     if (indicator) indicator.remove();
-                    
+
                     // Remove Superset Rest Config
                     const ssRest = exDiv.querySelector('.superset-rest-config');
                     if (ssRest) ssRest.remove();
-                    
+
                     // Restore Normal Rest Config (if not present)
                     if (!exDiv.querySelector('.normal-rest-config')) {
-                         const normalRestHtml = `
+                        const normalRestHtml = `
                             <div class="normal-rest-config" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
                                 <label>Recupero:</label>
                                 <input type="number" class="ex-rest" value="90" placeholder="90" style="width: 50px; background: var(--color-bg); border: 1px solid var(--color-border); color: white; padding: 0.2rem; text-align: center; border-radius: 4px;"> sec
@@ -1053,7 +1090,7 @@
                         const headerRow = exDiv.querySelector('.exercise-name-input').parentElement;
                         headerRow.insertAdjacentHTML('afterend', normalRestHtml);
                     }
-                    
+
                     // Reset Buttons
                     exDiv.querySelector('.create-superset-btn').style.display = 'block';
                     exDiv.querySelector('.remove-superset-btn').style.display = 'none';
@@ -1091,7 +1128,7 @@
                 const sorenessVal = parseInt(logSorenessLevel.value, 10);
                 const externalCauseVal = logExternalCause ? logExternalCause.value.trim() : '';
                 const sorenessMusclesVal = Array.from(selectedLogSorenessMuscles);
-                
+
                 if ([sleepVal, energyVal, stressVal, sorenessVal].some(val => !Number.isNaN(val)) || sorenessMusclesVal.length > 0 || externalCauseVal) {
                     logData.wellness = {
                         sleepQuality: Number.isNaN(sleepVal) ? null : sleepVal,
@@ -1112,21 +1149,21 @@
                     // Get exercise name from input field (editable)
                     const exNameInput = item.querySelector('.exercise-name-input');
                     const exName = exNameInput ? exNameInput.value.trim() : 'Esercizio';
-                    
+
                     if (!exName) {
                         return; // Skip exercises without name
                     }
-                    
+
                     const exData = {
                         name: exName,
                         sets: []
                     };
-                    
+
                     // Superset Data
                     if (item.dataset.supersetId) {
                         exData.supersetId = item.dataset.supersetId;
                         exData.supersetRole = item.dataset.supersetRole;
-                        
+
                         // Rest Times for A
                         if (exData.supersetRole === 'A') {
                             const intraInput = item.querySelector('.intra-rest-input');
@@ -1186,7 +1223,7 @@
                 }
 
                 localStorage.setItem('ironflow_logs', JSON.stringify(logs));
-                
+
                 // 🏆 RILEVAMENTO PR - Controlla se ci sono nuovi Personal Record
                 try {
                     const newPRs = prTracker.detectPRsFromLog(logData);
@@ -1204,7 +1241,7 @@
                 } catch (prError) {
                     console.warn('PR detection error:', prError);
                 }
-                
+
                 await syncLogsToCloud();
 
                 // Reset UI
@@ -1338,8 +1375,8 @@
 
             // Show share modal for logs
             function showShareLogModal(workoutName, date, shareUrl) {
-                const formattedDate = new Date(date).toLocaleDateString('it-IT', { 
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+                const formattedDate = new Date(date).toLocaleDateString('it-IT', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
                 });
 
                 const modalHTML = `
@@ -1479,7 +1516,7 @@
                 const feedback = document.getElementById('shareLogCopyFeedback');
 
                 closeBtn.addEventListener('click', () => modal.remove());
-                
+
                 // Social share button handlers
                 const shareText = `Guarda il mio allenamento: ${workoutName} - ${formattedDate}`;
                 modal.querySelectorAll('.share-social-btn').forEach(btn => {
@@ -1502,12 +1539,12 @@
                     }
                 });
             }
-            
+
             // Share to social platform helper
             function shareToSocialPlatform(platform, shareUrl, shareText) {
                 const encodedUrl = encodeURIComponent(shareUrl);
                 const encodedText = encodeURIComponent(shareText);
-                
+
                 const socialUrls = {
                     whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
                     telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
@@ -1515,7 +1552,7 @@
                     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
                     email: `mailto:?subject=${encodeURIComponent('Il mio allenamento')}&body=${encodedText}%20${encodedUrl}`
                 };
-                
+
                 if (platform === 'native' && navigator.share) {
                     navigator.share({
                         title: 'Il mio allenamento',
@@ -1540,13 +1577,14 @@
 
                 if (logId) {
                     console.log('Shared log detected:', logId);
-                    
+
                     try {
                         const logData = await firestoreService.getSharedWorkoutLog(logId);
-                        
+
                         if (logData) {
                             // Generate new local ID and import
                             const importedLog = {
+                                id: Date.now(),
                                 ...logData,
                                 importedFrom: logId,
                                 importedAt: new Date().toISOString()
@@ -1572,7 +1610,7 @@
                     } catch (error) {
                         console.error('Error importing shared log:', error);
                         showImportNotification(error.message, false);
-                        
+
                         // Clean URL
                         window.history.replaceState({}, document.title, window.location.pathname);
                     }
@@ -1676,19 +1714,19 @@
                     logEnergyLevel.value = log.wellness.energyLevel ?? '';
                     logStressLevel.value = log.wellness.stressLevel ?? '';
                     logSorenessLevel.value = log.wellness.sorenessLevel ?? '';
-                    
+
                     // Load DOMS muscles
                     selectedLogSorenessMuscles.clear();
                     if (Array.isArray(log.wellness.sorenessMuscles)) {
                         log.wellness.sorenessMuscles.forEach(m => selectedLogSorenessMuscles.add(m));
                     }
                     syncLogSorenessChips();
-                    
+
                     // Load external cause
                     if (logExternalCause) {
                         logExternalCause.value = log.wellness.externalCause || '';
                     }
-                    
+
                     // Auto-expand DOMS section if there's data
                     if (log.wellness.sorenessMuscles?.length > 0 || log.wellness.externalCause) {
                         domsDetailsContent.style.display = 'block';
@@ -1708,11 +1746,11 @@
 
             // Initial Render
             renderLogs();
-            
+
             // --- AUTO-SYNC MANAGER ---
             // Sincronizza automaticamente all'avvio e ogni 5 minuti
             const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti
-            
+
             const performAutoSync = async () => {
                 try {
                     console.log('🔄 [Diary] Auto-sync in corso...');
@@ -1722,10 +1760,10 @@
                     console.warn('⚠️ [Diary] Auto-sync fallito:', error.message);
                 }
             };
-            
+
             // Primo sync silenzioso dopo 2 secondi
             setTimeout(performAutoSync, 2000);
-            
+
             // Sync ogni 5 minuti
             if (!window.autoSyncInterval) {
                 window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);

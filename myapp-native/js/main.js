@@ -12,16 +12,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('GYMBRO initialized.');
 
-    // Service Worker Registration
+    // FORCE UNREGISTER SERVICE WORKER (Fix for Black Screen / Cache Issues)
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                })
-                .catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            if (registrations.length > 0) {
+                console.log('Found existing Service Workers. Unregistering to ensure stability...');
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+                // Optional: Reload page once if we found one, to ensure fresh start? 
+                // Better not to loop. Just unregister for next run.
+            }
         });
     }
+
+    // Explicitly hide Splash Screen if Capacitor is available
+    /*
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
+        window.Capacitor.Plugins.SplashScreen.hide();
+    }
+    */
 });

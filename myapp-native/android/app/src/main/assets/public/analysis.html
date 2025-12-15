@@ -16,7 +16,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="IronFlow">
+    <meta name="apple-mobile-web-app-title" content="GymBro">
     <link rel="apple-touch-icon" href="assets/icon.svg">
 
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
@@ -136,6 +136,107 @@
             color: white;
             font-weight: 600;
         }
+        
+        /* Custom Exercise Dropdown Styles */
+        .custom-dropdown-container {
+            position: relative;
+        }
+        
+        #exerciseDropdownTrigger:hover {
+            border-color: rgba(0,243,255,0.6);
+            background: linear-gradient(135deg, rgba(0,243,255,0.1), rgba(0,0,0,0.4));
+        }
+        
+        #exerciseDropdownTrigger.open {
+            border-color: var(--color-primary);
+            background: linear-gradient(135deg, rgba(0,243,255,0.15), rgba(0,0,0,0.4));
+        }
+        
+        #exerciseDropdownTrigger.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        
+        #exerciseDropdownPanel.open {
+            display: block !important;
+            animation: dropdownSlide 0.2s ease;
+        }
+        
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .exercise-option {
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+        
+        .exercise-option:hover {
+            background: rgba(0,243,255,0.1);
+            border-color: rgba(0,243,255,0.3);
+        }
+        
+        .exercise-option.selected {
+            background: rgba(0,243,255,0.15);
+            border-color: rgba(0,243,255,0.5);
+        }
+        
+        .exercise-option-name {
+            font-weight: 600;
+            color: white;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        
+        .exercise-option-details {
+            display: flex;
+            gap: 12px;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+        
+        .exercise-weight {
+            color: #00ff88;
+        }
+        
+        .exercise-sessions {
+            color: #ffd700;
+        }
+        
+        #exerciseSearchInput:focus {
+            border-color: var(--color-primary);
+            background: rgba(255,255,255,0.08);
+        }
+        
+        /* Scrollbar styling for dropdown */
+        #exerciseOptionsList::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #exerciseOptionsList::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+        
+        #exerciseOptionsList::-webkit-scrollbar-thumb {
+            background: rgba(0,243,255,0.3);
+            border-radius: 3px;
+        }
+        
+        #exerciseOptionsList::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,243,255,0.5);
+        }
     </style>
 </head>
 
@@ -143,7 +244,7 @@
 
     <header class="header">
         <div class="container">
-            <a href="index.html" class="logo">IRON<span class="text-primary">FLOW</span></a>
+            <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
             <nav>
                 <div class="mobile-toggle" id="mobileToggle">☰</div>
                 <ul class="nav-links" id="navLinks">
@@ -157,7 +258,7 @@
         </div>
     </header>
 
-    <section class="section" style="padding-top: 120px;">
+    <section class="section" style="padding-top: 160px;">
         <div class="container">
             <h1 style="margin-bottom: var(--spacing-md);">Analisi <span class="text-primary">Performance</span></h1>
 
@@ -465,10 +566,79 @@
             <div class="card" style="margin-bottom: var(--spacing-md);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0;">Progressione <span class="text-primary">Forza</span></h3>
-                    <select id="strengthExerciseSelect" style="background: var(--color-surface); border: 1px solid var(--color-border); color: white; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; max-width: 200px;">
-                        <!-- Populated dynamically from actual exercises -->
-                    </select>
                 </div>
+                
+                <!-- Custom Dropdown per selezione esercizi -->
+                <div class="exercise-selector custom-dropdown-container" style="margin-bottom: 1rem; position: relative;">
+                    <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 0.4rem;">
+                        🏋️ Seleziona esercizio
+                    </label>
+                    
+                    <!-- Hidden select per compatibilità -->
+                    <select id="strengthExerciseSelect" style="display: none;"></select>
+                    
+                    <!-- Custom dropdown trigger -->
+                    <div id="exerciseDropdownTrigger" style="
+                        width: 100%;
+                        background: linear-gradient(135deg, rgba(0,243,255,0.05), rgba(0,0,0,0.3));
+                        border: 2px solid rgba(0,243,255,0.3);
+                        color: white;
+                        padding: 14px 16px;
+                        border-radius: 12px;
+                        font-size: 0.95rem;
+                        cursor: pointer;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        transition: all 0.2s ease;
+                        box-sizing: border-box;
+                    ">
+                        <span class="selected-exercise-name" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 10px;">Seleziona un esercizio...</span>
+                        <span class="dropdown-arrow" style="color: var(--color-primary); font-size: 0.8rem; transition: transform 0.2s ease;">▼</span>
+                    </div>
+                    
+                    <!-- Dropdown panel -->
+                    <div id="exerciseDropdownPanel" style="
+                        display: none;
+                        position: absolute;
+                        top: 100%;
+                        left: 0;
+                        right: 0;
+                        background: var(--color-surface);
+                        border: 2px solid rgba(0,243,255,0.3);
+                        border-radius: 12px;
+                        margin-top: 4px;
+                        z-index: 1000;
+                        max-height: 350px;
+                        overflow: hidden;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                    ">
+                        <!-- Search input -->
+                        <div style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <input type="text" id="exerciseSearchInput" placeholder="🔍 Cerca esercizio..." style="
+                                width: 100%;
+                                background: rgba(255,255,255,0.05);
+                                border: 1px solid rgba(255,255,255,0.1);
+                                color: white;
+                                padding: 10px 14px;
+                                border-radius: 8px;
+                                font-size: 0.9rem;
+                                outline: none;
+                                box-sizing: border-box;
+                            ">
+                        </div>
+                        
+                        <!-- Options list -->
+                        <div id="exerciseOptionsList" style="
+                            max-height: 280px;
+                            overflow-y: auto;
+                            padding: 8px;
+                        ">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
                 <div id="strengthProgressChart"></div>
                 <div id="strengthProgressStats" style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;"></div>
             </div>
@@ -536,10 +706,32 @@
 
             <!-- DOMS Tracker -->
             <div class="card" id="domsTrackerCard" style="margin-bottom: var(--spacing-md);">
-                <div style="display:flex; justify-content: space-between; align-items:center; gap:1rem;">
-                    <h3 style="margin-bottom: 1rem;">DOMS Tracker Mirato</h3>
+                <div style="display:flex; justify-content: space-between; align-items:center; gap:1rem; flex-wrap: wrap;">
+                    <div>
+                        <h3 style="margin-bottom: 0.25rem;">DOMS Tracker <span class="text-primary">Muscolare</span></h3>
+                        <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0;">
+                            Monitora i tuoi dolori muscolari post-allenamento e i tempi di recupero
+                        </p>
+                    </div>
                     <small id="domsReportCount" style="color: var(--color-text-muted);"></small>
                 </div>
+                
+                <!-- Legenda DOMS -->
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.7rem;">
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <span style="color: #00ff88;">●</span>
+                        <span style="color: var(--color-text-muted);">Dolore lieve (1-3)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <span style="color: #ffcc00;">●</span>
+                        <span style="color: var(--color-text-muted);">Dolore moderato (4-6)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <span style="color: #ff6b6b;">●</span>
+                        <span style="color: var(--color-text-muted);">Dolore intenso (7-10)</span>
+                    </div>
+                </div>
+                
                 <div id="domsHotspotList" style="display:flex; flex-direction:column; gap:0.75rem;">
                     <p style="color: var(--color-text-muted);">Compila il questionario DOMS prima di ogni Focus Mode per
                         monitorare i recuperi specifici.</p>
@@ -548,12 +740,23 @@
 
             <!-- Trend Monitor -->
             <div class="card" id="trendMonitorCard" style="margin-bottom: var(--spacing-md);">
-                <div style="display:flex; justify-content: space-between; align-items:center; gap:1rem;">
-                    <h3 style="margin-bottom: 1rem;">Trend <span class="text-primary">Monitor</span></h3>
+                <div style="display:flex; justify-content: space-between; align-items:center; gap:1rem; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="margin: 0;">Trend <span class="text-primary">Monitor</span></h3>
+                        <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0.25rem 0 0 0;">Confronto ultime 2 settimane</p>
+                    </div>
                     <button id="trendSummaryHistoryBtn" class="btn btn-outline btn-compact"
-                        style="font-size: 0.75rem;">📊 Storico Resoconti</button>
+                        style="font-size: 0.75rem;">📊 Storico</button>
                 </div>
-                <div id="trendMetricsList" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                
+                <!-- Legend -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.7rem;">
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #00ffb3;">↑</span> Miglioramento</span>
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #ff6b6b;">↓</span> Calo</span>
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #ccc;">→</span> Stabile</span>
+                </div>
+                
+                <div id="trendMetricsList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
                     <!-- dynamic metrics -->
                 </div>
             </div>
@@ -580,9 +783,9 @@
 
             <!-- PR Table - STIME RM SCIENTIFICHE -->
             <div class="card">
-                <h3 style="margin-bottom: 1rem;">📊 Stime Massimali <span class="text-primary">(Calcolo Scientifico)</span></h3>
-                <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
-                    Stime basate su formule ibride (Epley + Brzycki + Lombardi + Mayhew + Wathen) per massima accuratezza.
+                <h3 style="margin-bottom: 0.5rem;">📊 Stime Massimali <span class="text-primary">(Calcolo Scientifico)</span></h3>
+                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+                    Stime basate su formule ibride (Epley + Brzycki + Lombardi + Mayhew + Wathen).
                 </p>
                 
                 <div class="rm-selector" style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; flex-wrap: wrap; margin-bottom: 1rem;">
@@ -594,18 +797,21 @@
                     <button class="btn-rm" data-rm="12rm" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">12RM</button>
                 </div>
 
-                <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
-                            <th style="padding: 10px;">Esercizio</th>
-                            <th style="padding: 10px;" id="rmHeader">1RM (Stima)</th>
-                            <th style="padding: 10px;">Basato su</th>
-                        </tr>
-                    </thead>
-                    <tbody id="prTableBody">
-                        <!-- Dynamic Estimated PRs -->
-                    </tbody>
-                </table>
+                <!-- Container scrollabile per mobile -->
+                <div style="max-height: 350px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background: var(--color-surface); z-index: 1;">
+                            <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
+                                <th style="padding: 10px; font-size: 0.8rem;">Esercizio</th>
+                                <th style="padding: 10px; font-size: 0.8rem;" id="rmHeader">1RM</th>
+                                <th style="padding: 10px; font-size: 0.8rem;">Base</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prTableBody">
+                            <!-- Dynamic Estimated PRs -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
@@ -803,17 +1009,113 @@
                     `;
                 }
 
-                // 5. Strength Progression - Popola select con esercizi reali
-                const uniqueExercises = advancedMetrics.getUniqueExercises(1);
+                // 5. Strength Progression - Popola select con TUTTI gli esercizi reali
+                const uniqueExercises = advancedMetrics.getUniqueExercises(0); // 0 = nessun filtro minimo
                 const strengthSelect = document.getElementById('strengthExerciseSelect');
                 
+                // Custom Dropdown Setup
+                const dropdownTrigger = document.getElementById('exerciseDropdownTrigger');
+                const dropdownPanel = document.getElementById('exerciseDropdownPanel');
+                const optionsList = document.getElementById('exerciseOptionsList');
+                const searchInput = document.getElementById('exerciseSearchInput');
+                
+                // Funzione per creare le opzioni del dropdown
+                const populateDropdownOptions = (exercises, filter = '') => {
+                    const filtered = filter 
+                        ? exercises.filter(ex => ex.name.toLowerCase().includes(filter.toLowerCase()))
+                        : exercises;
+                    
+                    if (filtered.length === 0) {
+                        optionsList.innerHTML = `
+                            <div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">
+                                Nessun esercizio trovato
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    optionsList.innerHTML = filtered.map((ex, i) => {
+                        const sessionText = ex.count === 1 ? '1 sessione' : `${ex.count} sessioni`;
+                        const isSelected = i === 0 && !filter;
+                        return `
+                            <div class="exercise-option ${isSelected ? 'selected' : ''}" data-value="${ex.name}">
+                                <div class="exercise-option-name">${ex.name}</div>
+                                <div class="exercise-option-details">
+                                    <span class="exercise-weight">💪 ${ex.maxWeight}kg</span>
+                                    <span class="exercise-sessions">📊 ${sessionText}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Aggiunge event listeners alle opzioni
+                    optionsList.querySelectorAll('.exercise-option').forEach(option => {
+                        option.addEventListener('click', () => {
+                            const value = option.dataset.value;
+                            const name = option.querySelector('.exercise-option-name').textContent;
+                            
+                            // Aggiorna il trigger
+                            dropdownTrigger.querySelector('.selected-exercise-name').textContent = name;
+                            
+                            // Aggiorna la selezione visiva
+                            optionsList.querySelectorAll('.exercise-option').forEach(o => o.classList.remove('selected'));
+                            option.classList.add('selected');
+                            
+                            // Chiude il dropdown
+                            dropdownPanel.classList.remove('open');
+                            dropdownTrigger.classList.remove('open');
+                            
+                            // Aggiorna il select nascosto e renderizza il grafico
+                            strengthSelect.value = value;
+                            renderStrengthChart(value);
+                        });
+                    });
+                };
+                
                 if (uniqueExercises.length > 0) {
-                    strengthSelect.innerHTML = uniqueExercises.slice(0, 15).map((ex, i) => 
-                        `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name} (${ex.maxWeight}kg)</option>`
-                    ).join('');
+                    // Popola il select nascosto per compatibilità
+                    strengthSelect.innerHTML = uniqueExercises.map((ex, i) => {
+                        return `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name}</option>`;
+                    }).join('');
+                    
+                    // Popola il dropdown custom
+                    populateDropdownOptions(uniqueExercises);
+                    
+                    // Imposta il primo esercizio come selezionato nel trigger
+                    dropdownTrigger.querySelector('.selected-exercise-name').textContent = uniqueExercises[0].name;
                 } else {
                     strengthSelect.innerHTML = '<option value="">Nessun esercizio registrato</option>';
+                    dropdownTrigger.querySelector('.selected-exercise-name').textContent = 'Nessun esercizio registrato';
+                    optionsList.innerHTML = `
+                        <div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">
+                            Registra almeno un allenamento per vedere gli esercizi.
+                        </div>
+                    `;
                 }
+                
+                // Toggle dropdown
+                dropdownTrigger.addEventListener('click', () => {
+                    const isOpen = dropdownPanel.classList.toggle('open');
+                    dropdownTrigger.classList.toggle('open');
+                    if (isOpen) {
+                        searchInput.focus();
+                        searchInput.value = '';
+                        populateDropdownOptions(uniqueExercises);
+                    }
+                });
+                
+                // Ricerca
+                searchInput.addEventListener('input', (e) => {
+                    populateDropdownOptions(uniqueExercises, e.target.value);
+                });
+                
+                // Chiudi dropdown cliccando fuori
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.custom-dropdown-container')) {
+                        dropdownPanel.classList.remove('open');
+                        dropdownTrigger.classList.remove('open');
+                    }
+                });
 
                 const renderStrengthChart = (exercise) => {
                     if (!exercise) {
@@ -846,23 +1148,24 @@
                     
                     const trendIcon = progression.trend === 'up' ? '📈' : progression.trend === 'down' ? '📉' : '➡️';
                     const trendClass = progression.trend === 'up' ? 'up' : progression.trend === 'down' ? 'down' : 'stable';
+                    const sessionsCount = progression.totalSessions || progression.dataPoints.length;
                     
                     document.getElementById('strengthProgressStats').innerHTML = `
                         <div>
                             <div style="font-family: var(--font-display); font-size: 1.5rem; color: var(--color-primary);">${progression.current || '-'}</div>
-                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">1RM Attuale (kg)</div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">Peso Max (kg)</div>
                         </div>
                         <div>
                             <div style="font-family: var(--font-display); font-size: 1.5rem;" class="metric-trend ${trendClass}">
                                 ${progression.change > 0 ? '+' : ''}${progression.change || 0} kg
                             </div>
-                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">${trendIcon} Variazione 3 mesi</div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">${trendIcon} Var. 3 mesi</div>
                         </div>
                         <div>
                             <div style="font-family: var(--font-display); font-size: 1.5rem; color: ${progression.changePercent >= 0 ? '#00ff88' : '#ff6b6b'};">
                                 ${progression.changePercent > 0 ? '+' : ''}${progression.changePercent}%
                             </div>
-                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">Progresso</div>
+                            <div style="font-size: 0.7rem; color: var(--color-text-muted);">${sessionsCount} session${sessionsCount === 1 ? 'e' : 'i'}</div>
                         </div>
                     `;
                 };
@@ -879,26 +1182,73 @@
                 const calendarData = advancedMetrics.generateConsistencyCalendar(12);
                 ChartRenderer.renderCalendar('consistencyCalendar', calendarData);
 
-                // 7. Sleep-Performance Correlation
+                // 7. Sleep-Performance Correlation con validazione statistica migliorata
                 const correlation = advancedMetrics.calculateSleepPerformanceCorrelation();
                 if (correlation.dataPoints.length >= 5) {
                     const scatterData = correlation.dataPoints.map(d => ({
                         x: d.sleep,
                         y: d.performance
                     }));
+                    
+                    // Passa le informazioni di validità statistica al renderer
                     ChartRenderer.renderScatter('sleepPerformanceScatter', scatterData, {
                         xLabel: 'Qualità Sonno (1-10)',
-                        yLabel: 'Performance Index'
+                        yLabel: 'Performance Index',
+                        showTrendLine: true,
+                        isStatisticallyValid: correlation.isStatisticallyValid
                     });
                     
-                    const corrColor = correlation.correlation > 0.3 ? '#00ff88' : correlation.correlation < -0.1 ? '#ff6b6b' : '#ffcc00';
-                    document.getElementById('correlationInsight').innerHTML = `
-                        <span class="icon">🧠</span>
+                    // Colori basati sulla forza della correlazione E sulla validità statistica
+                    let corrColor, corrIcon, corrLabel;
+                    
+                    if (!correlation.isStatisticallyValid) {
+                        corrColor = '#888888';
+                        corrIcon = '⚠️';
+                        corrLabel = 'Dati non sufficientemente variati';
+                    } else {
+                        switch(correlation.correlationStrength) {
+                            case 'strong':
+                                corrColor = correlation.correlation > 0 ? '#00ff88' : '#ff6b6b';
+                                corrIcon = correlation.correlation > 0 ? '🎯' : '⚠️';
+                                corrLabel = 'Correlazione forte';
+                                break;
+                            case 'moderate':
+                                corrColor = '#ffcc00';
+                                corrIcon = '📊';
+                                corrLabel = 'Correlazione moderata';
+                                break;
+                            default:
+                                corrColor = '#888888';
+                                corrIcon = '🔍';
+                                corrLabel = 'Correlazione debole';
+                        }
+                    }
+
+                    // Costruisci il messaggio
+                    let insightHTML = `
+                        <span class="icon">${corrIcon}</span>
                         <p>
-                            <strong style="color: ${corrColor}">Correlazione: ${correlation.correlation}</strong><br>
+                            <strong style="color: ${corrColor}">${corrLabel}: ${correlation.correlation}</strong><br>
                             ${correlation.insight}
-                        </p>
                     `;
+                    
+                    // Aggiungi warning se presente
+                    if (correlation.varianceWarning) {
+                        insightHTML += `<br><small style="color: #ffcc00; display: block; margin-top: 0.5rem;">
+                            💡 ${correlation.varianceWarning}
+                        </small>`;
+                    }
+                    
+                    // Aggiungi stats per debug/trasparenza (opzionale, in piccolo)
+                    if (correlation.stats && correlation.stats.n >= 5) {
+                        insightHTML += `<br><small style="color: var(--color-text-muted); font-size: 0.7rem;">
+                            ${correlation.stats.n} sessioni · σ(sonno)=${correlation.stats.stdDevX}
+                        </small>`;
+                    }
+                    
+                    insightHTML += '</p>';
+                    
+                    document.getElementById('correlationInsight').innerHTML = insightHTML;
                 } else {
                     document.getElementById('sleepPerformanceScatter').innerHTML = `
                         <p style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
@@ -1107,10 +1457,16 @@
                     div.onmouseout = () => div.style.borderColor = 'transparent';
 
                     div.addEventListener('click', () => {
+                        console.log('📋 Caricamento storico AI - entry:', entry);
+                        console.log('📋 entry.text length:', entry.text ? entry.text.length : 'undefined');
                         closeModal(historyModal);
                         openModal(aiModal);
-                        aiContent.innerHTML = marked.parse(entry.text);
-                        processTables(aiContent);
+                        if (entry.text && entry.text.length > 0) {
+                            aiContent.innerHTML = marked.parse(entry.text);
+                            processTables(aiContent);
+                        } else {
+                            aiContent.innerHTML = '<p style="color: #ff4444;">Errore: il testo dell\'analisi non è stato salvato correttamente.</p>';
+                        }
                     });
 
                     historyList.appendChild(div);
@@ -1262,7 +1618,7 @@
                 exportAiReportBtn.addEventListener('click', () => {
                     const content = aiContent.innerHTML;
                     if (content && content.trim() !== '') {
-                        exportService.showExportMenu(content, 'IronFlow - Coach AI Report');
+                        exportService.showExportMenu(content, 'GymBro - Coach AI Report');
                     }
                 });
             }
@@ -1273,7 +1629,7 @@
                 exportTrendSummaryBtn.addEventListener('click', () => {
                     const content = document.getElementById('trendSummaryContent').innerHTML;
                     if (content && content.trim() !== '') {
-                        exportService.showExportMenu(content, 'IronFlow - Resoconto Trend');
+                        exportService.showExportMenu(content, 'GymBro - Resoconto Trend');
                     }
                 });
             }
@@ -1412,39 +1768,61 @@
                 
                 if (validMetrics.length === 0) {
                     trendMetricsList.innerHTML = `
-                        <p style="color: var(--color-text-muted); text-align: center; padding: 1rem;">
-                            Registra almeno un allenamento per vedere i trend.
-                        </p>
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📈</div>
+                            <p style="color: var(--color-text-muted); margin-bottom: 0.5rem;">
+                                Registra almeno un allenamento per vedere i trend.
+                            </p>
+                            <p style="font-size: 0.75rem; color: var(--color-text-muted);">
+                                I trend mostrano come stai progredendo nel tempo.
+                            </p>
+                        </div>
                     `;
                     return;
                 }
                 
+                // Icone per ogni metrica
+                const metricIcons = {
+                    frequency: '📅',
+                    volume: '📊',
+                    bodyWeight: '⚖️',
+                    prs: '🏆',
+                    consistency: '🎯',
+                    sleepQuality: '😴',
+                    energyLevel: '⚡',
+                    stressLevel: '🧘',
+                    sorenessLevel: '💪'
+                };
+                
                 validMetrics.forEach(metric => {
-                    const row = document.createElement('div');
-                    row.style.cssText = 'display:flex; justify-content: space-between; align-items:center; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding:0.75rem;';
+                    const card = document.createElement('div');
                     
                     // Determina colore e icona in base allo stato
-                    let statusColor, statusIcon, statusText;
+                    let statusColor, statusIcon, statusBg, borderColor;
                     switch (metric.status) {
                         case 'improving':
                             statusColor = '#00ffb3';
                             statusIcon = '↑';
-                            statusText = metric.summary;
+                            statusBg = 'rgba(0, 255, 179, 0.08)';
+                            borderColor = 'rgba(0, 255, 179, 0.3)';
                             break;
                         case 'declining':
                             statusColor = '#ff6b6b';
                             statusIcon = '↓';
-                            statusText = metric.summary;
+                            statusBg = 'rgba(255, 107, 107, 0.08)';
+                            borderColor = 'rgba(255, 107, 107, 0.3)';
                             break;
                         case 'new':
                             statusColor = '#00f3ff';
                             statusIcon = '✨';
-                            statusText = 'Nuovo';
+                            statusBg = 'rgba(0, 243, 255, 0.08)';
+                            borderColor = 'rgba(0, 243, 255, 0.3)';
                             break;
                         default:
-                            statusColor = '#ccc';
+                            statusColor = '#888';
                             statusIcon = '→';
-                            statusText = metric.summary || 'Stabile';
+                            statusBg = 'rgba(255,255,255,0.02)';
+                            borderColor = 'rgba(255,255,255,0.08)';
                     }
                     
                     // Format current value with proper unit
@@ -1455,14 +1833,30 @@
                     // Non mostrare valori 0 come dato reale
                     const displayValue = metric.current > 0 ? formattedValue : 'N/D';
                     
-                    row.innerHTML = `
-                        <div>
-                            <strong>${metric.label}</strong>
-                            <div style="font-size:0.8rem; color: var(--color-text-muted);">${displayValue} ${statusText}</div>
-                        </div>
-                        <span style="color:${statusColor}; font-weight:600; font-size: 1.2rem;">${statusIcon}</span>
+                    // Calcola variazione percentuale se disponibile
+                    const pctChange = metric.pct ? (metric.pct > 0 ? `+${metric.pct.toFixed(0)}%` : `${metric.pct.toFixed(0)}%`) : '';
+                    
+                    const icon = metricIcons[metric.id] || '📌';
+                    
+                    card.style.cssText = `
+                        background: ${statusBg};
+                        border: 1px solid ${borderColor};
+                        border-radius: 12px;
+                        padding: 0.85rem;
+                        position: relative;
+                        overflow: hidden;
                     `;
-                    trendMetricsList.appendChild(row);
+                    
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <span style="font-size: 1.3rem;">${icon}</span>
+                            <span style="color: ${statusColor}; font-weight: 700; font-size: 1.4rem; line-height: 1;">${statusIcon}</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.25rem;">${metric.label}</div>
+                        <div style="font-family: var(--font-display); font-size: 1rem; color: #fff; font-weight: 600;">${displayValue}</div>
+                        ${pctChange ? `<div style="font-size: 0.7rem; color: ${statusColor}; margin-top: 0.25rem;">${pctChange}</div>` : ''}
+                    `;
+                    trendMetricsList.appendChild(card);
                 });
             };
             renderTrendMetrics();
@@ -1538,36 +1932,73 @@
                         const fatigueColor = h.avgIntensity >= 7 ? '#ff6b6b' : h.avgIntensity >= 4 ? '#ffcc00' : '#00ff88';
                         
                         return `
-                            <div style="display:flex; justify-content:space-between; gap:1rem; padding:0.65rem; border:1px solid rgba(255,255,255,0.05); border-radius:8px; background: rgba(255,255,255,0.02);">
+                            <div style="display:flex; justify-content:space-between; gap:1rem; padding:0.75rem; border:1px solid rgba(255,255,255,0.08); border-radius:10px; background: rgba(255,255,255,0.02);">
                                 <div>
-                                    <strong>${h.label}</strong>
-                                    <div style="font-size:0.8rem; color: var(--color-text-muted);">${h.totalSets || h.occurrences} set • RPE ${h.avgRpe || 'N/D'}</div>
+                                    <strong style="font-size: 0.95rem;">${h.label}</strong>
+                                    <div style="font-size:0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                                        📊 ${h.totalSets || h.occurrences} set totali • RPE medio ${h.avgRpe || 'N/D'}
+                                    </div>
                                 </div>
-                                <div style="text-align:right; font-size:0.75rem;">
-                                    <div style="color: ${fatigueColor}; font-weight: 600;">Fatica: ${fatigueLevel}</div>
-                                    <div style="color: var(--color-text-muted);">${lastDays !== null ? `${lastDays}g fa` : ''}</div>
+                                <div style="text-align:right; font-size:0.8rem;">
+                                    <div style="color: ${fatigueColor}; font-weight: 600; font-size: 0.9rem;">
+                                        ${fatigueLevel}
+                                    </div>
+                                    <div style="color: var(--color-text-muted); font-size: 0.7rem;">
+                                        ${lastDays !== null ? `Ultimo: ${lastDays === 0 ? 'oggi' : lastDays === 1 ? 'ieri' : lastDays + 'g fa'}` : ''}
+                                    </div>
                                 </div>
                             </div>
                         `;
                     }).join('');
                 } else {
-                    // Mostra dati DOMS reali
+                    // Mostra dati DOMS reali con spiegazioni chiare
                     domsHotspotList.innerHTML = hotspots.slice(0, 5).map(h => {
                         const lastDays = h.lastReportedAt ? Math.max(0, Math.round((Date.now() - new Date(h.lastReportedAt).getTime()) / DAY_MS)) : null;
-                        const avgRecovery = h.avgRecoveryDays ?? h.lastRecoveryDays ?? 'N/D';
-                        const avgIntensity = h.avgIntensity ?? h.lastIntensity ?? 'N/D';
+                        const avgRecovery = h.avgRecoveryDays ?? h.lastRecoveryDays;
+                        const avgIntensity = h.avgIntensity ?? h.lastIntensity;
                         const intensityColor = avgIntensity >= 7 ? '#ff6b6b' : avgIntensity >= 4 ? '#ffcc00' : '#00ff88';
                         
+                        // Calcola stato recupero
+                        let recoveryStatus = '';
+                        let recoveryIcon = '';
+                        if (avgRecovery !== null && avgRecovery !== undefined) {
+                            if (avgRecovery <= 1) {
+                                recoveryStatus = 'Recupero rapido';
+                                recoveryIcon = '⚡';
+                            } else if (avgRecovery <= 3) {
+                                recoveryStatus = 'Recupero normale';
+                                recoveryIcon = '✅';
+                            } else {
+                                recoveryStatus = 'Recupero lento';
+                                recoveryIcon = '⏳';
+                            }
+                        }
+                        
                         return `
-                            <div style="display:flex; justify-content:space-between; gap:1rem; padding:0.65rem; border:1px solid rgba(255,255,255,0.05); border-radius:8px;">
-                                <div>
-                                    <strong>${h.label}</strong>
-                                    <div style="font-size:0.8rem; color: var(--color-text-muted);">Segnalazioni: ${h.occurrences}</div>
+                            <div style="padding:0.85rem; border:1px solid rgba(255,255,255,0.08); border-radius:10px; background: linear-gradient(135deg, rgba(255,255,255,0.02), transparent);">
+                                <div style="display:flex; justify-content:space-between; align-items: flex-start; gap:1rem;">
+                                    <div>
+                                        <strong style="font-size: 1rem;">${h.label}</strong>
+                                        <div style="font-size:0.75rem; color: var(--color-text-muted); margin-top: 0.3rem;">
+                                            🔄 ${h.occurrences} segnalazion${h.occurrences === 1 ? 'e' : 'i'} DOMS
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="color: ${intensityColor}; font-weight: 700; font-size: 1.1rem;">
+                                            ${avgIntensity !== null && avgIntensity !== undefined ? avgIntensity + '/10' : 'N/D'}
+                                        </div>
+                                        <div style="font-size: 0.65rem; color: var(--color-text-muted);">Dolore medio</div>
+                                    </div>
                                 </div>
-                                <div style="text-align:right; font-size:0.75rem; color: var(--color-text-muted);">
-                                    <div>Intensità: <span style="color: ${intensityColor}; font-weight: 600;">${avgIntensity}/10</span></div>
-                                    <div>Recupero: ${avgRecovery}g</div>
-                                    <div>${lastDays !== null ? `${lastDays}g fa` : ''}</div>
+                                
+                                <div style="display: flex; justify-content: space-between; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.75rem;">
+                                    <div style="color: var(--color-text-muted);">
+                                        ${recoveryIcon} <strong style="color: var(--color-primary);">${avgRecovery !== null && avgRecovery !== undefined ? avgRecovery + ' giorni' : 'N/D'}</strong>
+                                        <span style="opacity: 0.7;"> tempo recupero medio</span>
+                                    </div>
+                                    <div style="color: var(--color-text-muted);">
+                                        ${lastDays !== null ? (lastDays === 0 ? '📍 Oggi' : lastDays === 1 ? '📍 Ieri' : '📍 ' + lastDays + 'g fa') : ''}
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -1990,7 +2421,8 @@
                     list.style.flexDirection = 'column';
                     list.style.gap = '4px';
 
-                    prList.slice(0, 5).forEach((pr, idx) => {
+                    // Mostra TUTTI i PR per questo range (senza limite)
+                    prList.forEach((pr, idx) => {
                         const date = new Date(pr.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
                         const weightDisplay = unitService ? unitService.formatWeight(pr.weight) : Math.round(pr.weight) + ' kg';
                         
@@ -2109,7 +2541,7 @@
 
                 const percentage = rmPercentages[currentRMView] || 1.0;
 
-                // Calcola e ordina per il RM selezionato
+                // Calcola e ordina per il RM selezionato - mostra TUTTI gli esercizi
                 const sortedEstimates = Object.entries(estimatedRMs)
                     .map(([name, data]) => ({
                         name,
@@ -2117,8 +2549,7 @@
                         basedOn: data.basedOn,
                         date: data.date
                     }))
-                    .sort((a, b) => b.estimatedWeight - a.estimatedWeight)
-                    .slice(0, 8);
+                    .sort((a, b) => b.estimatedWeight - a.estimatedWeight);
 
                 if (sortedEstimates.length === 0) {
                     const tr = document.createElement('tr');
@@ -2152,6 +2583,29 @@
             });
 
             renderEstimatedTable();
+            
+            // --- AUTO-SYNC MANAGER ---
+            // Sincronizza automaticamente all'avvio e ogni 5 minuti
+            const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti
+            
+            const performAutoSync = async () => {
+                try {
+                    console.log('🔄 [Analysis] Auto-sync in corso...');
+                    await firestoreService.syncToCloud();
+                    console.log('✅ [Analysis] Auto-sync completato:', new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.warn('⚠️ [Analysis] Auto-sync fallito:', error.message);
+                }
+            };
+            
+            // Primo sync silenzioso dopo 2 secondi
+            setTimeout(performAutoSync, 2000);
+            
+            // Sync ogni 5 minuti (solo se non già attivo da altra pagina)
+            if (!window.autoSyncInterval) {
+                window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);
+                console.log('🔄 [Analysis] Auto-sync attivato: ogni 5 minuti');
+            }
         });
     </script>
 </body>
