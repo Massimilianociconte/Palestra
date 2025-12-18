@@ -110,7 +110,13 @@ class HealthConnectService {
         // Ascolta il messaggio dal popup
         return new Promise((resolve, reject) => {
             window.addEventListener('message', async (event) => {
-                if (event.origin !== window.location.origin) return;
+                // FIX: Allow GitHub Pages origin for Native App flow
+                const allowedOrigins = [window.location.origin, 'https://massimilianociconte.github.io'];
+                if (!allowedOrigins.includes(event.origin) && !event.origin.includes('localhost') && !event.origin.includes('capacitor')) {
+                    // Strict check, but permissive for our app parts
+                    console.warn('Blocked message from unknown origin:', event.origin);
+                    return;
+                }
 
                 if (event.data.type === 'oauth_success') {
                     try {
