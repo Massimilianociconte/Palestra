@@ -52,7 +52,7 @@ const buildExternalDomsBlock = (recentLogs = []) => {
         .filter(log => log.domsExternalCause)
         .map(log => `- ${log.date}: "${log.domsExternalCause}"${log.domsTargets?.length ? ` (muscoli: ${log.domsTargets.join(', ')})` : ''}`)
         .slice(0, 5); // Last 5 entries with external causes
-    
+
     if (!externalCauses.length) {
         return '';
     }
@@ -126,7 +126,7 @@ export class AIService {
             // Use the most advanced model available
             // Fallback chain: 1.5 Pro (Stable High Intelligence) -> 2.0 Flash (Fast)
             const model = genAI.getGenerativeModel({
-                model: "gemini-flash-latest",
+                model: "gemini-3-flash-preview",
                 generationConfig
             });
 
@@ -549,7 +549,7 @@ Usa Markdown con questa struttura OBBLIGATORIA:
         if (!this.apiKey) return { success: false, message: "API Key mancante." };
         try {
             const genAI = new GoogleGenerativeAI(this.apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
             const toonLogs = this.encodeToTOON(data.recentLogs.slice(0, 10), 'lastWorkouts'); // Last 10 for better pattern detection
             const domsGuidance = buildRecentDomsBlock(data?.domsInsights?.hotspots || []);
@@ -656,9 +656,9 @@ ${exerciseNormalizer.getAINormalizationPrompt()}
             let text = result.response.text();
             // Clean markdown if present
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            
+
             const parsed = JSON.parse(text);
-            
+
             // Normalizza i nomi degli esercizi per evitare duplicati semantici
             if (parsed.exercises && Array.isArray(parsed.exercises)) {
                 const exerciseNames = parsed.exercises.map(ex => ex.name);
@@ -679,7 +679,7 @@ ${exerciseNormalizer.getAINormalizationPrompt()}
         if (!this.apiKey) return { success: false, message: "API Key mancante." };
         try {
             const genAI = new GoogleGenerativeAI(this.apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
             const domsHotspots = payload?.domsHotspots || [];
             const externalDomsInfo = buildExternalDomsBlock(payload?.recentLogs || []);

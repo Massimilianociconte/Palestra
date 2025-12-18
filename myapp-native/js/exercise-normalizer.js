@@ -16,7 +16,7 @@ export class ExerciseNormalizer {
      */
     loadExistingExercises() {
         const exercises = new Set();
-        
+
         // Da logs
         try {
             const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
@@ -25,7 +25,7 @@ export class ExerciseNormalizer {
                     if (ex.name) exercises.add(ex.name.trim());
                 });
             });
-        } catch (e) {}
+        } catch (e) { }
 
         // Da workout salvati
         try {
@@ -35,7 +35,7 @@ export class ExerciseNormalizer {
                     if (ex.name) exercises.add(ex.name.trim());
                 });
             });
-        } catch (e) {}
+        } catch (e) { }
 
         // Da PR tracker
         try {
@@ -43,7 +43,7 @@ export class ExerciseNormalizer {
             Object.values(prs).forEach(pr => {
                 if (pr.displayName) exercises.add(pr.displayName);
             });
-        } catch (e) {}
+        } catch (e) { }
 
         this.existingExercises = Array.from(exercises).sort();
         return this.existingExercises;
@@ -66,9 +66,9 @@ export class ExerciseNormalizer {
      */
     normalizeLocally(exerciseName) {
         if (!exerciseName) return exerciseName;
-        
+
         const normalized = this._normalizeString(exerciseName);
-        
+
         // Cerca match esatto (case insensitive)
         for (const existing of this.existingExercises) {
             if (this._normalizeString(existing) === normalized) {
@@ -96,7 +96,7 @@ export class ExerciseNormalizer {
         }
 
         this.loadExistingExercises();
-        
+
         if (this.existingExercises.length === 0) {
             // Nessun esercizio esistente, non serve normalizzare
             return exerciseNames;
@@ -104,7 +104,7 @@ export class ExerciseNormalizer {
 
         // Check cache
         const uncached = exerciseNames.filter(name => !this.exerciseCache.has(name));
-        
+
         if (uncached.length === 0) {
             // Tutto in cache
             return exerciseNames.map(name => this.exerciseCache.get(name) || name);
@@ -113,7 +113,7 @@ export class ExerciseNormalizer {
         try {
             const genAI = new GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({
-                model: "gemini-flash-latest",
+                model: "gemini-3-flash-preview",
                 generationConfig: {
                     temperature: 0.1, // Molto deterministico
                     maxOutputTokens: 1024
@@ -141,12 +141,12 @@ Rispondi SOLO con il JSON array, nient'altro.`;
 
             const result = await model.generateContent(prompt);
             const text = result.response.text().trim();
-            
+
             // Parse JSON response
             const jsonMatch = text.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 const normalized = JSON.parse(jsonMatch[0]);
-                
+
                 // Aggiorna cache
                 uncached.forEach((name, i) => {
                     if (normalized[i]) {
@@ -171,7 +171,7 @@ Rispondi SOLO con il JSON array, nient'altro.`;
      */
     getAINormalizationPrompt() {
         this.loadExistingExercises();
-        
+
         if (this.existingExercises.length === 0) {
             return '';
         }
@@ -214,7 +214,7 @@ Questo garantisce coerenza nei dati e nelle statistiche dell'utente.
 
         const bigrams1 = getBigrams(str1);
         const bigrams2 = getBigrams(str2);
-        
+
         let intersection = 0;
         bigrams1.forEach(b => {
             if (bigrams2.has(b)) intersection++;

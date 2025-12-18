@@ -275,7 +275,7 @@ Mantieni questa intensità ma aumenta la frequenza.
 
 ## Note Tecniche
 
-- **Modello**: gemini-flash-latest (supporta fino a 1M tokens input, 16k output)
+- **Modello**: gemini-3-flash-preview (supporta fino a 1M tokens input, 16k output)
 - **Temperature**: 0.7 (bilanciamento creatività/precisione)
 - **Max Output Tokens**: 16384 (massimo per Gemini Flash)
 - **Tempo generazione stimato**: 30-60 secondi per report completo

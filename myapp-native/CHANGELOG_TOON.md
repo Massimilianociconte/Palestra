@@ -189,7 +189,7 @@ Non richiesta - Il sistema gestisce automaticamente:
 - Browser: Chrome 90+, Firefox 88+, Safari 14+
 - Node.js: Non richiesto (client-side only)
 - Firestore: v9+ (modular SDK)
-- Gemini AI: gemini-flash-latest
+- Gemini AI: gemini-3-flash-preview
 
 #### Requisiti
 - localStorage abilitato

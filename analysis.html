@@ -136,42 +136,43 @@
             color: white;
             font-weight: 600;
         }
-        
+
         /* Custom Exercise Dropdown Styles */
         .custom-dropdown-container {
             position: relative;
         }
-        
+
         #exerciseDropdownTrigger:hover {
-            border-color: rgba(0,243,255,0.6);
-            background: linear-gradient(135deg, rgba(0,243,255,0.1), rgba(0,0,0,0.4));
+            border-color: rgba(0, 243, 255, 0.6);
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(0, 0, 0, 0.4));
         }
-        
+
         #exerciseDropdownTrigger.open {
             border-color: var(--color-primary);
-            background: linear-gradient(135deg, rgba(0,243,255,0.15), rgba(0,0,0,0.4));
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(0, 0, 0, 0.4));
         }
-        
+
         #exerciseDropdownTrigger.open .dropdown-arrow {
             transform: rotate(180deg);
         }
-        
+
         #exerciseDropdownPanel.open {
             display: block !important;
             animation: dropdownSlide 0.2s ease;
         }
-        
+
         @keyframes dropdownSlide {
             from {
                 opacity: 0;
                 transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
+
         .exercise-option {
             padding: 12px 14px;
             border-radius: 8px;
@@ -180,17 +181,17 @@
             margin-bottom: 4px;
             border: 1px solid transparent;
         }
-        
+
         .exercise-option:hover {
-            background: rgba(0,243,255,0.1);
-            border-color: rgba(0,243,255,0.3);
+            background: rgba(0, 243, 255, 0.1);
+            border-color: rgba(0, 243, 255, 0.3);
         }
-        
+
         .exercise-option.selected {
-            background: rgba(0,243,255,0.15);
-            border-color: rgba(0,243,255,0.5);
+            background: rgba(0, 243, 255, 0.15);
+            border-color: rgba(0, 243, 255, 0.5);
         }
-        
+
         .exercise-option-name {
             font-weight: 600;
             color: white;
@@ -198,44 +199,44 @@
             margin-bottom: 4px;
             line-height: 1.3;
         }
-        
+
         .exercise-option-details {
             display: flex;
             gap: 12px;
             font-size: 0.75rem;
             color: var(--color-text-muted);
         }
-        
+
         .exercise-weight {
             color: #00ff88;
         }
-        
+
         .exercise-sessions {
             color: #ffd700;
         }
-        
+
         #exerciseSearchInput:focus {
             border-color: var(--color-primary);
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
         }
-        
+
         /* Scrollbar styling for dropdown */
         #exerciseOptionsList::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         #exerciseOptionsList::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 3px;
         }
-        
+
         #exerciseOptionsList::-webkit-scrollbar-thumb {
-            background: rgba(0,243,255,0.3);
+            background: rgba(0, 243, 255, 0.3);
             border-radius: 3px;
         }
-        
+
         #exerciseOptionsList::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,243,255,0.5);
+            background: rgba(0, 243, 255, 0.5);
         }
     </style>
 </head>
@@ -281,8 +282,11 @@
                     style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; position: relative; margin: auto; box-sizing: border-box;">
                     <button id="closeHistoryModal"
                         style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px; flex-shrink: 0;">&times;</button>
-                    <h3 style="margin-bottom: 1rem; font-size: clamp(1rem, 4.5vw, 1.3rem); padding-right: 40px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">Storico <span class="text-primary">Insight</span></h3>
-                    <div id="historyList" style="display: flex; flex-direction: column; gap: 1rem; max-width: 100%; overflow-x: hidden;">
+                    <h3
+                        style="margin-bottom: 1rem; font-size: clamp(1rem, 4.5vw, 1.3rem); padding-right: 40px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">
+                        Storico <span class="text-primary">Insight</span></h3>
+                    <div id="historyList"
+                        style="display: flex; flex-direction: column; gap: 1rem; max-width: 100%; overflow-x: hidden;">
                         <!-- History items go here -->
                     </div>
                 </div>
@@ -295,11 +299,15 @@
                     style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; position: relative; margin: auto; box-sizing: border-box;">
                     <button id="closeAiModal"
                         style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px; flex-shrink: 0;">&times;</button>
-                    <h3 style="margin-bottom: 1rem; font-size: clamp(1rem, 4.5vw, 1.3rem); padding-right: 40px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">Coach <span class="text-primary">Insight</span></h3>
-                    <div id="aiResponseContent" class="markdown-content" style="max-width: 100%; overflow-x: hidden; word-wrap: break-word;">
+                    <h3
+                        style="margin-bottom: 1rem; font-size: clamp(1rem, 4.5vw, 1.3rem); padding-right: 40px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">
+                        Coach <span class="text-primary">Insight</span></h3>
+                    <div id="aiResponseContent" class="markdown-content"
+                        style="max-width: 100%; overflow-x: hidden; word-wrap: break-word;">
                         <!-- Content goes here -->
                     </div>
-                    <button id="exportAiReportBtn" class="btn btn-outline" style="margin-top: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <button id="exportAiReportBtn" class="btn btn-outline"
+                        style="margin-top: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <span>📤</span> Esporta Report
                     </button>
                 </div>
@@ -383,7 +391,8 @@
                 }
 
                 .markdown-content thead {
-                    display: none; /* Hide on mobile, use card layout instead */
+                    display: none;
+                    /* Hide on mobile, use card layout instead */
                 }
 
                 .markdown-content tbody {
@@ -527,11 +536,12 @@
             </div>
 
             <!-- ===== ADVANCED METRICS SECTION ===== -->
-            
+
             <!-- Training Load & Recovery Gauges -->
             <div class="card" style="margin-bottom: var(--spacing-md);">
                 <h3 style="margin-bottom: 1rem;">Training Load & <span class="text-primary">Recovery</span></h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; align-items: start;">
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; align-items: start;">
                     <div>
                         <div id="trainingLoadGauge"></div>
                         <div id="trainingLoadDetails" style="text-align: center; margin-top: 0.5rem;"></div>
@@ -564,19 +574,22 @@
 
             <!-- Strength Progression Chart -->
             <div class="card" style="margin-bottom: var(--spacing-md);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0;">Progressione <span class="text-primary">Forza</span></h3>
                 </div>
-                
+
                 <!-- Custom Dropdown per selezione esercizi -->
-                <div class="exercise-selector custom-dropdown-container" style="margin-bottom: 1rem; position: relative;">
-                    <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 0.4rem;">
+                <div class="exercise-selector custom-dropdown-container"
+                    style="margin-bottom: 1rem; position: relative;">
+                    <label
+                        style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 0.4rem;">
                         🏋️ Seleziona esercizio
                     </label>
-                    
+
                     <!-- Hidden select per compatibilità -->
                     <select id="strengthExerciseSelect" style="display: none;"></select>
-                    
+
                     <!-- Custom dropdown trigger -->
                     <div id="exerciseDropdownTrigger" style="
                         width: 100%;
@@ -593,10 +606,13 @@
                         transition: all 0.2s ease;
                         box-sizing: border-box;
                     ">
-                        <span class="selected-exercise-name" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 10px;">Seleziona un esercizio...</span>
-                        <span class="dropdown-arrow" style="color: var(--color-primary); font-size: 0.8rem; transition: transform 0.2s ease;">▼</span>
+                        <span class="selected-exercise-name"
+                            style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 10px;">Seleziona
+                            un esercizio...</span>
+                        <span class="dropdown-arrow"
+                            style="color: var(--color-primary); font-size: 0.8rem; transition: transform 0.2s ease;">▼</span>
                     </div>
-                    
+
                     <!-- Dropdown panel -->
                     <div id="exerciseDropdownPanel" style="
                         display: none;
@@ -627,7 +643,7 @@
                                 box-sizing: border-box;
                             ">
                         </div>
-                        
+
                         <!-- Options list -->
                         <div id="exerciseOptionsList" style="
                             max-height: 280px;
@@ -638,9 +654,10 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="strengthProgressChart"></div>
-                <div id="strengthProgressStats" style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;"></div>
+                <div id="strengthProgressStats"
+                    style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;"></div>
             </div>
 
             <!-- Consistency Calendar -->
@@ -659,7 +676,8 @@
             <!-- RPE Distribution -->
             <div class="card" style="margin-bottom: var(--spacing-md);">
                 <h3 style="margin-bottom: 1rem;">Distribuzione <span class="text-primary">Intensità (RPE)</span></h3>
-                <div id="rpeDistribution" style="display: flex; gap: 0.5rem; height: 120px; align-items: flex-end; padding: 1rem 0;"></div>
+                <div id="rpeDistribution"
+                    style="display: flex; gap: 0.5rem; height: 120px; align-items: flex-end; padding: 1rem 0;"></div>
                 <div id="rpeAssessment" class="insight-box" style="margin-top: 1rem;"></div>
             </div>
 
@@ -667,7 +685,8 @@
             <div class="card" style="margin-bottom: var(--spacing-md);">
                 <h3 style="margin-bottom: 1rem;">Trend Volume <span class="text-primary">8 Settimane</span></h3>
                 <div id="volumeTrendChart"></div>
-                <div id="volumeTrendStats" style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;"></div>
+                <div id="volumeTrendStats"
+                    style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;"></div>
             </div>
 
             <!-- Variety Score -->
@@ -706,18 +725,21 @@
 
             <!-- DOMS Tracker -->
             <div class="card" id="domsTrackerCard" style="margin-bottom: var(--spacing-md);">
-                <div style="display:flex; justify-content: space-between; align-items:center; gap:1rem; flex-wrap: wrap;">
+                <div
+                    style="display:flex; justify-content: space-between; align-items:center; gap:1rem; flex-wrap: wrap;">
                     <div>
-                        <h3 style="margin-bottom: 0.25rem;">DOMS Tracker <span class="text-primary">Muscolare</span></h3>
+                        <h3 style="margin-bottom: 0.25rem;">DOMS Tracker <span class="text-primary">Muscolare</span>
+                        </h3>
                         <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0;">
                             Monitora i tuoi dolori muscolari post-allenamento e i tempi di recupero
                         </p>
                     </div>
                     <small id="domsReportCount" style="color: var(--color-text-muted);"></small>
                 </div>
-                
+
                 <!-- Legenda DOMS -->
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.7rem;">
+                <div
+                    style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.7rem;">
                     <div style="display: flex; align-items: center; gap: 0.3rem;">
                         <span style="color: #00ff88;">●</span>
                         <span style="color: var(--color-text-muted);">Dolore lieve (1-3)</span>
@@ -731,7 +753,7 @@
                         <span style="color: var(--color-text-muted);">Dolore intenso (7-10)</span>
                     </div>
                 </div>
-                
+
                 <div id="domsHotspotList" style="display:flex; flex-direction:column; gap:0.75rem;">
                     <p style="color: var(--color-text-muted);">Compila il questionario DOMS prima di ogni Focus Mode per
                         monitorare i recuperi specifici.</p>
@@ -740,40 +762,58 @@
 
             <!-- Trend Monitor -->
             <div class="card" id="trendMonitorCard" style="margin-bottom: var(--spacing-md);">
-                <div style="display:flex; justify-content: space-between; align-items:center; gap:1rem; margin-bottom: 1rem;">
+                <div
+                    style="display:flex; justify-content: space-between; align-items:center; gap:1rem; margin-bottom: 1rem;">
                     <div>
                         <h3 style="margin: 0;">Trend <span class="text-primary">Monitor</span></h3>
-                        <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0.25rem 0 0 0;">Confronto ultime 2 settimane</p>
+                        <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0.25rem 0 0 0;">Confronto
+                            ultime 2 settimane</p>
                     </div>
                     <button id="trendSummaryHistoryBtn" class="btn btn-outline btn-compact"
                         style="font-size: 0.75rem;">📊 Storico</button>
                 </div>
-                
+
                 <!-- Legend -->
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.7rem;">
-                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #00ffb3;">↑</span> Miglioramento</span>
-                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #ff6b6b;">↓</span> Calo</span>
-                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #ccc;">→</span> Stabile</span>
+                <div
+                    style="display: flex; gap: 1rem; margin-bottom: 1rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.7rem;">
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #00ffb3;">↑</span>
+                        Miglioramento</span>
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #ff6b6b;">↓</span>
+                        Calo</span>
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="color: #ccc;">→</span>
+                        Stabile</span>
                 </div>
-                
-                <div id="trendMetricsList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+
+                <div id="trendMetricsList"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
                     <!-- dynamic metrics -->
                 </div>
             </div>
 
             <!-- PR Table - PESI REALI MASSIMI -->
             <div class="card" style="margin-bottom: var(--spacing-md);">
-                <h3 style="margin-bottom: 1rem;">🏋️ Record Personali <span class="text-primary">(Pesi Reali)</span></h3>
+                <h3 style="margin-bottom: 1rem;">🏋️ Record Personali <span class="text-primary">(Pesi Reali)</span>
+                </h3>
                 <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
                     Pesi massimi effettivamente sollevati per ogni esercizio, categorizzati per range di ripetizioni.
                 </p>
-                
-                <div class="rm-selector" style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; flex-wrap: wrap; margin-bottom: 1rem;">
-                    <button class="btn-rm-real active" data-rm="all" style="border: none; background: var(--color-primary); color: var(--color-background); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Tutti</button>
-                    <button class="btn-rm-real" data-rm="1-3" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">1-3 reps</button>
-                    <button class="btn-rm-real" data-rm="4-6" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">4-6 reps</button>
-                    <button class="btn-rm-real" data-rm="7-10" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">7-10 reps</button>
-                    <button class="btn-rm-real" data-rm="11+" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">11+ reps</button>
+
+                <div class="rm-selector"
+                    style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <button class="btn-rm-real active" data-rm="all"
+                        style="border: none; background: var(--color-primary); color: var(--color-background); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Tutti</button>
+                    <button class="btn-rm-real" data-rm="1-3"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">1-3
+                        reps</button>
+                    <button class="btn-rm-real" data-rm="4-6"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">4-6
+                        reps</button>
+                    <button class="btn-rm-real" data-rm="7-10"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">7-10
+                        reps</button>
+                    <button class="btn-rm-real" data-rm="11+"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">11+
+                        reps</button>
                 </div>
 
                 <div id="realPRsContainer" style="max-height: 400px; overflow-y: auto;">
@@ -783,22 +823,31 @@
 
             <!-- PR Table - STIME RM SCIENTIFICHE -->
             <div class="card">
-                <h3 style="margin-bottom: 0.5rem;">📊 Stime Massimali <span class="text-primary">(Calcolo Scientifico)</span></h3>
+                <h3 style="margin-bottom: 0.5rem;">📊 Stime Massimali <span class="text-primary">(Calcolo
+                        Scientifico)</span></h3>
                 <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 1rem;">
                     Stime basate su formule ibride (Epley + Brzycki + Lombardi + Mayhew + Wathen).
                 </p>
-                
-                <div class="rm-selector" style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; flex-wrap: wrap; margin-bottom: 1rem;">
-                    <button class="btn-rm active" data-rm="1rm" style="border: none; background: var(--color-primary); color: var(--color-background); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">1RM</button>
-                    <button class="btn-rm" data-rm="3rm" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">3RM</button>
-                    <button class="btn-rm" data-rm="5rm" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">5RM</button>
-                    <button class="btn-rm" data-rm="8rm" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">8RM</button>
-                    <button class="btn-rm" data-rm="10rm" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">10RM</button>
-                    <button class="btn-rm" data-rm="12rm" style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">12RM</button>
+
+                <div class="rm-selector"
+                    style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <button class="btn-rm active" data-rm="1rm"
+                        style="border: none; background: var(--color-primary); color: var(--color-background); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">1RM</button>
+                    <button class="btn-rm" data-rm="3rm"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">3RM</button>
+                    <button class="btn-rm" data-rm="5rm"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">5RM</button>
+                    <button class="btn-rm" data-rm="8rm"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">8RM</button>
+                    <button class="btn-rm" data-rm="10rm"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">10RM</button>
+                    <button class="btn-rm" data-rm="12rm"
+                        style="border: none; background: transparent; color: #ccc; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">12RM</button>
                 </div>
 
                 <!-- Container scrollabile per mobile -->
-                <div style="max-height: 350px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+                <div
+                    style="max-height: 350px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
                     <table style="width: 100%; text-align: left; border-collapse: collapse;">
                         <thead style="position: sticky; top: 0; background: var(--color-surface); z-index: 1;">
                             <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);">
@@ -837,13 +886,20 @@
 
     <div id="trendSummaryModal"
         style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:2500; align-items:center; justify-content:center; padding:clamp(0.5rem, 2vw, 1rem); overflow-y:auto; overflow-x:hidden;">
-        <div class="card" style="max-width: 600px; width:100%; max-height:90vh; overflow-y:auto; overflow-x:hidden; position: relative; margin: auto; box-sizing:border-box;">
+        <div class="card"
+            style="max-width: 600px; width:100%; max-height:90vh; overflow-y:auto; overflow-x:hidden; position: relative; margin: auto; box-sizing:border-box;">
             <button id="closeTrendSummaryModal"
                 style="position:sticky; top:0; right:0; float:right; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; cursor:pointer; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10; margin-bottom:-36px; flex-shrink:0;">×</button>
-            <h3 style="margin-bottom:0.5rem; font-size:clamp(1rem, 4.5vw, 1.3rem); padding-right:40px; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">Resoconto <span class="text-primary">AI</span></h3>
-            <small id="trendSummaryMeta" style="color: var(--color-text-muted); font-size:clamp(0.75rem, 2.8vw, 0.85rem); word-wrap:break-word; display:block; max-width:100%;"></small>
-            <div id="trendSummaryContent" class="ai-summary" style="margin-top:1rem; line-height:1.6; max-width:100%; overflow-x:hidden; word-wrap:break-word;"></div>
-            <button id="exportTrendSummaryBtn" class="btn btn-outline" style="margin-top: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <h3
+                style="margin-bottom:0.5rem; font-size:clamp(1rem, 4.5vw, 1.3rem); padding-right:40px; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">
+                Resoconto <span class="text-primary">AI</span></h3>
+            <small id="trendSummaryMeta"
+                style="color: var(--color-text-muted); font-size:clamp(0.75rem, 2.8vw, 0.85rem); word-wrap:break-word; display:block; max-width:100%;"></small>
+            <div id="trendSummaryContent" class="ai-summary"
+                style="margin-top:1rem; line-height:1.6; max-width:100%; overflow-x:hidden; word-wrap:break-word;">
+            </div>
+            <button id="exportTrendSummaryBtn" class="btn btn-outline"
+                style="margin-top: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <span>📤</span> Esporta Resoconto
             </button>
         </div>
@@ -851,11 +907,15 @@
 
     <div id="trendSummaryHistoryModal"
         style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:2500; align-items:center; justify-content:center; padding:clamp(0.5rem, 2vw, 1rem); overflow-y:auto; overflow-x:hidden;">
-        <div class="card" style="max-width: 500px; width:100%; max-height:90vh; overflow-y:auto; overflow-x:hidden; position: relative; margin: auto; box-sizing:border-box;">
+        <div class="card"
+            style="max-width: 500px; width:100%; max-height:90vh; overflow-y:auto; overflow-x:hidden; position: relative; margin: auto; box-sizing:border-box;">
             <button id="closeTrendSummaryHistory"
                 style="position:sticky; top:0; right:0; float:right; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; cursor:pointer; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10; margin-bottom:-36px; flex-shrink:0;">×</button>
-            <h3 style="margin-bottom:1rem; font-size:clamp(1rem, 4.5vw, 1.3rem); padding-right:40px; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">Storico Resoconti</h3>
-            <div id="trendSummaryHistoryList" style="display:flex; flex-direction:column; gap:0.75rem; max-width:100%; overflow-x:hidden;"></div>
+            <h3
+                style="margin-bottom:1rem; font-size:clamp(1rem, 4.5vw, 1.3rem); padding-right:40px; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">
+                Storico Resoconti</h3>
+            <div id="trendSummaryHistoryList"
+                style="display:flex; flex-direction:column; gap:0.75rem; max-width:100%; overflow-x:hidden;"></div>
         </div>
     </div>
 
@@ -904,7 +964,7 @@
                 });
                 document.getElementById('trainingLoadDetails').innerHTML = `
                     <div style="font-size: 0.75rem; color: var(--color-text-muted);">
-                        ${trainingLoad.sessions} sessioni • ${Math.round(trainingLoad.totalVolume/1000)}k vol
+                        ${trainingLoad.sessions} sessioni • ${Math.round(trainingLoad.totalVolume / 1000)}k vol
                         <span class="metric-trend ${trainingLoad.trend === 'increasing' ? 'up' : trainingLoad.trend === 'decreasing' ? 'down' : 'stable'}">
                             ${trainingLoad.trend === 'increasing' ? '↑' : trainingLoad.trend === 'decreasing' ? '↓' : '→'}
                         </span>
@@ -944,7 +1004,7 @@
                     </div>
                     <div class="metric-card-mini">
                         <div class="metric-icon">📊</div>
-                        <div class="metric-value-large">${Math.round(weekly.totalVolume/1000)}k</div>
+                        <div class="metric-value-large">${Math.round(weekly.totalVolume / 1000)}k</div>
                         <div class="metric-label-small">Volume</div>
                         <div class="metric-trend ${weekly.volumeChange >= 0 ? 'up' : 'down'}">
                             ${weekly.volumeChange >= 0 ? '+' : ''}${weekly.volumeChange}%
@@ -969,7 +1029,7 @@
                     centerValue: muscleBalance.balanceScore,
                     centerLabel: 'Balance'
                 });
-                
+
                 if (muscleBalance.imbalances.length > 0) {
                     const imbalanceText = muscleBalance.imbalances.map(i => {
                         const label = ChartRenderer.translateMuscle ? ChartRenderer.translateMuscle(i.muscle) : i.muscle;
@@ -1012,19 +1072,19 @@
                 // 5. Strength Progression - Popola select con TUTTI gli esercizi reali
                 const uniqueExercises = advancedMetrics.getUniqueExercises(0); // 0 = nessun filtro minimo
                 const strengthSelect = document.getElementById('strengthExerciseSelect');
-                
+
                 // Custom Dropdown Setup
                 const dropdownTrigger = document.getElementById('exerciseDropdownTrigger');
                 const dropdownPanel = document.getElementById('exerciseDropdownPanel');
                 const optionsList = document.getElementById('exerciseOptionsList');
                 const searchInput = document.getElementById('exerciseSearchInput');
-                
+
                 // Funzione per creare le opzioni del dropdown
                 const populateDropdownOptions = (exercises, filter = '') => {
-                    const filtered = filter 
+                    const filtered = filter
                         ? exercises.filter(ex => ex.name.toLowerCase().includes(filter.toLowerCase()))
                         : exercises;
-                    
+
                     if (filtered.length === 0) {
                         optionsList.innerHTML = `
                             <div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">
@@ -1033,7 +1093,7 @@
                         `;
                         return;
                     }
-                    
+
                     optionsList.innerHTML = filtered.map((ex, i) => {
                         const sessionText = ex.count === 1 ? '1 sessione' : `${ex.count} sessioni`;
                         const isSelected = i === 0 && !filter;
@@ -1047,42 +1107,46 @@
                             </div>
                         `;
                     }).join('');
-                    
+
                     // Aggiunge event listeners alle opzioni
                     optionsList.querySelectorAll('.exercise-option').forEach(option => {
                         option.addEventListener('click', () => {
                             const value = option.dataset.value;
                             const name = option.querySelector('.exercise-option-name').textContent;
-                            
+
                             // Aggiorna il trigger
                             dropdownTrigger.querySelector('.selected-exercise-name').textContent = name;
-                            
+
                             // Aggiorna la selezione visiva
                             optionsList.querySelectorAll('.exercise-option').forEach(o => o.classList.remove('selected'));
                             option.classList.add('selected');
-                            
+
                             // Chiude il dropdown
                             dropdownPanel.classList.remove('open');
                             dropdownTrigger.classList.remove('open');
-                            
+
                             // Aggiorna il select nascosto e renderizza il grafico
                             strengthSelect.value = value;
                             renderStrengthChart(value);
                         });
                     });
                 };
-                
+
+                // Popola il select nascosto se necessario all'inizio o al cambio dati
                 if (uniqueExercises.length > 0) {
                     // Popola il select nascosto per compatibilità
                     strengthSelect.innerHTML = uniqueExercises.map((ex, i) => {
                         return `<option value="${ex.name}" ${i === 0 ? 'selected' : ''}>${ex.name}</option>`;
                     }).join('');
-                    
+
                     // Popola il dropdown custom
                     populateDropdownOptions(uniqueExercises);
-                    
-                    // Imposta il primo esercizio come selezionato nel trigger
-                    dropdownTrigger.querySelector('.selected-exercise-name').textContent = uniqueExercises[0].name;
+
+                    // Imposta il primo esercizio come selezionato nel trigger se non c'è già una selezione
+                    if (!dropdownTrigger.querySelector('.selected-exercise-name').textContent ||
+                        dropdownTrigger.querySelector('.selected-exercise-name').textContent === 'Seleziona esercizio...') {
+                        dropdownTrigger.querySelector('.selected-exercise-name').textContent = uniqueExercises[0].name;
+                    }
                 } else {
                     strengthSelect.innerHTML = '<option value="">Nessun esercizio registrato</option>';
                     dropdownTrigger.querySelector('.selected-exercise-name').textContent = 'Nessun esercizio registrato';
@@ -1092,30 +1156,6 @@
                         </div>
                     `;
                 }
-                
-                // Toggle dropdown
-                dropdownTrigger.addEventListener('click', () => {
-                    const isOpen = dropdownPanel.classList.toggle('open');
-                    dropdownTrigger.classList.toggle('open');
-                    if (isOpen) {
-                        searchInput.focus();
-                        searchInput.value = '';
-                        populateDropdownOptions(uniqueExercises);
-                    }
-                });
-                
-                // Ricerca
-                searchInput.addEventListener('input', (e) => {
-                    populateDropdownOptions(uniqueExercises, e.target.value);
-                });
-                
-                // Chiudi dropdown cliccando fuori
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('.custom-dropdown-container')) {
-                        dropdownPanel.classList.remove('open');
-                        dropdownTrigger.classList.remove('open');
-                    }
-                });
 
                 const renderStrengthChart = (exercise) => {
                     if (!exercise) {
@@ -1127,9 +1167,9 @@
                         document.getElementById('strengthProgressStats').innerHTML = '';
                         return;
                     }
-                    
+
                     const progression = advancedMetrics.calculateStrengthProgression(exercise, 3);
-                    
+
                     if (progression.exerciseNotFound || progression.dataPoints.length === 0) {
                         document.getElementById('strengthProgressChart').innerHTML = `
                             <p style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
@@ -1139,17 +1179,17 @@
                         document.getElementById('strengthProgressStats').innerHTML = '';
                         return;
                     }
-                    
+
                     ChartRenderer.renderLineChart('strengthProgressChart', progression.dataPoints, {
                         width: 400,
                         height: 180,
                         unit: 'kg'
                     });
-                    
+
                     const trendIcon = progression.trend === 'up' ? '📈' : progression.trend === 'down' ? '📉' : '➡️';
                     const trendClass = progression.trend === 'up' ? 'up' : progression.trend === 'down' ? 'down' : 'stable';
                     const sessionsCount = progression.totalSessions || progression.dataPoints.length;
-                    
+
                     document.getElementById('strengthProgressStats').innerHTML = `
                         <div>
                             <div style="font-family: var(--font-display); font-size: 1.5rem; color: var(--color-primary);">${progression.current || '-'}</div>
@@ -1169,14 +1209,11 @@
                         </div>
                     `;
                 };
-                
-                // Render con il primo esercizio reale o vuoto
+
+                // Render con il primo esercizio reale o quello già selezionato
                 const firstExercise = uniqueExercises.length > 0 ? uniqueExercises[0].name : '';
-                renderStrengthChart(firstExercise);
-                
-                document.getElementById('strengthExerciseSelect').addEventListener('change', (e) => {
-                    renderStrengthChart(e.target.value);
-                });
+                const currentExercise = strengthSelect.value || firstExercise;
+                renderStrengthChart(currentExercise);
 
                 // 6. Consistency Calendar
                 const calendarData = advancedMetrics.generateConsistencyCalendar(12);
@@ -1189,7 +1226,7 @@
                         x: d.sleep,
                         y: d.performance
                     }));
-                    
+
                     // Passa le informazioni di validità statistica al renderer
                     ChartRenderer.renderScatter('sleepPerformanceScatter', scatterData, {
                         xLabel: 'Qualità Sonno (1-10)',
@@ -1197,16 +1234,16 @@
                         showTrendLine: true,
                         isStatisticallyValid: correlation.isStatisticallyValid
                     });
-                    
+
                     // Colori basati sulla forza della correlazione E sulla validità statistica
                     let corrColor, corrIcon, corrLabel;
-                    
+
                     if (!correlation.isStatisticallyValid) {
                         corrColor = '#888888';
                         corrIcon = '⚠️';
                         corrLabel = 'Dati non sufficientemente variati';
                     } else {
-                        switch(correlation.correlationStrength) {
+                        switch (correlation.correlationStrength) {
                             case 'strong':
                                 corrColor = correlation.correlation > 0 ? '#00ff88' : '#ff6b6b';
                                 corrIcon = correlation.correlation > 0 ? '🎯' : '⚠️';
@@ -1231,23 +1268,23 @@
                             <strong style="color: ${corrColor}">${corrLabel}: ${correlation.correlation}</strong><br>
                             ${correlation.insight}
                     `;
-                    
+
                     // Aggiungi warning se presente
                     if (correlation.varianceWarning) {
                         insightHTML += `<br><small style="color: #ffcc00; display: block; margin-top: 0.5rem;">
                             💡 ${correlation.varianceWarning}
                         </small>`;
                     }
-                    
+
                     // Aggiungi stats per debug/trasparenza (opzionale, in piccolo)
                     if (correlation.stats && correlation.stats.n >= 5) {
                         insightHTML += `<br><small style="color: var(--color-text-muted); font-size: 0.7rem;">
                             ${correlation.stats.n} sessioni · σ(sonno)=${correlation.stats.stdDevX}
                         </small>`;
                     }
-                    
+
                     insightHTML += '</p>';
-                    
+
                     document.getElementById('correlationInsight').innerHTML = insightHTML;
                 } else {
                     document.getElementById('sleepPerformanceScatter').innerHTML = `
@@ -1265,7 +1302,7 @@
                 const rpeData = advancedMetrics.calculateRpeDistribution(30);
                 const rpeColors = {
                     easy: '#00ff88',
-                    moderate: '#00f3ff', 
+                    moderate: '#00f3ff',
                     hard: '#ff8844',
                     maximal: '#ff4444'
                 };
@@ -1275,7 +1312,7 @@
                     hard: 'Intenso (8-9)',
                     maximal: 'Massimale (10)'
                 };
-                
+
                 if (rpeData.totalSets > 0) {
                     let rpeHTML = '';
                     for (const [key, pct] of Object.entries(rpeData.percentages)) {
@@ -1313,11 +1350,11 @@
                     height: 160,
                     unit: 'k'
                 });
-                
+
                 const trendIcon = volumeTrend.trend === 'increasing' ? '📈' : volumeTrend.trend === 'decreasing' ? '📉' : '➡️';
                 document.getElementById('volumeTrendStats').innerHTML = `
                     <div>
-                        <div style="font-family: var(--font-display); font-size: 1.3rem; color: var(--color-primary);">${Math.round(volumeTrend.avgVolume/1000)}k</div>
+                        <div style="font-family: var(--font-display); font-size: 1.3rem; color: var(--color-primary);">${Math.round(volumeTrend.avgVolume / 1000)}k</div>
                         <div style="font-size: 0.7rem; color: var(--color-text-muted);">Media Settimanale</div>
                     </div>
                     <div>
@@ -1385,25 +1422,160 @@
                 }
             };
 
+            // Function to render strength chart, made global for dropdown interaction
+            window.renderStrengthChartGlobal = (exerciseName) => {
+                if (!exerciseName) {
+                    document.getElementById('strengthProgressChart').innerHTML = `
+                        <p style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+                            Registra almeno un allenamento per vedere la progressione.
+                        </p>
+                    `;
+                    document.getElementById('strengthProgressStats').innerHTML = '';
+                    return;
+                }
+
+                const progression = advancedMetrics.calculateStrengthProgression(exerciseName, 3);
+
+                if (progression.exerciseNotFound || progression.dataPoints.length === 0) {
+                    document.getElementById('strengthProgressChart').innerHTML = `
+                        <p style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+                            Nessun dato per "${exerciseName}". Registra questo esercizio per vedere la progressione.
+                        </p>
+                    `;
+                    document.getElementById('strengthProgressStats').innerHTML = '';
+                    return;
+                }
+
+                ChartRenderer.renderLineChart('strengthProgressChart', progression.dataPoints, {
+                    width: 400,
+                    height: 180,
+                    unit: 'kg'
+                });
+
+                const trendIcon = progression.trend === 'up' ? '📈' : progression.trend === 'down' ? '📉' : '➡️';
+                const trendClass = progression.trend === 'up' ? 'up' : progression.trend === 'down' ? 'down' : 'stable';
+                const sessionsCount = progression.totalSessions || progression.dataPoints.length;
+
+                document.getElementById('strengthProgressStats').innerHTML = `
+                    <div>
+                        <div style="font-family: var(--font-display); font-size: 1.5rem; color: var(--color-primary);">${progression.current || '-'}</div>
+                        <div style="font-size: 0.7rem; color: var(--color-text-muted);">Peso Max (kg)</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-display); font-size: 1.5rem;" class="metric-trend ${trendClass}">
+                            ${progression.change > 0 ? '+' : ''}${progression.change || 0} kg
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--color-text-muted);">${trendIcon} Var. 3 mesi</div>
+                    </div>
+                    <div>
+                        <div style="font-family: var(--font-display); font-size: 1.5rem; color: ${progression.changePercent >= 0 ? '#00ff88' : '#ff6b6b'};">
+                            ${progression.changePercent > 0 ? '+' : ''}${progression.changePercent}%
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--color-text-muted);">${sessionsCount} session${sessionsCount === 1 ? 'e' : 'i'}</div>
+                    </div>
+                `;
+            };
+
+            // Function to populate dropdown options, made global for dropdown interaction
+            window.populateDropdownOptionsGlobal = (exercises, filter = '') => {
+                const optionsList = document.getElementById('exerciseOptionsList');
+                const dropdownPanel = document.getElementById('exerciseDropdownPanel');
+                const dropdownTrigger = document.getElementById('exerciseDropdownTrigger');
+                const strengthSelect = document.getElementById('strengthExerciseSelect');
+
+                const filtered = filter
+                    ? exercises.filter(ex => ex.name.toLowerCase().includes(filter.toLowerCase()))
+                    : exercises;
+
+                if (filtered.length === 0) {
+                    optionsList.innerHTML = `
+                        <div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">
+                            Nessun esercizio trovato
+                        </div>
+                    `;
+                    return;
+                }
+
+                optionsList.innerHTML = filtered.map((ex, i) => {
+                    const sessionText = ex.count === 1 ? '1 sessione' : `${ex.count} sessioni`;
+                    return `
+                        <div class="exercise-option" data-value="${ex.name}">
+                            <div class="exercise-option-name">${ex.name}</div>
+                            <div class="exercise-option-details">
+                                <span class="exercise-weight">💪 ${ex.maxWeight}kg</span>
+                                <span class="exercise-sessions">📊 ${sessionText}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add listeners to new options
+                optionsList.querySelectorAll('.exercise-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        const value = option.dataset.value;
+                        dropdownTrigger.querySelector('.selected-exercise-name').textContent = value;
+                        dropdownPanel.classList.remove('open');
+                        dropdownTrigger.classList.remove('open');
+                        strengthSelect.value = value;
+                        window.renderStrengthChartGlobal(value);
+                    });
+                });
+            };
+
             // Initialize advanced metrics
             initAdvancedMetrics();
 
-            // Refresh on data change
-            window.addEventListener('storage', (event) => {
-                if (event.key === 'ironflow_logs' || event.key === 'ironflow_body_stats') {
-                    initAdvancedMetrics();
+            // Event Listeners Once
+            const dropdownTrigger = document.getElementById('exerciseDropdownTrigger');
+            const dropdownPanel = document.getElementById('exerciseDropdownPanel');
+            const searchInput = document.getElementById('exerciseSearchInput');
+            const strengthSelect = document.getElementById('strengthExerciseSelect');
+
+            if (dropdownTrigger) {
+                dropdownTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = dropdownPanel.classList.toggle('open');
+                    dropdownTrigger.classList.toggle('open');
+                    if (isOpen) {
+                        searchInput.focus();
+                        searchInput.value = '';
+                        const uniqueExercises = advancedMetrics.getUniqueExercises(0);
+                        window.populateDropdownOptionsGlobal(uniqueExercises);
+                    }
+                });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const uniqueExercises = advancedMetrics.getUniqueExercises(0);
+                    window.populateDropdownOptionsGlobal(uniqueExercises, e.target.value);
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (dropdownPanel && !e.target.closest('.custom-dropdown-container')) {
+                    dropdownPanel.classList.remove('open');
+                    dropdownTrigger.classList.remove('open');
                 }
             });
-            // ===== END ADVANCED METRICS =====
 
+            if (strengthSelect) {
+                strengthSelect.addEventListener('change', (e) => {
+                    window.renderStrengthChartGlobal(e.target.value);
+                });
+            }
+
+            // Consolidate Refresh on data change
             window.addEventListener('storage', (event) => {
-                if (event.key === 'ironflow_logs') {
+                if (event.key === 'ironflow_logs' || event.key === 'ironflow_body_stats') {
+                    console.log('📦 Data changed in storage, refreshing metrics...');
+                    initAdvancedMetrics();
                     renderHeatmap();
                 }
             });
 
             window.addEventListener('focus', renderHeatmap);
-
+            // ===== END ADVANCED METRICS =====
             const askCoachBtn = document.getElementById('askCoachBtn');
             const aiModal = document.getElementById('aiModal');
             const closeAiModal = document.getElementById('closeAiModal');
@@ -1521,7 +1693,7 @@
 
                     // Process tables for mobile responsiveness
                     processTables(aiContent);
-                    
+
                     // Sanitize content to prevent overflow
                     sanitizeAIContent(aiContent);
                 } else {
@@ -1534,7 +1706,7 @@
                 const tables = container.querySelectorAll('table');
                 tables.forEach(table => {
                     const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-                    
+
                     if (headers.length === 0) {
                         // Try to get headers from first row if thead is missing
                         const firstRow = table.querySelector('tr');
@@ -1588,7 +1760,7 @@
                     // Check for long words (>30 chars without spaces)
                     const words = text.split(/\s+/);
                     const hasLongWord = words.some(word => word.length > 30);
-                    
+
                     if (hasLongWord && textNode.parentElement) {
                         textNode.parentElement.style.wordBreak = 'break-all';
                         textNode.parentElement.style.overflowWrap = 'break-word';
@@ -1762,10 +1934,10 @@
             const renderTrendMetrics = () => {
                 if (!trendMetricsList) return;
                 trendMetricsList.innerHTML = '';
-                
+
                 // Filtra metriche senza dati
                 const validMetrics = trendResult.metrics.filter(m => m.status !== 'no_data');
-                
+
                 if (validMetrics.length === 0) {
                     trendMetricsList.innerHTML = `
                         <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
@@ -1780,7 +1952,7 @@
                     `;
                     return;
                 }
-                
+
                 // Icone per ogni metrica
                 const metricIcons = {
                     frequency: '📅',
@@ -1793,10 +1965,10 @@
                     stressLevel: '🧘',
                     sorenessLevel: '💪'
                 };
-                
+
                 validMetrics.forEach(metric => {
                     const card = document.createElement('div');
-                    
+
                     // Determina colore e icona in base allo stato
                     let statusColor, statusIcon, statusBg, borderColor;
                     switch (metric.status) {
@@ -1824,20 +1996,20 @@
                             statusBg = 'rgba(255,255,255,0.02)';
                             borderColor = 'rgba(255,255,255,0.08)';
                     }
-                    
+
                     // Format current value with proper unit
-                    const formattedValue = metric.formatter 
+                    const formattedValue = metric.formatter
                         ? metric.formatter(metric.current, { unit: unitServiceAvailable && unitService.getSystem() === 'imperial' ? 'imperial' : 'metric', profile })
                         : metric.current.toFixed(1);
-                    
+
                     // Non mostrare valori 0 come dato reale
                     const displayValue = metric.current > 0 ? formattedValue : 'N/D';
-                    
+
                     // Calcola variazione percentuale se disponibile
                     const pctChange = metric.pct ? (metric.pct > 0 ? `+${metric.pct.toFixed(0)}%` : `${metric.pct.toFixed(0)}%`) : '';
-                    
+
                     const icon = metricIcons[metric.id] || '📌';
-                    
+
                     card.style.cssText = `
                         background: ${statusBg};
                         border: 1px solid ${borderColor};
@@ -1846,7 +2018,7 @@
                         position: relative;
                         overflow: hidden;
                     `;
-                    
+
                     card.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
                             <span style="font-size: 1.3rem;">${icon}</span>
@@ -1860,21 +2032,21 @@
                 });
             };
             renderTrendMetrics();
-            
+
             // Auto-refresh trend metrics when data changes
             window.addEventListener('storage', (event) => {
                 if (event.key === 'ironflow_logs' || event.key === 'ironflow_body_stats') {
                     const newLogs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
                     const newBodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
                     const newProfile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
-                    
+
                     const newTrendResult = trendEngine.evaluate({
                         logs: newLogs,
                         bodyStats: newBodyStats,
                         profile: newProfile,
                         unit: unitServiceAvailable && unitService.getSystem() === 'imperial' ? 'imperial' : 'metric'
                     });
-                    
+
                     // Update global trendResult
                     Object.assign(trendResult, newTrendResult);
                     renderTrendMetrics();
@@ -1886,7 +2058,7 @@
                 if (!domsHotspotList) return;
                 const hotspots = trendResult.domsHotspots || [];
                 const hasSorenessData = trendResult.hasSorenessData || false;
-                
+
                 if (domsReportCount) {
                     if (hotspots.length) {
                         const source = hotspots[0]?.source === 'fatigue' ? 'Fatica stimata' : 'DOMS';
@@ -1895,7 +2067,7 @@
                         domsReportCount.textContent = 'Nessun dato disponibile';
                     }
                 }
-                
+
                 if (!hotspots.length) {
                     domsHotspotList.innerHTML = `
                         <div style="text-align: center; padding: 1rem;">
@@ -1910,10 +2082,10 @@
                     `;
                     return;
                 }
-                
+
                 // Determina se stiamo mostrando dati DOMS reali o fatica stimata
                 const isFatigueMode = hotspots[0]?.source === 'fatigue';
-                
+
                 if (isFatigueMode && !hasSorenessData) {
                     // Mostra header informativo per fatica stimata
                     domsHotspotList.innerHTML = `
@@ -1930,7 +2102,7 @@
                         const lastDays = h.lastReportedAt ? Math.max(0, Math.round((Date.now() - new Date(h.lastReportedAt).getTime()) / DAY_MS)) : null;
                         const fatigueLevel = h.avgIntensity >= 7 ? 'Alta' : h.avgIntensity >= 4 ? 'Media' : 'Bassa';
                         const fatigueColor = h.avgIntensity >= 7 ? '#ff6b6b' : h.avgIntensity >= 4 ? '#ffcc00' : '#00ff88';
-                        
+
                         return `
                             <div style="display:flex; justify-content:space-between; gap:1rem; padding:0.75rem; border:1px solid rgba(255,255,255,0.08); border-radius:10px; background: rgba(255,255,255,0.02);">
                                 <div>
@@ -1957,7 +2129,7 @@
                         const avgRecovery = h.avgRecoveryDays ?? h.lastRecoveryDays;
                         const avgIntensity = h.avgIntensity ?? h.lastIntensity;
                         const intensityColor = avgIntensity >= 7 ? '#ff6b6b' : avgIntensity >= 4 ? '#ffcc00' : '#00ff88';
-                        
+
                         // Calcola stato recupero
                         let recoveryStatus = '';
                         let recoveryIcon = '';
@@ -1973,7 +2145,7 @@
                                 recoveryIcon = '⏳';
                             }
                         }
-                        
+
                         return `
                             <div style="padding:0.85rem; border:1px solid rgba(255,255,255,0.08); border-radius:10px; background: linear-gradient(135deg, rgba(255,255,255,0.02), transparent);">
                                 <div style="display:flex; justify-content:space-between; align-items: flex-start; gap:1rem;">
@@ -2065,10 +2237,10 @@
                 if (aiService.hasKey()) {
                     // Get historical trends for long-term analysis
                     const historicalTrends = trendEngine.getHistoricalTrends(90);
-                    
+
                     // Get health data for AI context
                     const aiData = await firestoreService.gatherDataForAI();
-                    
+
                     const response = await aiService.generateTrendDigest({
                         metrics: trendResult.metrics,
                         profile,
@@ -2269,7 +2441,7 @@
                                     display: name
                                 };
                             }
-                            
+
                             // Aggiorna peso massimo reale
                             if (w > prs[name].maxWeight) {
                                 prs[name].maxWeight = w;
@@ -2277,7 +2449,7 @@
                                 prs[name].maxWeightDate = log.date;
                                 prs[name].date = log.date;
                             }
-                            
+
                             // Aggiorna migliori set per rep range (peso reale per quel range)
                             if (r === 1 && w > prs[name].best1rep) prs[name].best1rep = w;
                             if (r >= 2 && r <= 4 && w > prs[name].best3rep) prs[name].best3rep = w;
@@ -2296,13 +2468,13 @@
                 const sortedPRs = Object.entries(prs)
                     .filter(([_, data]) => data.maxWeight > 0)
                     .sort((a, b) => b[1].maxWeight - a[1].maxWeight);
-                
+
                 // Top Lift #1 (PESO REALE MASSIMO)
                 if (sortedPRs.length >= 1) {
                     const [name, data] = sortedPRs[0];
                     const displayName = name.length > 15 ? name.substring(0, 12) + '...' : name;
-                    document.getElementById('topLift1Value').textContent = unitService 
-                        ? unitService.formatWeight(data.maxWeight) 
+                    document.getElementById('topLift1Value').textContent = unitService
+                        ? unitService.formatWeight(data.maxWeight)
                         : Math.round(data.maxWeight) + ' kg';
                     document.getElementById('topLift1Label').textContent = displayName;
                     document.getElementById('topLift1Label').title = `${name} (${data.maxWeightReps} reps)`;
@@ -2310,13 +2482,13 @@
                     document.getElementById('topLift1Value').textContent = '-';
                     document.getElementById('topLift1Label').textContent = 'Nessun PR';
                 }
-                
+
                 // Top Lift #2 (PESO REALE MASSIMO)
                 if (sortedPRs.length >= 2) {
                     const [name, data] = sortedPRs[1];
                     const displayName = name.length > 15 ? name.substring(0, 12) + '...' : name;
-                    document.getElementById('topLift2Value').textContent = unitService 
-                        ? unitService.formatWeight(data.maxWeight) 
+                    document.getElementById('topLift2Value').textContent = unitService
+                        ? unitService.formatWeight(data.maxWeight)
                         : Math.round(data.maxWeight) + ' kg';
                     document.getElementById('topLift2Label').textContent = displayName;
                     document.getElementById('topLift2Label').title = `${name} (${data.maxWeightReps} reps)`;
@@ -2355,7 +2527,7 @@
                             else if (r >= 4 && r <= 6) range = '4-6';
                             else if (r >= 7 && r <= 10) range = '7-10';
                             else if (r >= 11) range = '11+';
-                            
+
                             if (range) {
                                 const existing = realPRsByRange[range].find(p => p.name === name);
                                 if (existing) {
@@ -2394,8 +2566,8 @@
                     }
                 });
 
-                const rangesToShow = currentRealFilter === 'all' 
-                    ? ['1-3', '4-6', '7-10', '11+'] 
+                const rangesToShow = currentRealFilter === 'all'
+                    ? ['1-3', '4-6', '7-10', '11+']
                     : [currentRealFilter];
 
                 const rangeLabels = {
@@ -2425,7 +2597,7 @@
                     prList.forEach((pr, idx) => {
                         const date = new Date(pr.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
                         const weightDisplay = unitService ? unitService.formatWeight(pr.weight) : Math.round(pr.weight) + ' kg';
-                        
+
                         const item = document.createElement('div');
                         item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid ' + (idx === 0 ? 'var(--color-primary)' : 'transparent');
                         item.innerHTML = `
@@ -2465,14 +2637,14 @@
             const calculateHybrid1RM = (weight, reps) => {
                 if (reps === 1) return weight;
                 if (reps > 15) return null; // Non affidabile oltre 15 reps
-                
+
                 // Formula ibrida: media pesata di 5 formule
                 const epley = weight * (1 + reps / 30);
                 const brzycki = weight * (36 / (37 - reps));
                 const lombardi = weight * Math.pow(reps, 0.1);
                 const mayhew = weight * (100 / (52.2 + 41.9 * Math.exp(-0.055 * reps)));
                 const wathen = weight * (100 / (48.8 + 53.8 * Math.exp(-0.075 * reps)));
-                
+
                 // Media pesata (Brzycki e Epley più affidabili)
                 return (epley * 0.25 + brzycki * 0.25 + lombardi * 0.15 + mayhew * 0.15 + wathen * 0.2);
             };
@@ -2489,7 +2661,7 @@
 
             // Calcola stime RM per ogni esercizio
             const estimatedRMs = {};
-            
+
             logs.forEach(log => {
                 if (!log.exercises) return;
                 log.exercises.forEach(ex => {
@@ -2559,8 +2731,8 @@
                 }
 
                 sortedEstimates.forEach(item => {
-                    const weightDisplay = unitService 
-                        ? unitService.formatWeight(item.estimatedWeight) 
+                    const weightDisplay = unitService
+                        ? unitService.formatWeight(item.estimatedWeight)
                         : Math.round(item.estimatedWeight) + ' kg';
 
                     const tr = document.createElement('tr');
@@ -2583,11 +2755,11 @@
             });
 
             renderEstimatedTable();
-            
+
             // --- AUTO-SYNC MANAGER ---
             // Sincronizza automaticamente all'avvio e ogni 5 minuti
             const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti
-            
+
             const performAutoSync = async () => {
                 try {
                     console.log('🔄 [Analysis] Auto-sync in corso...');
@@ -2597,10 +2769,10 @@
                     console.warn('⚠️ [Analysis] Auto-sync fallito:', error.message);
                 }
             };
-            
+
             // Primo sync silenzioso dopo 2 secondi
             setTimeout(performAutoSync, 2000);
-            
+
             // Sync ogni 5 minuti (solo se non già attivo da altra pagina)
             if (!window.autoSyncInterval) {
                 window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);

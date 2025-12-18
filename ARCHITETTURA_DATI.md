@@ -185,7 +185,7 @@ aiService.analyzeProgress(data)
     │   └─> Richiesta Analisi Strutturata
     │
     ├─> Call Gemini AI:
-    │   └─> model: gemini-flash-latest
+    │   └─> model: gemini-3-flash-preview
     │       └─> temperature: 0.7
     │
     ├─> Parse Response (Markdown)
