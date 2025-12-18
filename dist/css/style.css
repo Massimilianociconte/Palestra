@@ -262,6 +262,12 @@ p {
     width: 100%;
 }
 
+/* Main content spacing - accounts for fixed navbar + safe area */
+.section {
+    padding-top: calc(90px + env(safe-area-inset-top, 40px)) !important;
+    min-height: auto;
+}
+
 /* Hero */
 .hero {
     min-height: 100vh;
@@ -270,7 +276,7 @@ p {
     justify-content: center;
     text-align: center;
     background: radial-gradient(circle at center, #1a1a1a 0%, #050505 70%);
-    padding-top: calc(80px + env(safe-area-inset-top, 0px));
+    padding-top: calc(80px + env(safe-area-inset-top, 20px));
     position: relative;
 }
 
@@ -419,4 +425,40 @@ select:focus {
     to {
         opacity: 1;
     }
+}
+
+/* Password Toggle */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    padding-right: 3rem !important;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: var(--color-primary);
+}
+
+.password-toggle:focus {
+    outline: none;
 }

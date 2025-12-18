@@ -1,0 +1,37 @@
+{
+  "name": "GymBro",
+  "short_name": "GymBro",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00f3ff",
+  "description": "La tua app per il tracciamento dell'allenamento.",
+  "orientation": "portrait",
+  "scope": "./",
+  "lang": "it",
+  "categories": ["fitness", "health", "sports"],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Allenamento",
+      "short_name": "Workout",
+      "description": "Inizia un allenamento",
+      "url": "./user.html",
+      "icons": [{ "src": "assets/icon.svg", "sizes": "any" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
+}

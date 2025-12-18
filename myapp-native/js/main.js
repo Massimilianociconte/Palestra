@@ -17,19 +17,27 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.serviceWorker.getRegistrations().then(registrations => {
             if (registrations.length > 0) {
                 console.log('Found existing Service Workers. Unregistering to ensure stability...');
-                for(let registration of registrations) {
+                for (let registration of registrations) {
                     registration.unregister();
                 }
-                // Optional: Reload page once if we found one, to ensure fresh start? 
-                // Better not to loop. Just unregister for next run.
             }
         });
     }
 
-    // Explicitly hide Splash Screen if Capacitor is available
-    /*
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
-        window.Capacitor.Plugins.SplashScreen.hide();
-    }
-    */
+    // Password Toggle Logic (Event Delegation)
+    document.addEventListener('click', (e) => {
+        const toggle = e.target.closest('.password-toggle');
+        if (!toggle) return;
+
+        e.preventDefault();
+        const wrapper = toggle.closest('.password-wrapper');
+        const input = wrapper ? wrapper.querySelector('input') : null;
+
+        if (input) {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            toggle.textContent = isPassword ? '🔒' : '👁️';
+            toggle.title = isPassword ? 'Nascondi' : 'Mostra';
+        }
+    });
 });

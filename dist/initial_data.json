@@ -1,0 +1,39 @@
+{
+  "workouts": [
+    {
+      "id": 1716200000000,
+      "name": "Full Body A",
+      "description": "Allenamento completo per iniziare",
+      "exercises": [
+        {
+          "name": "Squat",
+          "sets": "3",
+          "reps": "8-10",
+          "rpe": "8",
+          "notes": "Focus profondità"
+        },
+        {
+          "name": "Panca Piana",
+          "sets": "3",
+          "reps": "8-10",
+          "rpe": "8",
+          "notes": "Fermo al petto"
+        },
+        {
+          "name": "Lat Machine",
+          "sets": "3",
+          "reps": "10-12",
+          "rpe": "8",
+          "notes": "Controlla la negativa"
+        }
+      ],
+      "dateCreated": "2024-05-20T10:00:00.000Z"
+    }
+  ],
+  "logs": [],
+  "profile": {
+    "theme": "dark",
+    "units": "metric"
+  },
+  "lastUpdated": "2024-05-20T10:00:00.000Z"
+}
