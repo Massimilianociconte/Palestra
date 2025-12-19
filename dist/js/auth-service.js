@@ -1,4 +1,4 @@
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from './firebase-config.js';
+
 import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithCredential } from './firebase-config.js';
 import { firestoreService } from './firestore-service.js';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';

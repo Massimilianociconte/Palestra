@@ -169,17 +169,6 @@ export class FirestoreService {
 
                 return { success: true, data };
             } else {
-                // New user found (no cloud data) - CLEAR LOCAL STORAGE to prevent inheriting previous user data
-                const keysToRemove = [
-                    'ironflow_workouts',
-                    'ironflow_logs',
-                    'ironflow_profile',
-                    'ironflow_body_stats',
-                    'ironflow_photos',
-                    'ironflow_ai_plan_history'
-                ];
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-
                 return { success: true, data: null, isNew: true };
             }
         } catch (error) {
