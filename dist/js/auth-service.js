@@ -1,11 +1,11 @@
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from './firebase-config.js';
+import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from './firebase-config.js';
 import { firestoreService } from './firestore-service.js';
 
 export class AuthService {
     constructor() {
         this.user = undefined;
         this.onUserChangeCallbacks = [];
-        
+
         // Listen for auth state changes
         onAuthStateChanged(auth, (user) => {
             this.user = user;
@@ -17,7 +17,7 @@ export class AuthService {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            
+
             // Update profile name immediately
             if (name) {
                 await updateProfile(user, { displayName: name });
@@ -25,7 +25,7 @@ export class AuthService {
 
             // Initialize user data in Firestore (including default API key)
             await firestoreService.initializeNewUser(user);
-            
+
             return { success: true, user };
         } catch (error) {
             console.error("Registration error:", error);
@@ -39,6 +39,19 @@ export class AuthService {
             return { success: true, user: userCredential.user };
         } catch (error) {
             console.error("Login error:", error);
+            return { success: false, message: error.message };
+        }
+    }
+
+    async loginWithGoogle() {
+        try {
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            // Initialize user data in Firestore if new
+            await firestoreService.initializeNewUser(result.user);
+            return { success: true, user: result.user };
+        } catch (error) {
+            console.error("Google Login error:", error);
             return { success: false, message: error.message };
         }
     }

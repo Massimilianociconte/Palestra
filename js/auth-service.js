@@ -59,6 +59,16 @@ export class AuthService {
     async logout() {
         try {
             await signOut(auth);
+            // Clear all local data to prevent state pollution
+            const keysToRemove = [
+                'ironflow_workouts',
+                'ironflow_logs',
+                'ironflow_profile',
+                'ironflow_body_stats',
+                'ironflow_photos',
+                'ironflow_ai_plan_history'
+            ];
+            keysToRemove.forEach(key => localStorage.removeItem(key));
             return { success: true };
         } catch (error) {
             return { success: false, message: error.message };

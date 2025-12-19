@@ -63,7 +63,8 @@ export class AIService {
     constructor() {
         // API Key is loaded from LocalStorage only. 
         // NEVER hardcode keys in public repositories.
-        this.apiKey = localStorage.getItem('ironflow_ai_key');
+        // V2: Force refresh of API Key to handle leak issue
+        this.apiKey = localStorage.getItem('gymbro_ai_key_v2') || 'AIzaSyB4Qeclh3rIN-q6ltDyn2qenOCCPmP2uHs';
     }
 
     hasKey() {
@@ -72,7 +73,7 @@ export class AIService {
 
     saveKey(key) {
         this.apiKey = key;
-        localStorage.setItem('ironflow_ai_key', key);
+        localStorage.setItem('gymbro_ai_key_v2', key);
     }
 
     // --- TOON Encoder Implementation (Lightweight) ---

@@ -159,7 +159,7 @@ export class FirestoreService {
                 if (data.profile) localStorage.setItem('ironflow_profile', JSON.stringify(data.profile));
                 if (data.bodyStats) localStorage.setItem('ironflow_body_stats', JSON.stringify(data.bodyStats));
                 if (data.photos) localStorage.setItem('ironflow_photos', JSON.stringify(data.photos)); // Load photos
-                
+
                 // Merge AI Plan History: combine local and cloud, remove duplicates, sort by date
                 const cloudAiHistory = data.aiPlanHistory || [];
                 const localAiHistory = JSON.parse(localStorage.getItem('ironflow_ai_plan_history') || '[]');
@@ -169,6 +169,17 @@ export class FirestoreService {
 
                 return { success: true, data };
             } else {
+                // New user found (no cloud data) - CLEAR LOCAL STORAGE to prevent inheriting previous user data
+                const keysToRemove = [
+                    'ironflow_workouts',
+                    'ironflow_logs',
+                    'ironflow_profile',
+                    'ironflow_body_stats',
+                    'ironflow_photos',
+                    'ironflow_ai_plan_history'
+                ];
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+
                 return { success: true, data: null, isNew: true };
             }
         } catch (error) {
@@ -181,7 +192,7 @@ export class FirestoreService {
     // Combines both arrays, removes duplicates based on createdAt timestamp, sorts by date (newest first)
     mergeAiPlanHistory(localHistory, cloudHistory) {
         const combined = [...(localHistory || []), ...(cloudHistory || [])];
-        
+
         // Create a map to deduplicate by createdAt timestamp
         const uniqueMap = new Map();
         combined.forEach(plan => {
@@ -190,7 +201,7 @@ export class FirestoreService {
                 uniqueMap.set(key, plan);
             }
         });
-        
+
         // Convert back to array and sort by createdAt (newest first)
         const merged = Array.from(uniqueMap.values())
             .sort((a, b) => {
@@ -199,7 +210,7 @@ export class FirestoreService {
                 return dateB - dateA;
             })
             .slice(0, 30); // Keep max 30 items
-        
+
         console.log(`📚 AI History merged: ${localHistory?.length || 0} local + ${cloudHistory?.length || 0} cloud = ${merged.length} unique`);
         return merged;
     }
@@ -369,13 +380,13 @@ export class FirestoreService {
                                     weightSum: 0
                                 };
                             }
-                            
+
                             // Aggiorna peso massimo reale
                             if (w > prs[name].maxWeight) {
                                 prs[name].maxWeight = w;
                                 prs[name].maxWeightReps = r;
                             }
-                            
+
                             // Calcola media pesi
                             prs[name].weightSum += w;
                             prs[name].totalSets++;
@@ -411,7 +422,7 @@ export class FirestoreService {
                     // Check for special set types
                     const setTypes = e.sets.map(s => s.type || 'normal');
                     const hasSpecialSets = setTypes.some(t => t !== 'normal');
-                    
+
                     let setsDescription;
                     if (hasSpecialSets) {
                         // Count sets by type for compact representation
@@ -429,7 +440,7 @@ export class FirestoreService {
                     let result = `${e.name} (${setsDescription} sets`;
                     if (avgRpe) result += ` @ RPE ${avgRpe}`;
                     result += ')';
-                    
+
                     return result;
                 });
 
@@ -491,7 +502,7 @@ export class FirestoreService {
                         const setTypes = ex.sets.map(s => s.type || 'normal');
                         const uniqueTypes = [...new Set(setTypes)];
                         const hasSpecialSets = uniqueTypes.some(t => t !== 'normal');
-                        
+
                         if (hasSpecialSets) {
                             // Count sets by type
                             const typeCounts = {};
@@ -504,11 +515,11 @@ export class FirestoreService {
                         } else {
                             setsInfo = ex.sets.length;
                         }
-                        
+
                         // Get target reps from first set
                         const targetReps = ex.sets[0]?.target || ex.sets[0]?.reps || 'N/D';
                         const targetRpe = ex.sets[0]?.rpe || 'N/D';
-                        
+
                         return {
                             name: ex.name,
                             sets: setsInfo,
@@ -602,7 +613,7 @@ export class FirestoreService {
                 log.exercises.forEach(ex => {
                     const name = normalizeExerciseName(ex.name);
                     if (!name || !ex.sets) return;
-                    
+
                     ex.sets.forEach(set => {
                         const w = parseFloat(set.weight);
                         const r = parseInt(set.reps);
@@ -645,7 +656,7 @@ export class FirestoreService {
                         calories: decodeTOON(latestHealth.calories),
                         distance: decodeTOON(latestHealth.distance),
                         sleep: decodeTOON(latestHealth.sleep),
-                        
+
                         // Advanced metrics (may be available from Terra/Apple Health)
                         activeMinutes: decodeTOON(latestHealth.activeMinutes),
                         hrv: decodeTOON(latestHealth.hrv),
@@ -655,12 +666,12 @@ export class FirestoreService {
                         vo2Max: decodeTOON(latestHealth.vo2Max),
                         oxygenSaturation: decodeTOON(latestHealth.oxygenSaturation),
                         respiratoryRate: decodeTOON(latestHealth.respiratoryRate),
-                        
+
                         // Metadata
                         syncTimestamp: latestHealth.syncTimestamp || null,
                         source: latestHealth.source || 'unknown'
                     };
-                    
+
                     // Remove null values to keep payload clean
                     Object.keys(healthData).forEach(key => {
                         if (healthData[key] === null || healthData[key] === undefined) {
@@ -756,7 +767,7 @@ export class FirestoreService {
     async generateUniqueShortId(prefix = '', maxRetries = 5) {
         // Determine which collection to check based on prefix
         const collection = prefix === 'L' ? 'shared_logs' : 'shared_workouts';
-        
+
         for (let i = 0; i < maxRetries; i++) {
             const baseId = this.generateShortId();
             const shortId = prefix ? `${prefix}${baseId}` : baseId;
@@ -841,7 +852,7 @@ export class FirestoreService {
         try {
             // Clean data before saving
             const cleanData = JSON.parse(JSON.stringify(logData));
-            
+
             // Generate unique short ID (different prefix for logs)
             const shortId = await this.generateUniqueShortId('L'); // L prefix for logs
 
