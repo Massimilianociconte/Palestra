@@ -944,47 +944,52 @@ exports.terraWebhook = functions.https.onRequest(async (req, res) => {
  * Generate content using Gemini AI safely from the backend.
  * This prevents exposing the API key to the client.
  */
-exports.generateContentWithGemini = functions.https.onCall(async (data, context) => {
-  // 1. Authentication Check
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated to use AI features.');
-  }
-
-  try {
-    const { prompt, config, modelName } = data;
-
-    if (!prompt) {
-      throw new functions.https.HttpsError('invalid-argument', 'Prompt is required.');
+exports.generateContentWithGemini = functions
+  .runWith({
+    secrets: ['GEMINI_API_KEY'],
+    timeoutSeconds: 60,
+    memory: '256MB'
+  })
+  .https.onCall(async (data, context) => {
+    // 1. Authentication Check
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated to use AI features.');
     }
 
-    // 2. Secure API Key Retrieval
-    // Prioritize process.env for secrets management, fallback to functions config
-    const apiKey = process.env.GEMINI_API_KEY || functions.config().gemini?.api_key || functions.config().gemini?.key;
+    try {
+      const { prompt, config, modelName } = data;
 
-    if (!apiKey) {
-      console.error('Gemini API Key missing in backend configuration.');
-      throw new functions.https.HttpsError('internal', 'AI service not configured correctly.');
+      if (!prompt) {
+        throw new functions.https.HttpsError('invalid-argument', 'Prompt is required.');
+      }
+
+      // 2. Secure API Key Retrieval from secret
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!apiKey) {
+        console.error('Gemini API Key missing in backend configuration.');
+        throw new functions.https.HttpsError('internal', 'AI service not configured correctly.');
+      }
+
+      // 3. Initialize Gemini
+      const genAI = new GoogleGenerativeAI(apiKey);
+
+      // Use specified model or default to Flash for speed/cost
+      const model = genAI.getGenerativeModel({
+        model: modelName || "gemini-1.5-flash",
+        generationConfig: config || {}
+      });
+
+      // 4. Generate Content
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      return { success: true, text: text };
+
+    } catch (error) {
+      console.error('Gemini Backend Error:', error);
+      // Return a generic error to client to avoid leaking internal details, strictly log the real error
+      throw new functions.https.HttpsError('internal', 'AI generation failed. Please try again later.');
     }
-
-    // 3. Initialize Gemini
-    const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Use specified model or default to Flash for speed/cost
-    const model = genAI.getGenerativeModel({
-      model: modelName || "gemini-1.5-flash",
-      generationConfig: config || {}
-    });
-
-    // 4. Generate Content
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    return { success: true, text: text };
-
-  } catch (error) {
-    console.error('Gemini Backend Error:', error);
-    // Return a generic error to client to avoid leaking internal details, strictly log the real error
-    throw new functions.https.HttpsError('internal', 'AI generation failed. Please try again later.');
-  }
-});
+  });
