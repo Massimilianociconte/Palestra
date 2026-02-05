@@ -1,0 +1,922 @@
+/**
+ * Gymbro Social Layer - CSS Styles
+ * 
+ * Design System:
+ * - Extends existing cyan accent (#00f3ff) from gymbro-chat.css
+ * - Dark mode glassmorphism with blur effects
+ * - Smooth transitions with custom cubic-bezier
+ * - Mobile-first responsive design
+ * 
+ * @author Gymbro Team
+ * @version 1.0.0
+ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (Design Tokens)
+   ============================================ */
+:root {
+    /* Colors - extending existing brand */
+    --gymbro-primary: #00f3ff;
+    --gymbro-primary-dim: rgba(0, 243, 255, 0.2);
+    --gymbro-primary-glow: rgba(0, 243, 255, 0.4);
+    --gymbro-bg-dark: rgba(13, 17, 23, 0.95);
+    --gymbro-bg-card: rgba(255, 255, 255, 0.05);
+    --gymbro-bg-card-hover: rgba(255, 255, 255, 0.08);
+    --gymbro-border: rgba(255, 255, 255, 0.1);
+    --gymbro-text: #f0f0f0;
+    --gymbro-text-dim: rgba(255, 255, 255, 0.6);
+
+    /* Rank colors */
+    --gymbro-gold: #ffd700;
+    --gymbro-silver: #c0c0c0;
+    --gymbro-bronze: #cd7f32;
+    --gymbro-rank-glow: rgba(255, 215, 0, 0.3);
+
+    /* Status colors */
+    --gymbro-success: #4ade80;
+    --gymbro-warning: #fbbf24;
+    --gymbro-danger: #f87171;
+    --gymbro-info: #60a5fa;
+
+    /* Spacing */
+    --gymbro-space-xs: 0.25rem;
+    --gymbro-space-sm: 0.5rem;
+    --gymbro-space-md: 1rem;
+    --gymbro-space-lg: 1.5rem;
+    --gymbro-space-xl: 2rem;
+
+    /* Transitions */
+    --gymbro-transition-fast: 0.15s ease;
+    --gymbro-transition-normal: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --gymbro-transition-bounce: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    /* Shadows */
+    --gymbro-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --gymbro-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --gymbro-shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+    --gymbro-shadow-glow: 0 0 20px var(--gymbro-primary-glow);
+}
+
+/* ============================================
+   GYMBRO ROOM CONTAINER
+   ============================================ */
+.gymbro-room {
+    background: var(--gymbro-bg-dark);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid var(--gymbro-border);
+    box-shadow: var(--gymbro-shadow-lg);
+    overflow: hidden;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.gymbro-room-header {
+    padding: var(--gymbro-space-lg);
+    background: linear-gradient(135deg, var(--gymbro-primary-dim), transparent);
+    border-bottom: 1px solid var(--gymbro-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--gymbro-space-md);
+}
+
+.gymbro-room-title {
+    display: flex;
+    align-items: center;
+    gap: var(--gymbro-space-md);
+}
+
+.gymbro-room-title h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gymbro-text);
+}
+
+.gymbro-room-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--gymbro-space-xs);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.gymbro-room-status.lobby {
+    background: var(--gymbro-primary-dim);
+    color: var(--gymbro-primary);
+}
+
+.gymbro-room-status.active {
+    background: rgba(74, 222, 128, 0.2);
+    color: var(--gymbro-success);
+    animation: pulse-status 2s infinite;
+}
+
+.gymbro-room-status.finished {
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--gymbro-gold);
+}
+
+@keyframes pulse-status {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* ============================================
+   LOBBY VIEW - Member Grid
+   ============================================ */
+.gymbro-lobby {
+    padding: var(--gymbro-space-lg);
+}
+
+.gymbro-members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--gymbro-space-md);
+    margin-bottom: var(--gymbro-space-lg);
+}
+
+.gymbro-member-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--gymbro-space-md);
+    background: var(--gymbro-bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--gymbro-border);
+    transition: var(--gymbro-transition-normal);
+    position: relative;
+}
+
+.gymbro-member-card:hover {
+    background: var(--gymbro-bg-card-hover);
+    transform: translateY(-2px);
+}
+
+.gymbro-member-card.host::before {
+    content: '👑';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 1.25rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+.gymbro-member-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--gymbro-border);
+    transition: var(--gymbro-transition-normal);
+}
+
+.gymbro-member-card.ready .gymbro-member-avatar {
+    border-color: var(--gymbro-success);
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+}
+
+.gymbro-member-card.host .gymbro-member-avatar {
+    border-color: var(--gymbro-gold);
+}
+
+.gymbro-member-name {
+    margin-top: var(--gymbro-space-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gymbro-text);
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gymbro-member-status {
+    margin-top: var(--gymbro-space-xs);
+    font-size: 0.7rem;
+    color: var(--gymbro-text-dim);
+    text-transform: uppercase;
+}
+
+.gymbro-member-card.ready .gymbro-member-status {
+    color: var(--gymbro-success);
+}
+
+/* Ready Counter */
+.gymbro-ready-counter {
+    text-align: center;
+    padding: var(--gymbro-space-md);
+    background: var(--gymbro-bg-card);
+    border-radius: 12px;
+    margin-bottom: var(--gymbro-space-lg);
+}
+
+.gymbro-ready-counter span {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gymbro-primary);
+}
+
+.gymbro-ready-counter small {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--gymbro-text-dim);
+    margin-top: var(--gymbro-space-xs);
+}
+
+/* ============================================
+   LEADERBOARD - Competition Board
+   ============================================ */
+.gymbro-leaderboard {
+    padding: var(--gymbro-space-lg);
+}
+
+.gymbro-leaderboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--gymbro-space-lg);
+}
+
+.gymbro-leaderboard-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gymbro-text);
+    display: flex;
+    align-items: center;
+    gap: var(--gymbro-space-sm);
+}
+
+.gymbro-leaderboard-header h3::before {
+    content: '🏆';
+}
+
+.gymbro-leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gymbro-space-sm);
+}
+
+.gymbro-leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: var(--gymbro-space-md);
+    background: var(--gymbro-bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--gymbro-border);
+    transition: var(--gymbro-transition-normal);
+    animation: slideInLeaderboard 0.3s ease-out backwards;
+}
+
+.gymbro-leaderboard-item:nth-child(1) {
+    animation-delay: 0ms;
+}
+
+.gymbro-leaderboard-item:nth-child(2) {
+    animation-delay: 50ms;
+}
+
+.gymbro-leaderboard-item:nth-child(3) {
+    animation-delay: 100ms;
+}
+
+.gymbro-leaderboard-item:nth-child(4) {
+    animation-delay: 150ms;
+}
+
+.gymbro-leaderboard-item:nth-child(5) {
+    animation-delay: 200ms;
+}
+
+@keyframes slideInLeaderboard {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Rank-specific styles */
+.gymbro-leaderboard-item.rank-1 {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), transparent);
+    border-color: var(--gymbro-gold);
+}
+
+.gymbro-leaderboard-item.rank-2 {
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), transparent);
+    border-color: var(--gymbro-silver);
+}
+
+.gymbro-leaderboard-item.rank-3 {
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), transparent);
+    border-color: var(--gymbro-bronze);
+}
+
+.gymbro-leaderboard-rank {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--gymbro-text-dim);
+    flex-shrink: 0;
+}
+
+.gymbro-leaderboard-item.rank-1 .gymbro-leaderboard-rank {
+    color: var(--gymbro-gold);
+    text-shadow: 0 0 10px var(--gymbro-rank-glow);
+}
+
+.gymbro-leaderboard-item.rank-2 .gymbro-leaderboard-rank {
+    color: var(--gymbro-silver);
+}
+
+.gymbro-leaderboard-item.rank-3 .gymbro-leaderboard-rank {
+    color: var(--gymbro-bronze);
+}
+
+.gymbro-leaderboard-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gymbro-border);
+    margin-right: var(--gymbro-space-md);
+    flex-shrink: 0;
+}
+
+.gymbro-leaderboard-item.rank-1 .gymbro-leaderboard-avatar {
+    border-color: var(--gymbro-gold);
+}
+
+.gymbro-leaderboard-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.gymbro-leaderboard-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gymbro-text);
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gymbro-leaderboard-exercise {
+    font-size: 0.75rem;
+    color: var(--gymbro-text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gymbro-leaderboard-volume {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.gymbro-leaderboard-volume-value {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--gymbro-primary);
+    font-family: 'Inter', 'Roboto', sans-serif;
+    transition: var(--gymbro-transition-fast);
+}
+
+.gymbro-leaderboard-volume-value.updating {
+    animation: volumePulse 0.3s ease-out;
+}
+
+@keyframes volumePulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+        color: var(--gymbro-success);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.gymbro-leaderboard-volume-unit {
+    font-size: 0.7rem;
+    color: var(--gymbro-text-dim);
+    text-transform: uppercase;
+}
+
+/* Volume delta indicator */
+.gymbro-volume-delta {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: var(--gymbro-space-xs);
+    animation: deltaFadeIn 0.3s ease-out;
+}
+
+.gymbro-volume-delta.positive {
+    background: rgba(74, 222, 128, 0.2);
+    color: var(--gymbro-success);
+}
+
+@keyframes deltaFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Badges */
+.gymbro-badges {
+    display: flex;
+    gap: var(--gymbro-space-xs);
+    margin-left: var(--gymbro-space-sm);
+}
+
+.gymbro-badge {
+    font-size: 1rem;
+    animation: badgeBounce 0.5s ease-out;
+}
+
+@keyframes badgeBounce {
+    0% {
+        transform: scale(0);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   SUMMARY VIEW - Podium
+   ============================================ */
+.gymbro-summary {
+    padding: var(--gymbro-space-xl);
+    text-align: center;
+}
+
+.gymbro-summary-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gymbro-text);
+    margin-bottom: var(--gymbro-space-xl);
+}
+
+.gymbro-podium {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: var(--gymbro-space-md);
+    margin-bottom: var(--gymbro-space-xl);
+    min-height: 200px;
+}
+
+.gymbro-podium-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: podiumRise 0.6s ease-out backwards;
+}
+
+.gymbro-podium-place:nth-child(1) {
+    animation-delay: 0.4s;
+    order: 2;
+}
+
+.gymbro-podium-place:nth-child(2) {
+    animation-delay: 0.2s;
+    order: 1;
+}
+
+.gymbro-podium-place:nth-child(3) {
+    animation-delay: 0s;
+    order: 3;
+}
+
+@keyframes podiumRise {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.gymbro-podium-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: var(--gymbro-space-sm);
+}
+
+.gymbro-podium-place:nth-child(1) .gymbro-podium-avatar {
+    width: 80px;
+    height: 80px;
+    border: 3px solid var(--gymbro-gold);
+    box-shadow: 0 0 20px var(--gymbro-rank-glow);
+}
+
+.gymbro-podium-place:nth-child(2) .gymbro-podium-avatar {
+    border: 3px solid var(--gymbro-silver);
+}
+
+.gymbro-podium-place:nth-child(3) .gymbro-podium-avatar {
+    border: 3px solid var(--gymbro-bronze);
+}
+
+.gymbro-podium-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--gymbro-text);
+    margin-bottom: var(--gymbro-space-xs);
+}
+
+.gymbro-podium-volume {
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--gymbro-primary);
+    margin-bottom: var(--gymbro-space-sm);
+}
+
+.gymbro-podium-bar {
+    width: 80px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    transition: var(--gymbro-transition-normal);
+}
+
+.gymbro-podium-place:nth-child(1) .gymbro-podium-bar {
+    height: 120px;
+    background: linear-gradient(180deg, var(--gymbro-gold), rgba(255, 215, 0, 0.3));
+    color: #000;
+}
+
+.gymbro-podium-place:nth-child(2) .gymbro-podium-bar {
+    height: 90px;
+    background: linear-gradient(180deg, var(--gymbro-silver), rgba(192, 192, 192, 0.3));
+    color: #000;
+}
+
+.gymbro-podium-place:nth-child(3) .gymbro-podium-bar {
+    height: 60px;
+    background: linear-gradient(180deg, var(--gymbro-bronze), rgba(205, 127, 50, 0.3));
+    color: #000;
+}
+
+/* Stats cards */
+.gymbro-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--gymbro-space-md);
+    margin-top: var(--gymbro-space-xl);
+}
+
+.gymbro-stat-card {
+    padding: var(--gymbro-space-md);
+    background: var(--gymbro-bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--gymbro-border);
+}
+
+.gymbro-stat-value {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--gymbro-primary);
+}
+
+.gymbro-stat-label {
+    font-size: 0.75rem;
+    color: var(--gymbro-text-dim);
+    text-transform: uppercase;
+    margin-top: var(--gymbro-space-xs);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.gymbro-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gymbro-space-sm);
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: var(--gymbro-transition-normal);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.gymbro-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.gymbro-btn-primary {
+    background: var(--gymbro-primary);
+    color: #000;
+    box-shadow: 0 4px 15px var(--gymbro-primary-glow);
+}
+
+.gymbro-btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--gymbro-primary-glow);
+}
+
+.gymbro-btn-secondary {
+    background: var(--gymbro-bg-card);
+    color: var(--gymbro-text);
+    border: 1px solid var(--gymbro-border);
+}
+
+.gymbro-btn-secondary:hover:not(:disabled) {
+    background: var(--gymbro-bg-card-hover);
+}
+
+.gymbro-btn-danger {
+    background: var(--gymbro-danger);
+    color: #fff;
+}
+
+.gymbro-btn-success {
+    background: var(--gymbro-success);
+    color: #000;
+}
+
+.gymbro-btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+}
+
+.gymbro-btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+}
+
+.gymbro-btn-icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+.gymbro-toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--gymbro-bg-dark);
+    border: 1px solid var(--gymbro-border);
+    border-radius: 12px;
+    padding: var(--gymbro-space-md) var(--gymbro-space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--gymbro-space-md);
+    box-shadow: var(--gymbro-shadow-lg);
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--gymbro-transition-bounce);
+}
+
+.gymbro-toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.gymbro-toast-icon {
+    font-size: 1.25rem;
+}
+
+.gymbro-toast-message {
+    font-size: 0.875rem;
+    color: var(--gymbro-text);
+}
+
+.gymbro-toast.success {
+    border-color: var(--gymbro-success);
+}
+
+.gymbro-toast.error {
+    border-color: var(--gymbro-danger);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 480px) {
+    .gymbro-room {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .gymbro-room-header {
+        padding: var(--gymbro-space-md);
+    }
+
+    .gymbro-members-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .gymbro-member-avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .gymbro-leaderboard-item {
+        padding: var(--gymbro-space-sm) var(--gymbro-space-md);
+    }
+
+    .gymbro-leaderboard-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .gymbro-leaderboard-volume-value {
+        font-size: 1rem;
+    }
+
+    .gymbro-podium-bar {
+        width: 60px;
+    }
+
+    .gymbro-podium-place:nth-child(1) .gymbro-podium-bar {
+        height: 100px;
+    }
+
+    .gymbro-podium-place:nth-child(2) .gymbro-podium-bar {
+        height: 75px;
+    }
+
+    .gymbro-podium-place:nth-child(3) .gymbro-podium-bar {
+        height: 50px;
+    }
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.gymbro-skeleton {
+    background: linear-gradient(90deg,
+            var(--gymbro-bg-card) 25%,
+            var(--gymbro-bg-card-hover) 50%,
+            var(--gymbro-bg-card) 75%);
+    background-size: 200% 100%;
+    animation: skeleton 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes skeleton {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.gymbro-loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--gymbro-border);
+    border-top-color: var(--gymbro-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   FRIEND LIST STYLES
+   ============================================ */
+.gymbro-friend-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gymbro-space-sm);
+}
+
+.gymbro-friend-item {
+    display: flex;
+    align-items: center;
+    padding: var(--gymbro-space-md);
+    background: var(--gymbro-bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--gymbro-border);
+    transition: var(--gymbro-transition-normal);
+}
+
+.gymbro-friend-item:hover {
+    background: var(--gymbro-bg-card-hover);
+}
+
+.gymbro-friend-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: var(--gymbro-space-md);
+}
+
+.gymbro-friend-info {
+    flex: 1;
+}
+
+.gymbro-friend-name {
+    font-weight: 700;
+    color: var(--gymbro-text);
+}
+
+.gymbro-friend-status {
+    font-size: 0.75rem;
+    color: var(--gymbro-text-dim);
+}
+
+.gymbro-friend-actions {
+    display: flex;
+    gap: var(--gymbro-space-sm);
+}
+
+/* Pending request indicator */
+.gymbro-pending-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--gymbro-space-xs);
+    padding: 0.25rem 0.5rem;
+    background: var(--gymbro-warning);
+    color: #000;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}

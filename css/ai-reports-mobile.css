@@ -1,0 +1,507 @@
+/* AI Reports Mobile-Optimized Styles */
+
+/* Container Base - Prevent Overflow */
+.ai-content,
+.markdown-content,
+.ai-summary {
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Force all children to respect container width */
+.ai-content *,
+.markdown-content *,
+.ai-summary * {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+}
+
+/* Headings - Mobile Optimized */
+.ai-content h3,
+.markdown-content h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+    color: var(--color-primary);
+    font-size: clamp(1rem, 4.5vw, 1.3rem);
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+}
+
+.ai-content h4,
+.markdown-content h4,
+.ai-summary h4 {
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+    color: #fff;
+    font-size: clamp(0.9rem, 4vw, 1.1rem);
+    border-left: 3px solid var(--color-primary);
+    padding-left: 8px;
+    padding-right: 4px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+}
+
+/* Prevent h3/h4 from breaking layout */
+@media (max-width: 480px) {
+    .ai-content h3,
+    .markdown-content h3 {
+        font-size: clamp(0.95rem, 5vw, 1.1rem);
+    }
+    
+    .ai-content h4,
+    .markdown-content h4,
+    .ai-summary h4 {
+        font-size: clamp(0.85rem, 4.5vw, 1rem);
+        padding-left: 6px;
+    }
+}
+
+/* Paragraphs - Strict Width Control */
+.ai-content p,
+.markdown-content p,
+.ai-summary p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+    color: #ccc;
+    font-size: clamp(0.875rem, 3.5vw, 1rem);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+@media (max-width: 480px) {
+    .ai-content p,
+    .markdown-content p,
+    .ai-summary p {
+        font-size: clamp(0.85rem, 4vw, 0.95rem);
+        line-height: 1.6;
+    }
+}
+
+/* Lists - Mobile Optimized */
+.ai-content ul,
+.ai-content ol,
+.markdown-content ul,
+.markdown-content ol,
+.ai-summary ul,
+.ai-summary ol {
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+    padding-right: 0.5rem;
+    list-style-position: outside;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.ai-content li,
+.markdown-content li,
+.ai-summary li {
+    margin-bottom: 0.75rem;
+    color: #ddd;
+    line-height: 1.6;
+    font-size: clamp(0.85rem, 3.2vw, 0.95rem);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+    max-width: 100%;
+}
+
+@media (max-width: 480px) {
+    .ai-content ul,
+    .ai-content ol,
+    .markdown-content ul,
+    .markdown-content ol,
+    .ai-summary ul,
+    .ai-summary ol {
+        padding-left: 0.75rem;
+        margin-left: 0;
+    }
+    
+    .ai-content li,
+    .markdown-content li,
+    .ai-summary li {
+        font-size: clamp(0.8rem, 3.8vw, 0.9rem);
+        padding-left: 0.2rem;
+    }
+}
+
+/* Strong/Bold - Prevent Overflow */
+.ai-content strong,
+.markdown-content strong,
+.ai-summary strong {
+    color: white;
+    font-weight: 600;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    display: inline;
+    max-width: 100%;
+}
+
+/* Code and technical terms */
+.ai-content code,
+.markdown-content code {
+    word-break: break-all;
+    white-space: pre-wrap;
+    max-width: 100%;
+}
+
+/* Blockquotes */
+.ai-content blockquote,
+.markdown-content blockquote {
+    border-left: 3px solid var(--color-text-muted);
+    padding-left: 1rem;
+    font-style: italic;
+    color: var(--color-text-muted);
+    margin: 1rem 0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 0 5px 5px 0;
+    font-size: clamp(0.85rem, 2.8vw, 0.95rem);
+    line-height: 1.6;
+}
+
+/* Tables - Mobile Card Layout (No Horizontal Scroll) */
+.ai-content table,
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: clamp(0.75rem, 2.8vw, 0.9rem);
+    display: block;
+    overflow-x: hidden; /* Changed from auto to hidden */
+    max-width: 100%;
+}
+
+@media (max-width: 480px) {
+    .ai-content table,
+    .markdown-content table {
+        font-size: clamp(0.7rem, 3.2vw, 0.85rem);
+        margin: 0.75rem 0;
+    }
+}
+
+.ai-content thead,
+.markdown-content thead {
+    display: none; /* Hide on mobile */
+}
+
+.ai-content tbody,
+.markdown-content tbody {
+    display: block;
+}
+
+.ai-content tr,
+.markdown-content tr {
+    display: block;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+.ai-content td,
+.markdown-content td {
+    display: block;
+    text-align: left !important;
+    padding: 0.4rem 0;
+    border: none;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.ai-content td:before,
+.markdown-content td:before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: var(--color-primary);
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ai-content td:first-child,
+.markdown-content td:first-child {
+    font-weight: 600;
+    color: #fff;
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0.4rem;
+}
+
+.ai-content td:first-child:before,
+.markdown-content td:first-child:before {
+    content: '';
+    display: none;
+}
+
+/* Tablet and Desktop table view */
+@media (min-width: 768px) {
+    .ai-content table,
+    .markdown-content table {
+        display: table;
+        overflow-x: auto;
+    }
+
+    .ai-content thead,
+    .markdown-content thead {
+        display: table-header-group;
+    }
+
+    .ai-content tbody,
+    .markdown-content tbody {
+        display: table-row-group;
+    }
+
+    .ai-content tr,
+    .markdown-content tr {
+        display: table-row;
+        margin-bottom: 0;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0;
+        border-radius: 0;
+    }
+
+    .ai-content td,
+    .markdown-content td {
+        display: table-cell;
+        padding: 0.75rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ai-content td:before,
+    .markdown-content td:before {
+        display: none;
+    }
+
+    .ai-content td:first-child,
+    .markdown-content td:first-child {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 0;
+        padding-bottom: 0.75rem;
+    }
+
+    .ai-content th,
+    .markdown-content th {
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--color-primary);
+        border-bottom: 2px solid var(--color-primary);
+        font-size: 0.9rem;
+    }
+}
+
+/* Code blocks - Mobile Optimized */
+.ai-content code,
+.markdown-content code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+    font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: pre-wrap;
+    max-width: 100%;
+    display: inline-block;
+}
+
+.ai-content pre,
+.markdown-content pre {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.75rem;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 1rem 0;
+    max-width: 100%;
+    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+}
+
+.ai-content pre code,
+.markdown-content pre code {
+    background: none;
+    padding: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+@media (max-width: 480px) {
+    .ai-content pre,
+    .markdown-content pre {
+        padding: 0.5rem;
+        margin: 0.75rem 0;
+        font-size: clamp(0.65rem, 2.8vw, 0.75rem);
+    }
+}
+
+/* Modal Improvements - Strict Mobile Control */
+.ai-modal-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(0.5rem, 2vw, 1rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.ai-modal-card {
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    margin: auto;
+    box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+    .ai-modal-container {
+        padding: 0.5rem;
+    }
+    
+    .ai-modal-card {
+        max-height: 92vh;
+        width: calc(100% - 1rem);
+    }
+}
+
+.ai-modal-close {
+    position: sticky;
+    top: 0;
+    right: 0;
+    float: right;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    margin-bottom: -36px;
+}
+
+.ai-modal-title {
+    margin-bottom: 1rem;
+    font-size: clamp(1.1rem, 4vw, 1.3rem);
+    padding-right: 40px;
+}
+
+/* AI Plan Card */
+.ai-plan-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: clamp(0.75rem, 3vw, 1rem);
+}
+
+.ai-plan-section {
+    margin-top: 1rem;
+}
+
+.ai-plan-section h5 {
+    margin: 0;
+    font-size: clamp(0.8rem, 2.8vw, 0.85rem);
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+.ai-plan-section ul {
+    margin: 0.5rem 0 0;
+    padding-left: 1.2rem;
+    color: #ddd;
+    font-size: clamp(0.85rem, 2.8vw, 0.9rem);
+    line-height: 1.5;
+}
+
+.ai-plan-section li {
+    margin-bottom: 0.4rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Utility Classes */
+.text-wrap {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.responsive-text {
+    font-size: clamp(0.85rem, 3.2vw, 1rem);
+}
+
+.responsive-title {
+    font-size: clamp(1rem, 4.5vw, 1.3rem);
+}
+
+.responsive-subtitle {
+    font-size: clamp(0.9rem, 4vw, 1.1rem);
+}
+
+/* Mobile-specific strict rules */
+@media (max-width: 480px) {
+    .responsive-text {
+        font-size: clamp(0.8rem, 3.8vw, 0.95rem);
+    }
+    
+    .responsive-title {
+        font-size: clamp(0.95rem, 5vw, 1.15rem);
+    }
+    
+    .responsive-subtitle {
+        font-size: clamp(0.85rem, 4.5vw, 1rem);
+    }
+}
+
+/* Prevent any element from causing horizontal scroll */
+.no-overflow {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+/* Force break long words/URLs */
+.force-break {
+    word-break: break-all;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}

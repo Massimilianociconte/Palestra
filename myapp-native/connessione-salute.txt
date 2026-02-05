@@ -1,0 +1,166 @@
+L'analisi del sito ufficiale di Android Developers conferma che Connessione Salute (Health Connect) è la nuova interfaccia unificata che sostituisce le vecchie API di Google Fit.
+
+Ecco una guida approfondita e pratica su come integrare questa tecnologia in modo gratuito e pienamente funzionale, basata sulla documentazione ufficiale aggiornata a novembre 2025.
+
+1. Concetti Fondamentali: Perché è gratuito e funzionale?
+
+Gratuito: Health Connect è una libreria Android Jetpack (androidx.health) e, a partire da Android 14, è integrata direttamente nel sistema operativo. Non ci sono costi di licenza o quote API da pagare a Google come avveniva per alcune API cloud. Tutto gira in locale sul dispositivo.
+
+Pienamente Funzionale: A differenza del vecchio Google Fit che frammentava i dati, Health Connect funge da "hub centrale". Se l'utente usa un'app per correre (es. Strava) e una bilancia smart (es. Withings), entrambe scrivono su Health Connect e la tua app può leggere tutto da lì, senza dover integrare decine di API diverse.
+
+2. Guida Tecnica all'Integrazione
+Passo 1: Preparazione dell'ambiente (Gradle)
+
+Nel file build.gradle (livello modulo) della tua app, devi aggiungere la dipendenza client.[1] Questa libreria gestisce la compatibilità anche con versioni precedenti di Android (fino alla 9, anche se nativo dalla 14).
+
+code
+Kotlin
+download
+content_copy
+expand_less
+dependencies {
+    // Controlla sempre l'ultima versione stabile, attualmente siamo sulla serie 1.x
+    implementation "androidx.health.connect:connect-client:1.1.0-alpha12" // o versione successiva
+}
+Passo 2: Configurazione del Manifest (Cruciale)
+
+Il file AndroidManifest.xml richiede attenzioni specifiche per funzionare correttamente e permettere alla tua app di "vedere" Health Connect.[1]
+
+Dichiarazione permessi: Devi specificare esattamente cosa vuoi leggere/scrivere.
+
+Visibilità del pacchetto: Necessario per le versioni Android 13 e inferiori.
+
+Activity per la Privacy: Obbligatoria. Google richiede che tu mostri all'utente perché chiedi questi dati.[1]
+
+code
+Xml
+download
+content_copy
+expand_less
+<manifest ...>
+    <!-- Esempio: Leggere e Scrivere passi e battito cardiaco -->
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
+    <uses-permission android:name="android.permission.health.WRITE_HEART_RATE"/>
+    <uses-permission android:name="android.permission.health.READ_STEPS"/>
+    <uses-permission android:name="android.permission.health.WRITE_STEPS"/>
+
+    <queries>
+        <!-- Permette alla tua app di verificare se Health Connect è installato -->
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
+
+    <application ...>
+        <!-- Activity obbligatoria per la Privacy Policy -->
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".LaTuaPrivacyPolicyActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
+    </application>
+</manifest>
+Passo 3: Il Codice (Kotlin)
+
+Ecco come strutturare la logica per essere "pienamente funzionale", gestendo anche i casi in cui l'utente non ha ancora installato il servizio.
+
+A. Ottenere il Client e Verificare Disponibilità:
+
+code
+Kotlin
+download
+content_copy
+expand_less
+val healthConnectClient = HealthConnectClient.getOrCreate(context)
+
+// Controlla se l'SDK è disponibile
+val availabilityStatus = HealthConnectClient.getSdkStatus(context, "com.google.android.apps.healthdata")
+if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE) {
+    // Il dispositivo non è supportato
+    return
+}
+if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED) {
+    // Chiedi all'utente di installare/aggiornare Health Connect dal Play Store
+}
+
+B. Gestione Permessi (Il "Contratto"):
+Non puoi accedere ai dati senza un permesso esplicito.
+
+code
+Kotlin
+download
+content_copy
+expand_less
+val PERMISSIONS = setOf(
+    HealthPermission.getReadPermission(StepsRecord::class),
+    HealthPermission.getWritePermission(StepsRecord::class)
+)
+
+// Crea il launcher per la richiesta
+val requestPermissions = registerForActivityResult(
+    PermissionController.createRequestPermissionResultContract()
+) { granted ->
+    if (granted.containsAll(PERMISSIONS)) {
+        // Permessi ottenuti, puoi procedere
+    }
+}
+
+// Lancia la richiesta
+suspend fun checkAndRequestPermissions() {
+    val granted = healthConnectClient.permissionController.getGrantedPermissions()
+    if (!granted.containsAll(PERMISSIONS)) {
+        requestPermissions.launch(PERMISSIONS)
+    }
+}
+
+[1]
+C. Lettura e Scrittura dei Dati:
+La potenza di Health Connect sta nell'aggregazione.[1] Non ti serve leggere ogni singolo passo, ma il totale giornaliero.
+
+Scrivere dati (es. passi):
+
+code
+Kotlin
+download
+content_copy
+expand_less
+val stepsRecord = StepsRecord(
+    count = 120,
+    startTime = Instant.now().minusSeconds(60),
+    endTime = Instant.now(),
+    startZoneOffset = ZoneOffset.UTC,
+    endZoneOffset = ZoneOffset.UTC
+)
+healthConnectClient.insertRecords(listOf(stepsRecord))
+
+Leggere dati aggregati (es. totale passi oggi):
+
+code
+Kotlin
+download
+content_copy
+expand_less
+val request = AggregateRequest(
+    metrics = setOf(StepsRecord.COUNT_TOTAL),
+    timeRangeFilter = TimeRangeFilter.between(startOfDay, endOfDay)
+)
+val response = healthConnectClient.aggregate(request)
+val totalSteps = response[StepsRecord.COUNT_TOTAL] // Restituisce il numero totale
+3. Punti Critici per un'app "Pienamente Funzionale"
+
+Dall'analisi approfondita emergono tre aspetti che spesso causano problemi se ignorati:
+
+Limite dei 30 giorni: Per default, la tua app può leggere solo i dati generati negli ultimi 30 giorni prima del consenso. Se vuoi leggere lo storico completo (es. dati dell'anno scorso), devi richiedere un permesso speciale chiamato PERMISSION_READ_HEALTH_DATA_HISTORY.
+
+Dati sovrapposti: Se due app scrivono che l'utente ha fatto 1000 passi nello stesso minuto, Health Connect è abbastanza intelligente da unirli, ma usare aggregate() (come nell'esempio sopra) è il metodo più sicuro per evitare doppi conteggi rispetto a readRecords().
+
+Play Store Declaration: Quando pubblicherai l'app, dovrai compilare un modulo nella Google Play Console dichiarando quali dati sanitari usi e perché. Senza questa dichiarazione, l'app verrà rifiutata.
+
+In sintesi, l'integrazione è gratuita perché nativa e funzionale perché centralizza i dati di tutto l'ecosistema Android, liberandoti dalla gestione di sensori hardware specifici.
+
+Sources
+help
+Iniziare a usare Connessione Salute | Android health &amp; fitness ...

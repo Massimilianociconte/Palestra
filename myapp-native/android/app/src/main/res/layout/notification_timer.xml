@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:gravity="center_vertical"
+    android:background="@android:color/transparent">
+
+    <!-- Timer grande -->
+    <TextView
+        android:id="@+id/timer_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1:30"
+        android:textSize="42sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:fontFamily="sans-serif-medium"
+        android:singleLine="true"
+        android:layout_marginEnd="20dp" />
+
+    <!-- Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical|start">
+
+        <TextView
+            android:id="@+id/label_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RIPOSO"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:fontFamily="sans-serif-medium"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/workout_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Push Day"
+            android:textSize="13sp"
+            android:textColor="#CCCCCC"
+            android:layout_marginTop="2dp"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
+</LinearLayout>

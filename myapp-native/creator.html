@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Creator | GYMBRO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00f3ff">
+    
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GymBro">
+    <link rel="apple-touch-icon" href="assets/icon.svg">
+
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .exercise-item {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            position: relative;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-main);
+            padding: 0.8rem;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .row-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Set Types Styles */
+        .sets-container {
+            margin-top: 1rem;
+            border-top: 1px solid var(--color-border);
+            padding-top: 1rem;
+        }
+
+        .sets-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .sets-header h4 {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0;
+        }
+
+        .add-set-btn {
+            background: transparent;
+            border: 1px dashed var(--color-primary);
+            color: var(--color-primary);
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-set-btn:hover {
+            background: rgba(0, 243, 255, 0.1);
+        }
+
+        .set-item {
+            display: grid;
+            grid-template-columns: auto 1fr 80px 80px 80px 30px;
+            gap: 8px;
+            align-items: center;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .set-item .set-number {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            min-width: 25px;
+        }
+
+        .set-item select,
+        .set-item input {
+            padding: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .set-item .remove-set-btn {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+        }
+
+        .set-type-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .set-type-normal { background: rgba(0, 243, 255, 0.2); color: var(--color-primary); }
+        .set-type-warmup { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .set-type-backoff { background: rgba(156, 39, 176, 0.2); color: #9c27b0; }
+        .set-type-dropset { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+        .set-type-amrap { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .set-type-pause { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+
+        .quick-sets-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-set-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-set-btn:hover {
+            border-color: var(--color-primary);
+            background: rgba(0, 243, 255, 0.1);
+        }
+
+        /* Superset Styles */
+        .superset-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .superset-connector {
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            width: 10px;
+            height: 2px;
+            background: #ff6b6b;
+        }
+
+        .exercise-item.in-superset {
+            border-left: 3px solid #ff6b6b;
+            margin-left: 15px;
+        }
+
+        .superset-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--color-border);
+        }
+
+        .superset-btn {
+            background: transparent;
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .superset-btn:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .superset-rest-config {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 107, 107, 0.05);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: var(--radius-sm);
+        }
+
+        .superset-rest-config.visible {
+            display: block;
+        }
+
+        .rest-input-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .rest-input-row label {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin: 0;
+        }
+
+        .rest-input-row input {
+            width: 80px;
+            padding: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 600px) {
+            .set-item {
+                grid-template-columns: auto 1fr 50px 50px 50px 25px;
+                gap: 4px;
+            }
+            .set-item select,
+            .set-item input {
+                padding: 0.4rem;
+                font-size: 0.75rem;
+            }
+            .set-item .set-number {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
+            <nav>
+                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="creator.html" class="text-primary">Creator</a></li>
+                    <li><a href="diary.html">Diario</a></li>
+                    <li><a href="analysis.html">Analisi</a></li>
+                    <li><a href="body.html">Corpo</a></li>
+                    <li><a href="user.html">Profilo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section" style="padding-top: 160px;">
+        <div class="container">
+            <h1 style="margin-bottom: var(--spacing-md);">Crea Nuova <span class="text-primary">Scheda</span></h1>
+
+            <div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
+
+                <!-- Workout Details -->
+                <div class="card">
+                    <div class="form-group">
+                        <label>Nome Scheda</label>
+                        <input type="text" id="workoutName" placeholder="es. Push Day A">
+                    </div>
+                    <div class="form-group">
+                        <label>Descrizione / Obiettivo</label>
+                        <textarea id="workoutDesc" rows="3" placeholder="es. Focus petto alto e tricipiti"></textarea>
+                    </div>
+                </div>
+
+                <!-- Exercises List -->
+                <div id="exercisesList">
+                    <!-- Dynamic exercises will appear here -->
+                </div>
+
+                <button id="addExerciseBtn" class="btn btn-outline" style="width: 100%; border-style: dashed;">
+                    + Aggiungi Esercizio
+                </button>
+
+                <div style="margin-top: var(--spacing-md); display: flex; gap: 1rem;">
+                    <button id="saveWorkoutBtn" class="btn btn-primary" style="flex: 1;">Salva Scheda</button>
+                    <button class="btn btn-outline" onclick="window.history.back()">Annulla</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script type="module">
+        import { firestoreService } from './js/firestore-service.js';
+
+        // Set types configuration
+        const SET_TYPES = {
+            normal: { label: 'Normale', color: 'normal' },
+            warmup: { label: 'Warm-up', color: 'warmup' },
+            backoff: { label: 'Back-off', color: 'backoff' },
+            dropset: { label: 'Drop Set', color: 'dropset' },
+            amrap: { label: 'AMRAP', color: 'amrap' },
+            pause: { label: 'Pausa', color: 'pause' }
+        };
+        
+        // Superset configuration
+        let supersetGroups = {}; // { groupId: [exerciseIndex1, exerciseIndex2] }
+        let nextSupersetId = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const exercisesList = document.getElementById('exercisesList');
+            const addBtn = document.getElementById('addExerciseBtn');
+            const saveBtn = document.getElementById('saveWorkoutBtn');
+
+            // Check for Edit Mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('id');
+            let isEditing = false;
+
+            // Initialize API Service safely
+            let storageService;
+            try {
+                storageService = window.storageService || new StorageService();
+            } catch (e) {
+                console.error('StorageService not available:', e);
+            }
+
+            // Generate set type options HTML
+            function getSetTypeOptions(selectedType = 'normal') {
+                return Object.entries(SET_TYPES).map(([key, val]) => 
+                    `<option value="${key}" ${key === selectedType ? 'selected' : ''}>${val.label}</option>`
+                ).join('');
+            }
+
+            // Add a single set row to an exercise
+            function addSetRow(container, setData = null, setNumber = null) {
+                const setsContainer = container.querySelector('.sets-list');
+                const currentSets = setsContainer.querySelectorAll('.set-item').length;
+                const num = setNumber || currentSets + 1;
+
+                const setDiv = document.createElement('div');
+                setDiv.className = 'set-item';
+                setDiv.innerHTML = `
+                    <span class="set-number">#${num}</span>
+                    <select class="set-type">
+                        ${getSetTypeOptions(setData?.type || 'normal')}
+                    </select>
+                    <input type="text" class="set-reps" placeholder="Reps" value="${setData?.target || setData?.reps || ''}">
+                    <input type="number" class="set-rpe-input" placeholder="RPE" value="${setData?.rpe || ''}">
+                    <button type="button" class="remove-set-btn" title="Rimuovi serie">×</button>
+                `;
+
+                // Remove set handler
+                setDiv.querySelector('.remove-set-btn').addEventListener('click', () => {
+                    setDiv.remove();
+                    renumberSets(container);
+                });
+
+                setsContainer.appendChild(setDiv);
+            }
+
+            // Renumber sets after removal
+            function renumberSets(container) {
+                const sets = container.querySelectorAll('.set-item');
+                sets.forEach((set, idx) => {
+                    set.querySelector('.set-number').textContent = `#${idx + 1}`;
+                });
+            }
+
+            // Add quick sets (e.g., "3x Normal")
+            function addQuickSets(container, count, type = 'normal') {
+                for (let i = 0; i < count; i++) {
+                    addSetRow(container, { type });
+                }
+            }
+
+            function addExerciseUI(data = null) {
+                const div = document.createElement('div');
+                div.className = 'exercise-item';
+                const exerciseIndex = exercisesList.querySelectorAll('.exercise-item').length;
+                div.dataset.exerciseIndex = exerciseIndex;
+                
+                // Convert old format (sets as number) to new format (sets as array)
+                let setsArray = [];
+                if (data) {
+                    if (Array.isArray(data.sets)) {
+                        // New format - already an array
+                        setsArray = data.sets;
+                    } else if (data.sets) {
+                        // Old format - number of sets
+                        const numSets = parseInt(data.sets) || 3;
+                        for (let i = 0; i < numSets; i++) {
+                            setsArray.push({
+                                type: 'normal',
+                                target: data.reps || '',
+                                rpe: data.rpe || ''
+                            });
+                        }
+                    }
+                }
+                
+                // Check if part of superset
+                const supersetId = data?.supersetId || null;
+                const supersetRole = data?.supersetRole || null; // 'A' or 'B'
+                const intraRest = data?.intraRest || 0;
+                const interRest = data?.interRest || 90;
+
+                div.innerHTML = `
+                    ${supersetId ? `<span class="superset-indicator">Superset ${supersetRole}</span>` : ''}
+                    <span class="remove-btn" onclick="this.parentElement.remove(); updateExerciseIndices();">×</span>
+                    <div class="form-group">
+                        <label>Esercizio</label>
+                        <input type="text" class="ex-name" placeholder="es. Panca Piana" value="${data?.name || ''}">
+                    </div>
+                    <div class="form-group" style="display: grid; grid-template-columns: 3fr 1fr; gap: 10px;">
+                        <div>
+                            <label>Note</label>
+                            <input type="text" class="ex-notes" placeholder="Fermo 1s al petto" value="${data?.notes || ''}">
+                        </div>
+                        <div class="normal-rest-config" style="display: ${supersetId ? 'none' : 'block'};">
+                            <label>Recupero (s)</label>
+                            <input type="number" class="ex-rest" value="${data?.rest || 90}" placeholder="90">
+                        </div>
+                    </div>
+                    
+                    <div class="sets-container">
+                        <div class="sets-header">
+                            <h4>Serie</h4>
+                            <button type="button" class="add-set-btn">+ Aggiungi Serie</button>
+                        </div>
+                        
+                        <div class="quick-sets-row">
+                            <button type="button" class="quick-set-btn" data-count="3" data-type="normal">3x Normali</button>
+                            <button type="button" class="quick-set-btn" data-count="4" data-type="normal">4x Normali</button>
+                            <button type="button" class="quick-set-btn" data-count="1" data-type="warmup">+ Warm-up</button>
+                            <button type="button" class="quick-set-btn" data-count="1" data-type="backoff">+ Back-off</button>
+                            <button type="button" class="quick-set-btn" data-count="1" data-type="dropset">+ Drop Set</button>
+                        </div>
+                        
+                        <div class="sets-list">
+                            <!-- Individual sets will be added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="superset-controls">
+                        <button type="button" class="superset-btn create-superset-btn" title="Crea superset con l'esercizio successivo">
+                            🔗 Crea Superset
+                        </button>
+                        <button type="button" class="superset-btn remove-superset-btn" style="display: ${supersetId ? 'inline-block' : 'none'};" title="Rimuovi dal superset">
+                            ❌ Rimuovi Superset
+                        </button>
+                    </div>
+                    
+                    <div class="superset-rest-config ${supersetId && supersetRole === 'A' ? 'visible' : ''}" data-superset-id="${supersetId || ''}">
+                        <div style="font-size: 0.8rem; color: #ff6b6b; font-weight: 500; margin-bottom: 0.5rem;">⏱️ Tempi di Recupero Superset</div>
+                        <div class="rest-input-row">
+                            <label>Intra-Superset (A→B):</label>
+                            <input type="number" class="intra-rest-input" value="${intraRest}" min="0" max="60" placeholder="0"> sec
+                        </div>
+                        <div class="rest-input-row">
+                            <label>Inter-Superset (dopo round):</label>
+                            <input type="number" class="inter-rest-input" value="${interRest}" min="0" max="300" placeholder="90"> sec
+                        </div>
+                    </div>
+                `;
+                
+                // Store superset data
+                if (supersetId) {
+                    div.dataset.supersetId = supersetId;
+                    div.dataset.supersetRole = supersetRole;
+                    div.classList.add('in-superset');
+                }
+
+                exercisesList.appendChild(div);
+
+                // Add set button handler
+                div.querySelector('.add-set-btn').addEventListener('click', () => {
+                    addSetRow(div);
+                });
+
+                // Quick set buttons handlers
+                div.querySelectorAll('.quick-set-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const count = parseInt(btn.dataset.count);
+                        const type = btn.dataset.type;
+                        addQuickSets(div, count, type);
+                    });
+                });
+                
+                // Superset button handlers
+                const createSupersetBtn = div.querySelector('.create-superset-btn');
+                const removeSupersetBtn = div.querySelector('.remove-superset-btn');
+                
+                createSupersetBtn.addEventListener('click', () => {
+                    const allExercises = Array.from(exercisesList.querySelectorAll('.exercise-item'));
+                    const currentIndex = allExercises.indexOf(div);
+                    const nextExercise = allExercises[currentIndex + 1];
+                    
+                    if (!nextExercise) {
+                        alert('Aggiungi prima un altro esercizio per creare un superset.');
+                        return;
+                    }
+                    
+                    if (div.dataset.supersetId || nextExercise.dataset.supersetId) {
+                        alert('Uno degli esercizi è già in un superset. Rimuovilo prima.');
+                        return;
+                    }
+                    
+                    // Create superset
+                    const supersetId = 'ss_' + nextSupersetId++;
+                    
+                    // Mark exercise A
+                    div.dataset.supersetId = supersetId;
+                    div.dataset.supersetRole = 'A';
+                    div.classList.add('in-superset');
+                    const indicatorA = document.createElement('span');
+                    indicatorA.className = 'superset-indicator';
+                    indicatorA.textContent = 'Superset A';
+                    div.insertBefore(indicatorA, div.firstChild);
+                    div.querySelector('.superset-rest-config').classList.add('visible');
+                    div.querySelector('.superset-rest-config').dataset.supersetId = supersetId;
+                    div.querySelector('.remove-superset-btn').style.display = 'inline-block';
+                    createSupersetBtn.style.display = 'none';
+                    div.querySelector('.normal-rest-config').style.display = 'none';
+                    
+                    // Mark exercise B
+                    nextExercise.dataset.supersetId = supersetId;
+                    nextExercise.dataset.supersetRole = 'B';
+                    nextExercise.classList.add('in-superset');
+                    const indicatorB = document.createElement('span');
+                    indicatorB.className = 'superset-indicator';
+                    indicatorB.textContent = 'Superset B';
+                    nextExercise.insertBefore(indicatorB, nextExercise.firstChild);
+                    nextExercise.querySelector('.remove-superset-btn').style.display = 'inline-block';
+                    nextExercise.querySelector('.create-superset-btn').style.display = 'none';
+                    nextExercise.querySelector('.normal-rest-config').style.display = 'none';
+                });
+                
+                removeSupersetBtn.addEventListener('click', () => {
+                    const supersetId = div.dataset.supersetId;
+                    if (!supersetId) return;
+                    
+                    // Find all exercises in this superset
+                    const supersetExercises = exercisesList.querySelectorAll(`[data-superset-id="${supersetId}"]`);
+                    supersetExercises.forEach(ex => {
+                        delete ex.dataset.supersetId;
+                        delete ex.dataset.supersetRole;
+                        ex.classList.remove('in-superset');
+                        const indicator = ex.querySelector('.superset-indicator');
+                        if (indicator) indicator.remove();
+                        ex.querySelector('.superset-rest-config').classList.remove('visible');
+                        ex.querySelector('.remove-superset-btn').style.display = 'none';
+                        ex.querySelector('.create-superset-btn').style.display = 'inline-block';
+                        ex.querySelector('.normal-rest-config').style.display = 'block';
+                    });
+                });
+
+                // Add existing sets or default
+                if (setsArray.length > 0) {
+                    setsArray.forEach((set, idx) => {
+                        addSetRow(div, set, idx + 1);
+                    });
+                } else {
+                    // Add 3 default normal sets
+                    addQuickSets(div, 3, 'normal');
+                }
+            }
+            
+            // Update exercise indices after removal
+            function updateExerciseIndices() {
+                const exercises = exercisesList.querySelectorAll('.exercise-item');
+                exercises.forEach((ex, idx) => {
+                    ex.dataset.exerciseIndex = idx;
+                });
+            }
+
+            if (addBtn) {
+                addBtn.addEventListener('click', () => addExerciseUI());
+            }
+
+            // Load Data if Editing
+            if (editId) {
+                isEditing = true;
+                const title = document.querySelector('h1');
+                if (title) title.innerHTML = 'Modifica <span class="text-primary">Scheda</span>';
+
+                const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                const workout = workouts.find(w => w.id == editId);
+
+                if (workout) {
+                    const nameInput = document.getElementById('workoutName');
+                    const descInput = document.getElementById('workoutDesc');
+                    if (nameInput) nameInput.value = workout.name;
+                    if (descInput) descInput.value = workout.description || '';
+
+                    if (workout.exercises && workout.exercises.length > 0) {
+                        workout.exercises.forEach(ex => addExerciseUI(ex));
+                    } else {
+                        addExerciseUI();
+                    }
+                } else {
+                    alert('Scheda non trovata!');
+                    window.location.href = 'user.html';
+                }
+            } else {
+                // Default empty exercise
+                addExerciseUI();
+            }
+
+            if (saveBtn) {
+                saveBtn.addEventListener('click', async () => {
+                    const nameInput = document.getElementById('workoutName');
+                    const descInput = document.getElementById('workoutDesc');
+
+                    const name = nameInput ? nameInput.value : '';
+                    if (!name) { alert('Inserisci un nome per la scheda'); return; }
+
+                    const exercises = [];
+                    document.querySelectorAll('.exercise-item').forEach(item => {
+                        const exName = item.querySelector('.ex-name').value;
+                        const exNotes = item.querySelector('.ex-notes').value;
+                        const exRest = item.querySelector('.ex-rest').value;
+                        
+                        // Collect all sets
+                        const sets = [];
+                        item.querySelectorAll('.set-item').forEach(setItem => {
+                            const type = setItem.querySelector('.set-type').value;
+                            const reps = setItem.querySelector('.set-reps').value;
+                            const rpe = setItem.querySelector('.set-rpe-input').value;
+                            
+                            sets.push({
+                                type: type,
+                                target: reps,
+                                rpe: rpe ? parseFloat(rpe) : null,
+                                weight: 0 // Will be filled during workout
+                            });
+                        });
+                        
+                        // Collect superset data
+                        const supersetId = item.dataset.supersetId || null;
+                        const supersetRole = item.dataset.supersetRole || null;
+                        const intraRestInput = item.querySelector('.intra-rest-input');
+                        const interRestInput = item.querySelector('.inter-rest-input');
+                        const intraRest = intraRestInput ? parseInt(intraRestInput.value) || 0 : 0;
+                        const interRest = interRestInput ? parseInt(interRestInput.value) || 90 : 90;
+
+                        if (exName || sets.length > 0) {
+                            const exerciseData = {
+                                name: exName,
+                                sets: sets,
+                                notes: exNotes,
+                                rest: exRest ? parseInt(exRest) : 90
+                            };
+                            
+                            // Add superset data if applicable
+                            if (supersetId) {
+                                exerciseData.supersetId = supersetId;
+                                exerciseData.supersetRole = supersetRole;
+                                if (supersetRole === 'A') {
+                                    exerciseData.intraRest = intraRest;
+                                    exerciseData.interRest = interRest;
+                                }
+                            }
+                            
+                            exercises.push(exerciseData);
+                        }
+                    });
+
+                    const workouts = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+
+                    if (isEditing) {
+                        const index = workouts.findIndex(w => w.id == editId);
+                        if (index !== -1) {
+                            workouts[index].name = name;
+                            workouts[index].description = descInput ? descInput.value : '';
+                            workouts[index].exercises = exercises;
+                            workouts[index].lastModified = new Date().toISOString();
+                        }
+                    } else {
+                        const workout = {
+                            id: Date.now(),
+                            name: name,
+                            description: descInput ? descInput.value : '',
+                            exercises: exercises,
+                            dateCreated: new Date().toISOString()
+                        };
+                        workouts.push(workout);
+                    }
+
+                    localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
+
+                    // Auto-Sync
+                    saveBtn.textContent = 'Salvataggio Cloud...';
+                    saveBtn.disabled = true;
+
+                    if (storageService && storageService.hasCredentials()) {
+                        await storageService.syncData();
+                    }
+
+                    try {
+                        await firestoreService.syncToCloud();
+                    } catch (err) {
+                        console.warn('Sync Firestore non riuscita:', err.message || err);
+                    }
+
+                    alert('Scheda salvata con successo!');
+                    window.location.href = 'user.html';
+                });
+            }
+            
+            // --- AUTO-SYNC MANAGER ---
+            // Sincronizza automaticamente all'avvio e ogni 5 minuti
+            const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti
+            
+            const performAutoSync = async () => {
+                try {
+                    console.log('🔄 [Creator] Auto-sync in corso...');
+                    await firestoreService.syncToCloud();
+                    console.log('✅ [Creator] Auto-sync completato:', new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.warn('⚠️ [Creator] Auto-sync fallito:', error.message);
+                }
+            };
+            
+            // Primo sync silenzioso dopo 2 secondi
+            setTimeout(performAutoSync, 2000);
+            
+            // Sync ogni 5 minuti
+            if (!window.autoSyncInterval) {
+                window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);
+                console.log('🔄 [Creator] Auto-sync attivato: ogni 5 minuti');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Corpo | GYMBRO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00f3ff">
+    
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GymBro">
+    <link rel="apple-touch-icon" href="assets/icon.svg">
+
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .measure-card {
+            background: var(--color-surface);
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .measure-val {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--color-primary);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+
+        .photo-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-info {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            background: rgba(0, 0, 0, 0.8);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .chart-container {
+            background: var(--color-surface);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+            height: 300px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--color-bg);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            width: 95%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--color-primary);
+        }
+        
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: var(--color-surface);
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--color-primary);
+            border-radius: 3px;
+        }
+        
+        /* Photo card with BF-AI indicator */
+        .photo-card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .photo-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 243, 255, 0.2);
+        }
+        .photo-card.has-bfai::after {
+            content: '📊';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        /* Photo detail modal */
+        .photo-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .photo-detail-content {
+            max-width: 900px;
+            width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
+            background: var(--color-bg);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-primary);
+        }
+        
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 1rem;
+                width: 98%;
+                max-height: 95vh;
+            }
+            #bfaiParamsSection > div {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-muted);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-main);
+            border-radius: 4px;
+        }
+
+        /* Health Data Cards */
+        .health-card {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.05) 0%, rgba(0,0,0,0.3) 100%);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .health-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--color-primary);
+            box-shadow: 0 8px 24px rgba(0, 243, 255, 0.15);
+        }
+
+        .health-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-primary), transparent);
+        }
+
+        .health-card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .health-card-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .health-card-value {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .health-card-unit {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            font-weight: 400;
+        }
+
+        .health-card-trend {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .health-card-trend.positive {
+            color: #10b981;
+        }
+
+        .health-card-trend.negative {
+            color: #ef4444;
+        }
+
+        .health-card.unavailable {
+            opacity: 0.5;
+            background: rgba(255,255,255,0.02);
+            border-color: var(--color-border);
+        }
+
+        .health-card.unavailable:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spinning {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .health-card {
+                padding: 1rem;
+            }
+            
+            .health-card-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+
+        <body>
+
+            <header class="header">
+                <div class="container">
+                    <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
+                    <nav>
+                        <div class="mobile-toggle" id="mobileToggle">☰</div>
+                        <ul class="nav-links" id="navLinks">
+                            <li><a href="creator.html">Creator</a></li>
+                            <li><a href="diary.html">Diario</a></li>
+                            <li><a href="analysis.html">Analisi</a></li>
+                            <li><a href="body.html" class="text-primary">Corpo</a></li>
+                            <li><a href="user.html">Profilo</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </header>
+
+            <section class="section" style="padding-top: 160px;">
+                <div class="container">
+                    <h1 style="margin-bottom: var(--spacing-md);">Misure & <span class="text-primary">Progressi</span>
+                    </h1>
+
+                    <!-- Google Fit Health Data Section -->
+                    <div id="healthDataSection" style="margin-bottom: 3rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h2 style="margin: 0;">Dati <span class="text-primary">Salute</span></h2>
+                                <p style="font-size: 0.85rem; color: var(--color-text-muted); margin: 0.25rem 0 0;">
+                                    Sincronizzati da Google Fit
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <span id="healthSyncStatus" style="font-size: 0.8rem; color: var(--color-text-muted);"></span>
+                                <button id="refreshHealthData" class="btn btn-outline btn-sm">
+                                    <span id="refreshIcon">🔄</span> Aggiorna
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Health Stats Grid -->
+                        <div id="healthStatsGrid" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                            <!-- Dynamic health cards -->
+                        </div>
+
+                        <!-- Not Connected Message -->
+                        <div id="healthNotConnected" style="display: none; text-align: center; padding: 3rem 1rem; background: rgba(255,255,255,0.02); border: 1px dashed var(--color-border); border-radius: var(--radius-md);">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🏥</div>
+                            <h3 style="margin-bottom: 0.5rem;">Connetti Google Fit</h3>
+                            <p style="color: var(--color-text-muted); margin-bottom: 1.5rem;">
+                                Sincronizza i tuoi dati fitness per un monitoraggio completo
+                            </p>
+                            <a href="user.html" class="btn btn-primary">Vai alle Impostazioni</a>
+                        </div>
+                    </div>
+
+                    <!-- Chart Section -->
+                    <div class="chart-container">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+
+                    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+
+                        <!-- Measurements -->
+                        <div>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h3>Misure Corporee</h3>
+                                <button id="editStatsBtn" class="btn btn-sm btn-outline">Modifica</button>
+                            </div>
+
+                            <div class="grid" style="gap: 1rem;" id="statsDisplay">
+                                <!-- Dynamic Stats -->
+                            </div>
+                        </div>
+
+                        <!-- Photos -->
+                        <div>
+                            <div class="card" style="margin-bottom: 2rem;">
+                                <h3 style="margin-bottom: 1rem;">Parametri Atleta</h3>
+                                <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+                                    Dati per calcoli futuri (BMR, TDEE, AI).
+                                </p>
+                                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div class="form-group">
+                                        <label>Età</label>
+                                        <input type="number" id="athleteAge" placeholder="es. 25">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Altezza (cm)</label>
+                                        <input type="number" id="athleteHeight" placeholder="es. 180">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Sesso</label>
+                                        <select id="athleteGender" style="width: 100%; padding: 0.8rem; background: var(--color-bg); border: 1px solid var(--color-border); color: white; border-radius: var(--radius-sm);">
+                                            <option value="M">Maschio</option>
+                                            <option value="F">Femmina</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Livello Attività</label>
+                                        <select id="athleteActivity" style="width: 100%; padding: 0.8rem; background: var(--color-bg); border: 1px solid var(--color-border); color: white; border-radius: var(--radius-sm);">
+                                            <option value="sedentary">Sedentario</option>
+                                            <option value="light">Leggero (1-3gg)</option>
+                                            <option value="moderate">Moderato (3-5gg)</option>
+                                            <option value="active">Attivo (6-7gg)</option>
+                                            <option value="athlete">Atleta (2x/die)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button id="saveParamsBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Salva Parametri</button>
+                                <p id="paramsStatus" style="margin-top: 0.5rem; font-size: 0.9rem; text-align: center; color: var(--color-primary); min-height: 1.2em;"></p>
+                            </div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h3>Foto Progressi</h3>
+                                <button id="uploadPhotoBtn" class="btn btn-sm btn-primary">+ Nuova Foto</button>
+                            </div>
+
+                            <!-- API Key Input (Only visible if not set) -->
+                            <div id="apiKeySection" style="margin-bottom: 1rem; display: none;">
+                                <input type="text" id="imgbbApiKey" placeholder="Inserisci ImgBB API Key"
+                                    style="width: 70%; padding: 0.5rem;">
+                                <button id="saveApiKeyBtn" class="btn btn-sm btn-primary">Salva</button>
+                                <p style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.5rem;">
+                                    Ottieni una chiave gratuita su <a href="https://api.imgbb.com/" target="_blank"
+                                        style="color: var(--color-primary);">api.imgbb.com</a>
+                                </p>
+                            </div>
+
+                            <div class="photo-grid" id="photoGallery">
+                                <!-- Dynamic Photos -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- Edit Stats Modal -->
+            <div id="statsModal" class="modal">
+                <div class="modal-content">
+                    <h3 style="margin-bottom: 1.5rem;">Aggiorna Misure</h3>
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="statsDate">
+                    </div>
+                    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label id="labelWeight">Peso (kg)</label>
+                            <input type="number" id="inputWeight" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Grasso (%)</label>
+                            <input type="number" id="inputFat" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label id="labelChest">Torace (cm)</label>
+                            <input type="number" id="inputChest" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label id="labelArm">Braccio (cm)</label>
+                            <input type="number" id="inputArm" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label id="labelWaist">Vita (cm)</label>
+                            <input type="number" id="inputWaist" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label id="labelLegs">Gambe (cm)</label>
+                            <input type="number" id="inputLegs" step="0.5">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button id="saveStatsBtn" class="btn btn-primary" style="flex: 1;">Salva</button>
+                        <button id="cancelStatsBtn" class="btn btn-outline">Annulla</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Photo Modal -->
+            <div id="photoModal" class="modal">
+                <div class="modal-content">
+                    <h3 style="margin-bottom: 1.5rem;">Carica Foto</h3>
+                    <div class="form-group">
+                        <label>Seleziona Foto <small style="color:#888;">(puoi selezionare più foto: fronte, lato, retro)</small></label>
+                        <input type="file" id="photoInput" accept="image/*" multiple>
+                    </div>
+                    
+                    <!-- Multi-photo preview -->
+                    <div id="photoPreviewContainer" style="display:none; margin-bottom:1rem;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(80px, 1fr)); gap:0.5rem; max-height:150px; overflow-y:auto;" id="photoPreviewGrid"></div>
+                        <small style="color:#888; display:block; margin-top:0.5rem;">
+                            📸 <span id="photoCount">0</span> foto selezionate
+                            <span id="bfaiPhotoHint" style="display:none; color:#00f3ff;"> • Per BF-AI: fronte + lato + retro = maggiore precisione</span>
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>Nota (opzionale)</label>
+                        <input type="text" id="photoNote" placeholder="es. Post workout, 82kg">
+                    </div>
+                    
+                    <!-- BF-AI Analysis Option -->
+                    <div id="bfaiOptionBox" style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, rgba(0,243,255,0.08), rgba(0,0,0,0.2)); border: 1px solid rgba(0,243,255,0.3); border-radius: 8px;">
+                        <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer;">
+                            <input type="checkbox" id="enableBfaiAnalysis" style="width:20px; height:20px; margin-top:2px; accent-color:#00f3ff;">
+                            <span>
+                                <strong style="color:#00f3ff;">🎯 Analizza Body Fat con AI</strong><br>
+                                <small style="color:#888;">Calcola body fat % con 7 formule scientifiche<br>📷 Per risultati migliori: carica fronte + lato + retro</small>
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <!-- BF-AI Parameters (hidden by default) -->
+                    <div id="bfaiParamsSection" style="display:none; margin-bottom:1rem;">
+                        <h4 style="color:var(--color-primary); margin-bottom:1rem; font-size:0.9rem;">Parametri per Analisi</h4>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                            <div class="form-group" style="margin-bottom:0.5rem;">
+                                <label style="font-size:0.85rem;">Altezza (cm)*</label>
+                                <input type="number" id="bfaiHeight" min="100" max="250" placeholder="175">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0.5rem;">
+                                <label style="font-size:0.85rem;">Peso (kg)*</label>
+                                <input type="number" id="bfaiWeight" min="30" max="300" step="0.1" placeholder="75">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0.5rem;">
+                                <label style="font-size:0.85rem;">Genere*</label>
+                                <select id="bfaiGender" style="width:100%; padding:0.8rem; background:var(--color-surface); border:1px solid var(--color-border); color:var(--color-text-main); border-radius:4px;">
+                                    <option value="male">Uomo</option>
+                                    <option value="female">Donna</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0.5rem;">
+                                <label style="font-size:0.85rem;">Età</label>
+                                <input type="number" id="bfaiAge" min="10" max="100" placeholder="30">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:0.5rem;">
+                            <label style="font-size:0.85rem;">Etnia</label>
+                            <select id="bfaiEthnicity" style="width:100%; padding:0.8rem; background:var(--color-surface); border:1px solid var(--color-border); color:var(--color-text-main); border-radius:4px;">
+                                <option value="caucasian">Caucasico / Europeo</option>
+                                <option value="african_american">Afroamericano</option>
+                                <option value="asian">Asiatico</option>
+                                <option value="hispanic">Ispanico</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- BF-AI Results Container -->
+                    <div id="bfaiResultsContainer"></div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button id="confirmUploadBtn" class="btn btn-primary" style="flex: 1;">Carica</button>
+                        <button id="cancelUploadBtn" class="btn btn-outline">Annulla</button>
+                    </div>
+                    <p id="uploadStatus" style="margin-top: 1rem; text-align: center; color: var(--color-text-muted);">
+                    </p>
+                </div>
+            </div>
+
+            <script src="js/api.js"></script>
+            <script src="js/main.js"></script>
+            <script type="module">
+                import { firestoreService } from './js/firestore-service.js';
+                import { authService } from './js/auth-service.js';
+                import { healthConnectService } from './js/health-connect-service.js';
+                import { healthTOONEncoder } from './js/health-toon-encoder.js';
+                import { bfAIService } from './js/bf-ai-service.js';
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    // --- Elements ---
+                    const statsDisplay = document.getElementById('statsDisplay');
+                    const editStatsBtn = document.getElementById('editStatsBtn');
+                    const statsModal = document.getElementById('statsModal');
+                    const saveStatsBtn = document.getElementById('saveStatsBtn');
+                    const cancelStatsBtn = document.getElementById('cancelStatsBtn');
+
+                    const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
+                    const photoModal = document.getElementById('photoModal');
+                    const confirmUploadBtn = document.getElementById('confirmUploadBtn');
+                    const cancelUploadBtn = document.getElementById('cancelUploadBtn');
+                    const photoGallery = document.getElementById('photoGallery');
+                    const uploadStatus = document.getElementById('uploadStatus');
+
+                    // --- Health Data Elements ---
+                    const healthStatsGrid = document.getElementById('healthStatsGrid');
+                    const healthNotConnected = document.getElementById('healthNotConnected');
+                    const healthSyncStatus = document.getElementById('healthSyncStatus');
+                    const refreshHealthData = document.getElementById('refreshHealthData');
+                    const refreshIcon = document.getElementById('refreshIcon');
+
+                    // --- State ---
+                    let bodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
+                    let photos = JSON.parse(localStorage.getItem('ironflow_photos') || '[]');
+                    let healthData = null;
+
+                    // Initialize Services (UnitService is global, Firestore is module)
+                    let unitService;
+                    try {
+                        unitService = window.unitService || new UnitService();
+                    } catch (e) {
+                        console.error('UnitService not available:', e);
+                    }
+                    
+                    // Update Labels based on Unit System
+                    const weightUnit = unitService && unitService.getSystem() === 'imperial' ? 'lbs' : 'kg';
+                    const lengthUnit = unitService && unitService.getSystem() === 'imperial' ? 'in' : 'cm';
+
+                    document.getElementById('labelWeight').textContent = `Peso (${weightUnit})`;
+                    document.getElementById('labelChest').textContent = `Torace (${lengthUnit})`;
+                    document.getElementById('labelArm').textContent = `Braccio (${lengthUnit})`;
+                    document.getElementById('labelWaist').textContent = `Vita (${lengthUnit})`;
+                    document.getElementById('labelLegs').textContent = `Gambe (${lengthUnit})`;
+
+                    // --- Athlete Params Logic ---
+                    const saveParamsBtn = document.getElementById('saveParamsBtn');
+                    const paramsStatus = document.getElementById('paramsStatus');
+                    
+                    async function loadParams() {
+                        const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+                        if (profile.athleteParams) {
+                            document.getElementById('athleteAge').value = profile.athleteParams.age || '';
+                            document.getElementById('athleteHeight').value = profile.athleteParams.height || '';
+                            document.getElementById('athleteGender').value = profile.athleteParams.gender || 'M';
+                            document.getElementById('athleteActivity').value = profile.athleteParams.activity || 'moderate';
+                        }
+                    }
+
+                    if (saveParamsBtn) {
+                        saveParamsBtn.addEventListener('click', async () => {
+                            const age = document.getElementById('athleteAge').value;
+                            const height = document.getElementById('athleteHeight').value;
+                            const gender = document.getElementById('athleteGender').value;
+                            const activity = document.getElementById('athleteActivity').value;
+
+                            if (!age || !height) {
+                                paramsStatus.textContent = 'Inserisci Età e Altezza';
+                                paramsStatus.style.color = 'red';
+                                return;
+                            }
+
+                            paramsStatus.textContent = 'Salvataggio...';
+                            
+                            // Update Profile
+                            const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+                            profile.athleteParams = { age, height, gender, activity };
+                            localStorage.setItem('ironflow_profile', JSON.stringify(profile));
+
+                            // Sync to Firestore
+                            const result = await firestoreService.updateProfileField('athleteParams', profile.athleteParams);
+                            
+                            if (result.success) {
+                                paramsStatus.textContent = 'Parametri salvati!';
+                                paramsStatus.style.color = 'var(--color-primary)';
+                            } else {
+                                paramsStatus.textContent = 'Salvato in locale. Sync fallito.';
+                                paramsStatus.style.color = 'orange';
+                            }
+                            setTimeout(() => paramsStatus.textContent = '', 3000);
+                        });
+                    }
+
+                    // --- Health Data Functions ---
+                    async function loadHealthData() {
+                        try {
+                            // Check if connected
+                            const status = await healthConnectService.getStatus();
+                            
+                            if (!status.isConnected || !status.tokenValid) {
+                                healthStatsGrid.style.display = 'none';
+                                healthNotConnected.style.display = 'block';
+                                healthSyncStatus.textContent = '';
+                                return;
+                            }
+
+                            healthStatsGrid.style.display = 'grid';
+                            healthNotConnected.style.display = 'none';
+
+                            // Load health data from Firestore (last 7 days)
+                            const healthRecords = await firestoreService.getHealthData(7);
+                            
+                            if (!healthRecords || healthRecords.length === 0) {
+                                renderHealthCards(null);
+                                healthSyncStatus.textContent = 'Nessun dato disponibile';
+                                return;
+                            }
+
+                            // Get the most recent record
+                            const latestRecord = healthRecords[0];
+                            
+                            // Decode TOON data
+                            healthData = healthTOONEncoder.decodeHealthData(latestRecord);
+                            
+                            // Calculate trends (compare with previous record if available)
+                            let trends = {};
+                            if (healthRecords.length > 1) {
+                                const previousRecord = healthRecords[1];
+                                const previousData = healthTOONEncoder.decodeHealthData(previousRecord);
+                                trends = calculateTrends(healthData, previousData);
+                            }
+
+                            renderHealthCards(healthData, trends);
+                            
+                            // Update sync status
+                            if (latestRecord.syncTimestamp) {
+                                const syncDate = new Date(latestRecord.syncTimestamp);
+                                const now = new Date();
+                                const diffMinutes = Math.floor((now - syncDate) / 1000 / 60);
+                                
+                                if (diffMinutes < 1) {
+                                    healthSyncStatus.textContent = 'Aggiornato ora';
+                                } else if (diffMinutes < 60) {
+                                    healthSyncStatus.textContent = `Aggiornato ${diffMinutes}m fa`;
+                                } else {
+                                    const diffHours = Math.floor(diffMinutes / 60);
+                                    healthSyncStatus.textContent = `Aggiornato ${diffHours}h fa`;
+                                }
+                            }
+
+                        } catch (error) {
+                            console.error('Error loading health data:', error);
+                            healthSyncStatus.textContent = 'Errore caricamento dati';
+                        }
+                    }
+
+                    function calculateTrends(current, previous) {
+                        const trends = {};
+                        
+                        const metrics = ['steps', 'heartRate', 'weight', 'calories', 'distance', 'sleep'];
+                        
+                        metrics.forEach(metric => {
+                            if (current[metric] !== null && previous[metric] !== null) {
+                                const diff = current[metric] - previous[metric];
+                                const percentChange = (diff / previous[metric]) * 100;
+                                trends[metric] = {
+                                    diff: diff,
+                                    percent: percentChange,
+                                    direction: diff > 0 ? 'up' : diff < 0 ? 'down' : 'same'
+                                };
+                            }
+                        });
+                        
+                        return trends;
+                    }
+
+                    function renderHealthCards(data, trends = {}) {
+                        const cards = [
+                            {
+                                icon: '👟',
+                                label: 'Passi',
+                                sublabel: 'media/giorno',
+                                value: data?.steps,
+                                unit: 'passi',
+                                format: (v) => v?.toLocaleString('it-IT'),
+                                trend: trends.steps
+                            },
+                            {
+                                icon: '❤️',
+                                label: 'Frequenza Cardiaca',
+                                sublabel: 'oggi',
+                                value: data?.heartRate,
+                                unit: 'bpm',
+                                format: (v) => v,
+                                trend: trends.heartRate
+                            },
+                            {
+                                icon: '⚖️',
+                                label: 'Peso',
+                                sublabel: 'ultimo',
+                                value: data?.weight,
+                                unit: 'kg',
+                                format: (v) => v?.toFixed(1),
+                                trend: trends.weight
+                            },
+                            {
+                                icon: '🔥',
+                                label: 'Calorie',
+                                sublabel: 'media/giorno',
+                                value: data?.calories,
+                                unit: 'kcal',
+                                format: (v) => v?.toLocaleString('it-IT'),
+                                trend: trends.calories
+                            },
+                            {
+                                icon: '📏',
+                                label: 'Distanza',
+                                sublabel: 'media/giorno',
+                                value: data?.distance ? data.distance / 1000 : null, // Convert meters to km
+                                unit: 'km',
+                                format: (v) => v?.toFixed(2),
+                                trend: trends.distance
+                            },
+                            {
+                                icon: '😴',
+                                label: 'Sonno',
+                                sublabel: 'media/notte',
+                                value: data?.sleep,
+                                unit: 'ore',
+                                format: (v) => v?.toFixed(1),
+                                trend: trends.sleep
+                            },
+                            {
+                                icon: '⏱️',
+                                label: 'Minuti Attivi',
+                                sublabel: 'media/giorno',
+                                value: data?.activeMinutes,
+                                unit: 'min',
+                                format: (v) => v,
+                                trend: trends.activeMinutes
+                            },
+                            {
+                                icon: '💓',
+                                label: 'HRV',
+                                value: data?.hrv,
+                                unit: 'ms',
+                                format: (v) => v?.toFixed(1),
+                                trend: trends.hrv
+                            },
+                            {
+                                icon: '📊',
+                                label: 'Grasso Corporeo',
+                                value: data?.bodyFat,
+                                unit: '%',
+                                format: (v) => v?.toFixed(1),
+                                trend: trends.bodyFat
+                            },
+                            {
+                                icon: '📐',
+                                label: 'Altezza',
+                                value: data?.height,
+                                unit: 'cm',
+                                format: (v) => v?.toFixed(0),
+                                trend: trends.height
+                            },
+                            {
+                                icon: '💧',
+                                label: 'Idratazione',
+                                value: data?.hydration,
+                                unit: 'ml',
+                                format: (v) => v?.toLocaleString('it-IT'),
+                                trend: trends.hydration
+                            },
+                            {
+                                icon: '🩺',
+                                label: 'Pressione',
+                                value: data?.bloodPressure ? `${data.bloodPressure.systolic}/${data.bloodPressure.diastolic}` : null,
+                                unit: 'mmHg',
+                                format: (v) => v,
+                                trend: trends.bloodPressure
+                            },
+                            {
+                                icon: '🩸',
+                                label: 'Glicemia',
+                                value: data?.bloodGlucose,
+                                unit: 'mg/dL',
+                                format: (v) => v,
+                                trend: trends.bloodGlucose
+                            },
+                            {
+                                icon: '🫁',
+                                label: 'SpO2',
+                                value: data?.oxygenSaturation,
+                                unit: '%',
+                                format: (v) => v?.toFixed(1),
+                                trend: trends.oxygenSaturation
+                            }
+                        ];
+
+                        healthStatsGrid.innerHTML = cards.map(card => {
+                            const isAvailable = card.value !== null && card.value !== undefined;
+                            const displayValue = isAvailable ? card.format(card.value) : '-';
+                            const unavailableClass = !isAvailable ? 'unavailable' : '';
+                            
+                            let trendHtml = '';
+                            if (isAvailable && card.trend) {
+                                const trendClass = card.trend.direction === 'up' ? 'positive' : 
+                                                  card.trend.direction === 'down' ? 'negative' : '';
+                                const trendIcon = card.trend.direction === 'up' ? '↑' : 
+                                                 card.trend.direction === 'down' ? '↓' : '→';
+                                const trendText = Math.abs(card.trend.percent).toFixed(1);
+                                trendHtml = `<div class="health-card-trend ${trendClass}">
+                                    ${trendIcon} ${trendText}% vs precedente
+                                </div>`;
+                            }
+                            
+                            // Mostra sublabel se presente (es. "media/giorno")
+                            const sublabelHtml = card.sublabel ? 
+                                `<div style="font-size: 0.65rem; color: var(--color-text-muted); margin-top: -2px;">${card.sublabel}</div>` : '';
+
+                            return `
+                                <div class="health-card ${unavailableClass}">
+                                    <span class="health-card-icon">${card.icon}</span>
+                                    <div class="health-card-label">${card.label}</div>
+                                    ${sublabelHtml}
+                                    <div class="health-card-value">
+                                        ${displayValue}
+                                        <span class="health-card-unit">${isAvailable ? card.unit : ''}</span>
+                                    </div>
+                                    ${trendHtml}
+                                    ${!isAvailable ? '<div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.5rem;">Non disponibile</div>' : ''}
+                                </div>
+                            `;
+                        }).join('');
+                    }
+
+                    // Refresh health data button
+                    if (refreshHealthData) {
+                        refreshHealthData.addEventListener('click', async () => {
+                            try {
+                                refreshIcon.classList.add('spinning');
+                                refreshHealthData.disabled = true;
+                                healthSyncStatus.textContent = 'Sincronizzazione...';
+
+                                const result = await healthConnectService.syncAllData();
+                                
+                                if (result.success) {
+                                    await loadHealthData();
+                                    healthSyncStatus.textContent = 'Aggiornato ora';
+                                } else {
+                                    healthSyncStatus.textContent = 'Errore sincronizzazione';
+                                }
+                            } catch (error) {
+                                console.error('Error refreshing health data:', error);
+                                healthSyncStatus.textContent = 'Errore';
+                            } finally {
+                                refreshIcon.classList.remove('spinning');
+                                refreshHealthData.disabled = false;
+                            }
+                        });
+                    }
+
+                    // Load Data from Cloud on Init
+                    async function loadData() {
+                         loadParams(); // Load local params immediately
+                         const result = await firestoreService.loadFromCloud();
+                         if (result.success && result.data) {
+                             if (result.data.bodyStats) bodyStats = result.data.bodyStats;
+                             if (result.data.photos) photos = result.data.photos;
+                             // Also refresh params if cloud has them
+                             const cloudProfile = await firestoreService.loadFromCloud(); // Re-fetch profile specifically? 
+                             // Actually loadFromCloud updates localStorage profile too in firestore-service usually, 
+                             // but let's ensure UI updates
+                             loadParams();
+                             
+                             renderStats();
+                             initChart();
+                             renderPhotos();
+                         }
+                    }
+                    
+                    // Auth Listener to trigger load
+                    authService.subscribe(user => {
+                        if(user) {
+                            loadData();
+                            loadHealthData();
+                        }
+                    });
+
+
+                    // ... (Chart and Stats logic remains the same) ...
+                    // --- Chart.js Setup ---
+                    const ctx = document.getElementById('progressChart').getContext('2d');
+                    let chart;
+
+                    function initChart() {
+                        // Sort stats by date
+                        bodyStats.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                        const labels = bodyStats.map(s => new Date(s.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }));
+
+                        // Convert data for chart
+                        const weightData = bodyStats.map(s => unitService ? unitService.convertWeight(s.weight) : s.weight);
+                        const fatData = bodyStats.map(s => s.fat);
+
+                        if (chart) chart.destroy();
+
+                        chart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [
+                                    {
+                                        label: `Peso (${weightUnit})`,
+                                        data: weightData,
+                                        borderColor: '#e0ff00',
+                                        backgroundColor: 'rgba(224, 255, 0, 0.1)',
+                                        tension: 0.4,
+                                        yAxisID: 'y'
+                                    },
+                                    {
+                                        label: 'Grasso (%)',
+                                        data: fatData,
+                                        borderColor: '#ffffff',
+                                        borderDash: [5, 5],
+                                        tension: 0.4,
+                                        yAxisID: 'y1'
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: {
+                                    mode: 'index',
+                                    intersect: false,
+                                },
+                                plugins: {
+                                    legend: { labels: { color: '#aaa' } },
+                                    tooltip: {
+                                        callbacks: {
+                                            afterBody: function (context) {
+                                                const index = context[0].dataIndex;
+                                                const stat = bodyStats[index];
+
+                                                let chest = stat.chest, arm = stat.arm, waist = stat.waist, legs = stat.legs;
+
+                                                if (unitService) {
+                                                    chest = unitService.convertLength(chest);
+                                                    arm = unitService.convertLength(arm);
+                                                    waist = unitService.convertLength(waist);
+                                                    legs = unitService.convertLength(legs);
+                                                }
+
+                                                return `Torace: ${chest || '-'} ${lengthUnit}\nBraccio: ${arm || '-'} ${lengthUnit}\nVita: ${waist || '-'} ${lengthUnit}\nGambe: ${legs || '-'} ${lengthUnit}`;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: { ticks: { color: '#aaa' }, grid: { color: '#333' } },
+                                    y: {
+                                        type: 'linear',
+                                        display: true,
+                                        position: 'left',
+                                        ticks: { color: '#aaa' },
+                                        grid: { color: '#333' }
+                                    },
+                                    y1: {
+                                        type: 'linear',
+                                        display: true,
+                                        position: 'right',
+                                        grid: { drawOnChartArea: false },
+                                        ticks: { color: '#aaa' }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // --- Render Stats ---
+                    function renderStats() {
+                        const latest = bodyStats.length > 0 ? bodyStats[bodyStats.length - 1] : {};
+
+                        let w = latest.weight, c = latest.chest, a = latest.arm, wa = latest.waist, l = latest.legs;
+
+                        if (unitService) {
+                            w = unitService.convertWeight(w);
+                            c = unitService.convertLength(c);
+                            a = unitService.convertLength(a);
+                            wa = unitService.convertLength(wa);
+                            l = unitService.convertLength(l);
+                        }
+
+                        const items = [
+                            { label: 'Peso Corporeo', val: w, unit: weightUnit },
+                            { label: '% Grasso', val: latest.fat, unit: '%' },
+                            { label: 'Torace', val: c, unit: lengthUnit },
+                            { label: 'Braccio', val: a, unit: lengthUnit },
+                            { label: 'Vita', val: wa, unit: lengthUnit },
+                            { label: 'Gambe', val: l, unit: lengthUnit }
+                        ];
+
+                        statsDisplay.innerHTML = items.map(item => `
+                    <div class="measure-card">
+                        <span>${item.label}</span>
+                        <span class="measure-val">${item.val || '-'} <span style="font-size: 0.8rem; color: var(--color-text-muted);">${item.unit}</span></span>
+                    </div>
+                `).join('');
+                    }
+
+                    // --- Render Photos ---
+                    function renderPhotos() {
+                        if (!photoGallery) return;
+                        
+                        // Store photos globally for click access
+                        window._galleryPhotos = photos;
+                        
+                        photoGallery.innerHTML = photos.map((p, idx) => {
+                            const hasBfai = p.bfai && p.bfai.bodyFat !== undefined;
+                            const bfValue = hasBfai ? Number(p.bfai.bodyFat).toFixed(1) : null;
+                            return `
+                            <div class="photo-card ${hasBfai ? 'has-bfai' : ''}" data-idx="${idx}" style="position:relative; cursor:pointer;">
+                                <img src="${p.thumb || p.url}" alt="Progress Photo" style="width:100%; height:200px; object-fit:cover; display:block;">
+                                ${hasBfai ? `<div style="position:absolute; top:8px; right:8px; background:rgba(0,243,255,0.95); color:#000; padding:4px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;">${bfValue}%</div>` : ''}
+                                <div class="photo-info">
+                                    <div>${new Date(p.date).toLocaleDateString('it-IT')}</div>
+                                    <div>${p.note || ''}${hasBfai ? ' 📊' : ''}</div>
+                                </div>
+                            </div>
+                            `;
+                        }).join('');
+
+                        // Add click handlers
+                        photoGallery.querySelectorAll('.photo-card').forEach(card => {
+                            card.onclick = function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const idx = parseInt(this.getAttribute('data-idx'));
+                                const photo = window._galleryPhotos[idx];
+                                console.log('Clicked photo index:', idx, photo);
+                                if (photo) {
+                                    showPhotoDetail(photo);
+                                }
+                            };
+                        });
+                    }
+                    
+                    // --- Show Photo Detail Modal ---
+                    function showPhotoDetail(photo) {
+                        if (!photo) { console.error('Photo is null'); return; }
+                        console.log('Showing photo:', photo);
+                        
+                        document.querySelectorAll('.photo-detail-overlay').forEach(el => el.remove());
+                        
+                        const hasBfai = photo.bfai && photo.bfai.bodyFat !== undefined;
+                        const bfValue = hasBfai ? Number(photo.bfai.bodyFat).toFixed(1) : null;
+                        const bfColor = hasBfai ? getBfColor(photo.bfai.bodyFat) : '#888';
+                        
+                        let bfaiPanel = '';
+                        if (hasBfai) {
+                            const comp = photo.bfai.composition;
+                            bfaiPanel = `
+                                <div style="padding:1rem; background:var(--color-surface); border-radius:8px;">
+                                    <h3 style="color:var(--color-primary); margin-bottom:1rem;">📊 Analisi Body Fat</h3>
+                                    <div style="text-align:center; margin-bottom:1.5rem;">
+                                        <div style="font-size:3rem; font-weight:700; color:${bfColor};">${bfValue}%</div>
+                                        <div style="color:${bfColor}; font-size:0.9rem;">${photo.bfai.category || 'Calcolato'}</div>
+                                    </div>
+                                    ${comp ? `
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:1rem;">
+                                        <div style="background:rgba(255,107,107,0.1); padding:0.75rem; border-radius:8px; text-align:center;">
+                                            <div style="font-size:0.75rem; color:#888;">Massa Grassa</div>
+                                            <div style="font-size:1.2rem; color:#ff6b6b; font-weight:600;">${comp.fatMassKg || '?'} kg</div>
+                                        </div>
+                                        <div style="background:rgba(0,255,136,0.1); padding:0.75rem; border-radius:8px; text-align:center;">
+                                            <div style="font-size:0.75rem; color:#888;">Massa Magra</div>
+                                            <div style="font-size:1.2rem; color:#00ff88; font-weight:600;">${comp.leanMassKg || '?'} kg</div>
+                                        </div>
+                                    </div>` : ''}
+                                    ${photo.bfai.multiPhoto ? '<div style="font-size:0.75rem; color:#888; text-align:center;">📷 Multi-foto</div>' : ''}
+                                </div>`;
+                        }
+                        
+                        const overlay = document.createElement('div');
+                        overlay.className = 'photo-detail-overlay';
+                        overlay.innerHTML = `
+                            <div class="photo-detail-content" style="max-width:${hasBfai ? '900px' : '500px'};">
+                                <div style="display:grid; grid-template-columns:${hasBfai ? '1fr 1fr' : '1fr'}; gap:1rem; padding:1rem;">
+                                    <div>
+                                        <img src="${photo.url}" style="width:100%; border-radius:8px; max-height:60vh; object-fit:contain;">
+                                        <div style="margin-top:1rem; color:#888;">
+                                            <div style="font-size:0.9rem;">${new Date(photo.date).toLocaleString('it-IT')}</div>
+                                            ${photo.note ? '<div style="margin-top:0.5rem;">' + photo.note + '</div>' : ''}
+                                        </div>
+                                    </div>
+                                    ${bfaiPanel}
+                                </div>
+                                <div style="padding:1rem; border-top:1px solid var(--color-border); display:flex; gap:1rem;">
+                                    <button class="btn btn-outline close-overlay-btn" style="flex:1;">Chiudi</button>
+                                    <button class="btn delete-photo-btn" style="flex:1; background:#ff4444; border-color:#ff4444;">🗑️ Elimina</button>
+                                    <a href="${photo.url}" target="_blank" class="btn btn-primary" style="flex:1; text-align:center; text-decoration:none;">Apri</a>
+                                </div>
+                            </div>`;
+                        
+                        document.body.appendChild(overlay);
+                        overlay.querySelector('.close-overlay-btn').onclick = () => overlay.remove();
+                        overlay.querySelector('.delete-photo-btn').onclick = () => {
+                            if (confirm('Eliminare questa foto?')) {
+                                deletePhoto(photo.id);
+                                overlay.remove();
+                            }
+                        };
+                        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+                    }
+                    
+                    // --- Delete Photo ---
+                    function deletePhoto(photoId) {
+                        photos = photos.filter(p => p.id !== photoId);
+                        window._galleryPhotos = photos;
+                        localStorage.setItem('ironflow_photos', JSON.stringify(photos));
+                        renderPhotos();
+                        
+                        // Sync to Firestore
+                        if (typeof firestoreService !== 'undefined' && firestoreService.syncToCloud) {
+                            firestoreService.syncToCloud({ photos }).catch(err => console.error('Sync error:', err));
+                        }
+                        console.log('Photo deleted:', photoId);
+                    }
+                    
+                    function getBfColor(bf) {
+                        if (!bf) return '#888';
+                        if (bf <= 10) return '#ff4444';
+                        if (bf <= 15) return '#00f3ff';
+                        if (bf <= 20) return '#00ff88';
+                        if (bf <= 25) return '#ffff00';
+                        return '#ff6600';
+                    }
+
+                    saveStatsBtn.addEventListener('click', async () => {
+                        const date = document.getElementById('statsDate').value;
+                        let weight = parseFloat(document.getElementById('inputWeight').value);
+                        const fat = parseFloat(document.getElementById('inputFat').value);
+                        let chest = parseFloat(document.getElementById('inputChest').value);
+                        let arm = parseFloat(document.getElementById('inputArm').value);
+                        let waist = parseFloat(document.getElementById('inputWaist').value);
+                        let legs = parseFloat(document.getElementById('inputLegs').value);
+
+                        if (!date) {
+                            alert('Inserisci una data.');
+                            return;
+                        }
+
+                        // Convert back to Metric for storage
+                        if (unitService) {
+                            if (weight) weight = unitService.toMetricWeight(weight);
+                            if (chest) chest = unitService.toMetricLength(chest);
+                            if (arm) arm = unitService.toMetricLength(arm);
+                            if (waist) waist = unitService.toMetricLength(waist);
+                            if (legs) legs = unitService.toMetricLength(legs);
+                        }
+
+                        const newStat = {
+                            id: Date.now(),
+                            date,
+                            weight: weight || null,
+                            fat: fat || null,
+                            chest: chest || null,
+                            arm: arm || null,
+                            waist: waist || null,
+                            legs: legs || null
+                        };
+
+                        bodyStats.push(newStat);
+                        localStorage.setItem('ironflow_body_stats', JSON.stringify(bodyStats));
+
+                        statsModal.style.display = 'none';
+                        renderStats();
+                        initChart();
+
+                        if (window.firestoreService) {
+                            await window.firestoreService.syncToCloud();
+                        }
+                    });
+
+                    // Open stats modal for editing
+                    editStatsBtn.addEventListener('click', () => {
+                        statsModal.style.display = 'flex';
+                        document.getElementById('statsDate').value = new Date().toISOString().split('T')[0];
+                        // Pre-fill with latest values if available
+                        if (bodyStats.length > 0) {
+                            const latest = bodyStats[bodyStats.length - 1];
+                            let w = latest.weight, c = latest.chest, a = latest.arm, wa = latest.waist, l = latest.legs;
+                            if (unitService) {
+                                if (w) w = unitService.convertWeight(w);
+                                if (c) c = unitService.convertLength(c);
+                                if (a) a = unitService.convertLength(a);
+                                if (wa) wa = unitService.convertLength(wa);
+                                if (l) l = unitService.convertLength(l);
+                            }
+                            document.getElementById('inputWeight').value = w || '';
+                            document.getElementById('inputFat').value = latest.fat || '';
+                            document.getElementById('inputChest').value = c || '';
+                            document.getElementById('inputArm').value = a || '';
+                            document.getElementById('inputWaist').value = wa || '';
+                            document.getElementById('inputLegs').value = l || '';
+                        }
+                    });
+
+                    cancelStatsBtn.addEventListener('click', () => statsModal.style.display = 'none');
+
+
+
+
+                    uploadPhotoBtn.addEventListener('click', () => {
+                        photoModal.style.display = 'flex';
+                        uploadStatus.textContent = '';
+                        document.getElementById('photoInput').value = '';
+                        document.getElementById('photoNote').value = '';
+                        // Reset BF-AI state
+                        const bfaiChk = document.getElementById('enableBfaiAnalysis');
+                        if (bfaiChk) {
+                            bfaiChk.checked = false;
+                            document.getElementById('bfaiParamsSection').style.display = 'none';
+                            document.getElementById('bfaiResultsContainer').innerHTML = '';
+                        }
+                        // Reset photo preview
+                        document.getElementById('photoPreviewContainer').style.display = 'none';
+                        document.getElementById('photoPreviewGrid').innerHTML = '';
+                        document.getElementById('photoCount').textContent = '0';
+                    });
+
+                    // Photo input change - show previews
+                    document.getElementById('photoInput').addEventListener('change', (e) => {
+                        const files = e.target.files;
+                        const previewContainer = document.getElementById('photoPreviewContainer');
+                        const previewGrid = document.getElementById('photoPreviewGrid');
+                        const photoCount = document.getElementById('photoCount');
+                        const bfaiHint = document.getElementById('bfaiPhotoHint');
+                        
+                        previewGrid.innerHTML = '';
+                        
+                        if (files.length > 0) {
+                            previewContainer.style.display = 'block';
+                            photoCount.textContent = files.length;
+                            
+                            // Show hint if BF-AI is enabled
+                            const bfaiEnabled = document.getElementById('enableBfaiAnalysis')?.checked;
+                            bfaiHint.style.display = bfaiEnabled ? 'inline' : 'none';
+                            
+                            Array.from(files).forEach((file, idx) => {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                    const div = document.createElement('div');
+                                    div.style.cssText = 'position:relative; aspect-ratio:3/4; border-radius:8px; overflow:hidden; border:1px solid var(--color-border);';
+                                    div.innerHTML = `
+                                        <img src="${ev.target.result}" style="width:100%; height:100%; object-fit:cover;">
+                                        <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; padding:2px 6px; border-radius:4px; font-size:0.7rem;">
+                                            ${idx === 0 ? '📷 1' : idx === 1 ? '📷 2' : '📷 3'}
+                                        </span>
+                                    `;
+                                    previewGrid.appendChild(div);
+                                };
+                                reader.readAsDataURL(file);
+                            });
+                        } else {
+                            previewContainer.style.display = 'none';
+                        }
+                    });
+
+                    cancelUploadBtn.addEventListener('click', () => photoModal.style.display = 'none');
+
+                    // BF-AI Toggle handler
+                    document.getElementById('enableBfaiAnalysis')?.addEventListener('change', (e) => {
+                        document.getElementById('bfaiParamsSection').style.display = e.target.checked ? 'block' : 'none';
+                        document.getElementById('bfaiResultsContainer').innerHTML = '';
+                        // Show/hide multi-photo hint
+                        const hint = document.getElementById('bfaiPhotoHint');
+                        if (hint) hint.style.display = e.target.checked ? 'inline' : 'none';
+                        if (e.target.checked) {
+                            // Pre-fill from profile
+                            const profile = JSON.parse(localStorage.getItem('ironflow_profile') || '{}');
+                            const ap = profile.athleteParams || {};
+                            if (ap.height) document.getElementById('bfaiHeight').value = ap.height;
+                            if (ap.age) document.getElementById('bfaiAge').value = ap.age;
+                            if (ap.gender) document.getElementById('bfaiGender').value = ap.gender === 'M' ? 'male' : 'female';
+                            // Get weight from body stats
+                            const bs = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
+                            if (bs.length > 0 && bs[0].weight) document.getElementById('bfaiWeight').value = bs[0].weight;
+                        }
+                    });
+
+                    confirmUploadBtn.addEventListener('click', async () => {
+                        const fileInput = document.getElementById('photoInput');
+                        const note = document.getElementById('photoNote').value;
+                        const enableBfai = document.getElementById('enableBfaiAnalysis')?.checked;
+
+                        if (fileInput.files.length === 0) {
+                            alert('Seleziona almeno una foto.');
+                            return;
+                        }
+
+                        const files = Array.from(fileInput.files);
+                        const file = files[0]; // Primary file for upload
+                        confirmUploadBtn.disabled = true;
+                        let bfaiResult = null;
+
+                        // BF-AI Analysis Phase
+                        if (enableBfai) {
+                            const bfHeight = document.getElementById('bfaiHeight').value;
+                            const bfWeight = document.getElementById('bfaiWeight').value;
+                            if (!bfHeight || !bfWeight) {
+                                alert('Inserisci Altezza e Peso per l\'analisi BF-AI');
+                                confirmUploadBtn.disabled = false;
+                                return;
+                            }
+                            uploadStatus.innerHTML = '<span style="color:#00f3ff;">⏳ Analisi Body Fat in corso...</span>';
+                            try {
+                                // Use multiple photos for better BF-AI analysis
+                                const bfaiParams = {
+                                    height_cm: parseFloat(bfHeight),
+                                    weight_kg: parseFloat(bfWeight),
+                                    gender: document.getElementById('bfaiGender').value,
+                                    age: parseInt(document.getElementById('bfaiAge').value) || undefined,
+                                    ethnicity: document.getElementById('bfaiEthnicity').value
+                                };
+                                
+                                // If multiple photos, analyze each and average results
+                                if (files.length > 1) {
+                                    uploadStatus.innerHTML = '<span style="color:#00f3ff;">⏳ Analisi ' + files.length + ' foto in corso...</span>';
+                                    const results = [];
+                                    for (let i = 0; i < Math.min(files.length, 3); i++) {
+                                        try {
+                                            const r = await bfAIService.analyzePhoto(files[i], bfaiParams);
+                                            if (r && r.success) results.push(r);
+                                        } catch (e) { console.warn('BF-AI photo ' + i + ' failed:', e); }
+                                    }
+                                    
+                                    if (results.length > 0) {
+                                        // Average the results
+                                        const avgBf = results.reduce((sum, r) => sum + (r.summary?.bodyFatPercentage || 0), 0) / results.length;
+                                        bfaiResult = results[0]; // Use first as base
+                                        bfaiResult.summary.bodyFatPercentage = avgBf;
+                                        bfaiResult.multiPhoto = true;
+                                        bfaiResult.photoCount = results.length;
+                                    }
+                                } else {
+                                    bfaiResult = await bfAIService.analyzePhoto(file, bfaiParams);
+                                }
+                                document.getElementById('bfaiResultsContainer').innerHTML = bfAIService.generateResultsHTML(bfaiResult);
+                                const multiMsg = bfaiResult.multiPhoto ? ' (' + bfaiResult.photoCount + ' foto analizzate)' : '';
+                                uploadStatus.innerHTML = '<span style="color:#00ff88;">✓ Analisi BF-AI completata!' + multiMsg + '</span>';
+                            } catch (bfErr) {
+                                console.error('BF-AI Error:', bfErr);
+                                uploadStatus.innerHTML = '<span style="color:#ff6666;">⚠ Errore BF-AI: ' + bfErr.message + '</span>';
+                            }
+                        } else {
+                            uploadStatus.textContent = 'Caricamento e compressione...';
+                        }
+
+                        // Photo Upload Phase
+                        try {
+                            const result = await firestoreService.processPhotoForUpload(file, 600);
+
+                            if (result.success) {
+                                // Process all photos
+                                const timestamp = Date.now();
+                                const isoDate = new Date().toISOString();
+                                
+                                for (let i = 0; i < files.length; i++) {
+                                    const photoResult = i === 0 ? result : await firestoreService.processPhotoForUpload(files[i], 600);
+                                    if (photoResult.success) {
+                                        const newPhoto = {
+                                            id: timestamp + i,
+                                            url: photoResult.base64,
+                                            date: isoDate,
+                                            note: files.length > 1 ? (note + ' [' + (i+1) + '/' + files.length + ']') : note,
+                                            photoSet: files.length > 1 ? timestamp : null
+                                        };
+                                        // Add BF-AI data only to first photo
+                                        if (i === 0 && bfaiResult && bfaiResult.success) {
+                                            newPhoto.bfai = {
+                                                bodyFat: bfaiResult.summary?.bodyFatPercentage || 0,
+                                                category: bfaiResult.summary?.category || 'Calcolato',
+                                                composition: bfaiResult.bodyComposition || {},
+                                                multiPhoto: bfaiResult.multiPhoto || false
+                                            };
+                                        }
+                                        photos.unshift(newPhoto);
+                                    }
+                                }
+                                
+                                // Placeholder to match old code structure
+                                const newPhoto = photos[0];
+                                // Limit photos to avoid hitting document size limits (e.g. keep last 10 locally/doc)
+                                // For a real app, we'd use a subcollection, but for this single-doc architecture:
+                                if (photos.length > 10) photos = photos.slice(0, 10);
+
+                                localStorage.setItem('ironflow_photos', JSON.stringify(photos));
+
+                                renderPhotos();
+                                
+                                // Show close button instead of auto-close
+                                if (bfaiResult) {
+                                    uploadStatus.innerHTML = `
+                                        <div style="margin-top:1rem; padding:1rem; background:rgba(0,255,136,0.1); border:1px solid #00ff88; border-radius:8px;">
+                                            <div style="color:#00ff88; font-weight:600; margin-bottom:0.5rem;">✓ Foto caricate e analisi completata!</div>
+                                            <div style="color:#888; font-size:0.85rem; margin-bottom:1rem;">I risultati BF-AI sono stati salvati con le foto.</div>
+                                            <button id="closeAfterUploadBtn" class="btn btn-primary" style="width:100%;">Chiudi</button>
+                                        </div>
+                                    `;
+                                    document.getElementById('closeAfterUploadBtn').addEventListener('click', () => {
+                                        photoModal.style.display = 'none';
+                                    });
+                                } else {
+                                    photoModal.style.display = 'none';
+                                }
+
+                                // Sync photos to Firestore
+                                await firestoreService.syncToCloud();
+                                
+                                // Save BF-AI history to Firestore if available
+                                if (bfaiResult && bfaiResult.success) {
+                                    try {
+                                        const bfaiHistory = {
+                                            date: new Date().toISOString(),
+                                            bodyFat: bfaiResult.summary?.bodyFatPercentage || 0,
+                                            category: bfaiResult.summary?.category || 'Unknown',
+                                            composition: bfaiResult.bodyComposition || {},
+                                            measurements: bfaiResult.methods || {},
+                                            multiPhoto: bfaiResult.multiPhoto || false,
+                                            photoCount: bfaiResult.photoCount || 1
+                                        };
+                                        
+                                        // Save to local storage for history
+                                        const bfHistory = JSON.parse(localStorage.getItem('ironflow_bf_history') || '[]');
+                                        bfHistory.unshift(bfaiHistory);
+                                        if (bfHistory.length > 50) bfHistory.pop(); // Keep last 50
+                                        localStorage.setItem('ironflow_bf_history', JSON.stringify(bfHistory));
+                                        
+                                        // Sync BF history to Firestore
+                                        await firestoreService.updateProfileField('bfHistory', bfHistory);
+                                        console.log('BF-AI history saved to Firestore');
+                                    } catch (bfSaveErr) {
+                                        console.warn('Failed to save BF-AI history:', bfSaveErr);
+                                    }
+                                }
+                            } else {
+                                throw new Error(result.message);
+                            }
+                        } catch (error) {
+                            console.error('Upload failed:', error);
+                            uploadStatus.textContent = 'Errore: ' + error.message;
+                        } finally {
+                            confirmUploadBtn.disabled = false;
+                        }
+                    });
+                    
+                    // --- Init ---
+                    renderStats();
+                    initChart();
+                    renderPhotos();
+                });
+            </script>
+        </body>
+
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test OAuth Config - GYMBRO</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: white;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #3b82f6; }
+        button {
+            background: #00f3ff;
+            color: black;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        button:hover {
+            background: #00d4e6;
+        }
+        pre {
+            background: #0a0a0a;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+        .test-result {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-left: 3px solid #333;
+            padding-left: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Configurazione OAuth Google Fit</h1>
+    
+    <div class="card">
+        <h2>Configurazione OAuth</h2>
+        <div id="configInfo"></div>
+    </div>
+
+    <div class="card">
+        <h2>Test Connessione</h2>
+        <button onclick="testOAuthFlow()">1. Testa Flusso OAuth</button>
+        <button onclick="testFirebaseFunction()">2. Testa Firebase Function</button>
+        <button onclick="checkHealthStatus()">3. Verifica Stato Health Connect</button>
+        <button onclick="testTokenLoad()">4. Testa Caricamento Token</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="card">
+        <h2>Log Console</h2>
+        <pre id="consoleLog"></pre>
+    </div>
+
+    <script type="module">
+        import { healthConnectService } from './js/health-connect-service.js';
+        import { firestoreService } from './js/firestore-service.js';
+        import { authService } from './js/auth-service.js';
+
+        const configInfo = document.getElementById('configInfo');
+        const testResults = document.getElementById('testResults');
+        const consoleLog = document.getElementById('consoleLog');
+
+        let logs = [];
+
+        // Override console.log per catturare i log
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = (...args) => {
+            originalLog(...args);
+            addLog('INFO', args.join(' '));
+        };
+
+        console.error = (...args) => {
+            originalError(...args);
+            addLog('ERROR', args.join(' '));
+        };
+
+        console.warn = (...args) => {
+            originalWarn(...args);
+            addLog('WARN', args.join(' '));
+        };
+
+        function addLog(level, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] [${level}] ${message}`);
+            consoleLog.textContent = logs.slice(-50).join('\n');
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>${type.toUpperCase()}:</strong> ${message}`;
+            testResults.appendChild(div);
+        }
+
+        // Mostra configurazione
+        function showConfig() {
+            const config = {
+                clientId: healthConnectService.clientId,
+                redirectUri: healthConnectService.redirectUri,
+                scopes: healthConnectService.scopes,
+                apiBase: healthConnectService.apiBase
+            };
+
+            configInfo.innerHTML = `
+                <pre>${JSON.stringify(config, null, 2)}</pre>
+                <p class="info">✓ Client ID: ${config.clientId ? 'Configurato' : 'Mancante'}</p>
+                <p class="info">✓ Redirect URI: ${config.redirectUri}</p>
+                <p class="info">✓ Scopes: ${config.scopes.split(' ').length} permessi richiesti</p>
+            `;
+        }
+
+        // Test 1: Flusso OAuth
+        window.testOAuthFlow = async () => {
+            addResult('Avvio test flusso OAuth...', 'info');
+            
+            try {
+                // Verifica che l'utente sia autenticato
+                const user = authService.getCurrentUser();
+                if (!user) {
+                    addResult('❌ Utente non autenticato. Effettua il login prima.', 'error');
+                    return;
+                }
+                addResult('✓ Utente autenticato: ' + user.email, 'success');
+
+                // Costruisci URL OAuth
+                const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                    `client_id=${healthConnectService.clientId}&` +
+                    `redirect_uri=${encodeURIComponent(healthConnectService.redirectUri)}&` +
+                    `response_type=code&` +
+                    `scope=${encodeURIComponent(healthConnectService.scopes)}&` +
+                    `access_type=offline&` +
+                    `prompt=consent`;
+
+                addResult('✓ URL OAuth generato correttamente', 'success');
+                addResult('Apertura popup OAuth...', 'info');
+                
+                // Apri popup
+                const width = 500;
+                const height = 600;
+                const left = (screen.width - width) / 2;
+                const top = (screen.height - height) / 2;
+                
+                window.open(
+                    authUrl,
+                    'Google Fit Test',
+                    `width=${width},height=${height},left=${left},top=${top}`
+                );
+
+                addResult('✓ Popup aperto. Completa l\'autorizzazione nel popup.', 'success');
+                addResult('Nota: Controlla i log della console per vedere il risultato.', 'warning');
+
+            } catch (error) {
+                addResult('❌ Errore: ' + error.message, 'error');
+                console.error('Test OAuth failed:', error);
+            }
+        };
+
+        // Test 2: Firebase Function
+        window.testFirebaseFunction = async () => {
+            addResult('Test Firebase Function...', 'info');
+            
+            try {
+                const user = authService.getCurrentUser();
+                if (!user) {
+                    addResult('❌ Utente non autenticato', 'error');
+                    return;
+                }
+
+                addResult('✓ Utente autenticato', 'success');
+                
+                // Importa Firebase Functions
+                const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
+                const functions = getFunctions();
+                
+                addResult('✓ Firebase Functions importato', 'success');
+                
+                // Testa con un code fittizio (dovrebbe fallire ma ci dice se la function è raggiungibile)
+                const exchangeCode = httpsCallable(functions, 'exchangeHealthCode');
+                
+                try {
+                    await exchangeCode({ code: 'test_code_123' });
+                    addResult('⚠️ Function chiamata (code non valido come previsto)', 'warning');
+                } catch (error) {
+                    if (error.message.includes('invalid_grant') || error.message.includes('Code is required')) {
+                        addResult('✓ Firebase Function raggiungibile e funzionante', 'success');
+                        addResult('(Errore previsto con code di test)', 'info');
+                    } else {
+                        addResult('❌ Errore Firebase Function: ' + error.message, 'error');
+                    }
+                }
+
+            } catch (error) {
+                addResult('❌ Errore: ' + error.message, 'error');
+                console.error('Test Firebase Function failed:', error);
+            }
+        };
+
+        // Test 3: Stato Health Connect
+        window.checkHealthStatus = async () => {
+            addResult('Verifica stato Health Connect...', 'info');
+            
+            try {
+                const status = await healthConnectService.getStatus();
+                
+                addResult('Stato ricevuto:', 'info');
+                addResult(JSON.stringify(status, null, 2), 'info');
+                
+                if (status.isConnected && status.tokenValid) {
+                    addResult('✓ Health Connect CONNESSO e token VALIDO', 'success');
+                    
+                    // Mostra scadenza token
+                    const expiryDate = new Date(status.tokenExpiry);
+                    const now = new Date();
+                    const minutesLeft = Math.floor((expiryDate - now) / 1000 / 60);
+                    addResult(`Token scade tra ${minutesLeft} minuti (${expiryDate.toLocaleString()})`, 'info');
+                    
+                } else if (status.hasToken && !status.tokenValid) {
+                    addResult('⚠️ Token presente ma SCADUTO', 'warning');
+                } else {
+                    addResult('❌ Health Connect NON connesso', 'error');
+                }
+
+            } catch (error) {
+                addResult('❌ Errore: ' + error.message, 'error');
+                console.error('Check status failed:', error);
+            }
+        };
+
+        // Test 4: Caricamento Token
+        window.testTokenLoad = async () => {
+            addResult('Test caricamento token da Firestore...', 'info');
+            
+            try {
+                const user = authService.getCurrentUser();
+                if (!user) {
+                    addResult('❌ Utente non autenticato', 'error');
+                    return;
+                }
+
+                addResult('✓ Utente: ' + user.uid, 'success');
+                
+                const tokenData = await firestoreService.getHealthToken();
+                
+                if (tokenData) {
+                    addResult('✓ Token trovato in Firestore', 'success');
+                    addResult('Campi presenti: ' + Object.keys(tokenData).join(', '), 'info');
+                    
+                    if (tokenData.accessToken) {
+                        addResult('✓ Access Token presente (lunghezza: ' + tokenData.accessToken.length + ')', 'success');
+                    }
+                    if (tokenData.refreshToken) {
+                        addResult('✓ Refresh Token presente', 'success');
+                    }
+                    if (tokenData.expiryDate) {
+                        const expiry = new Date(tokenData.expiryDate);
+                        const isValid = expiry > new Date();
+                        addResult(`${isValid ? '✓' : '❌'} Expiry Date: ${expiry.toLocaleString()} (${isValid ? 'valido' : 'scaduto'})`, isValid ? 'success' : 'error');
+                    }
+                } else {
+                    addResult('❌ Nessun token trovato in Firestore', 'error');
+                    addResult('Devi prima connettere Google Fit', 'warning');
+                }
+
+            } catch (error) {
+                addResult('❌ Errore: ' + error.message, 'error');
+                console.error('Test token load failed:', error);
+            }
+        };
+
+        // Inizializza
+        showConfig();
+        addLog('INFO', 'Test page loaded');
+
+        // Verifica autenticazione
+        authService.subscribe((user) => {
+            if (user) {
+                addLog('INFO', 'User authenticated: ' + user.email);
+            } else {
+                addLog('WARN', 'User not authenticated');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Diario | GYMBRO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00f3ff">
+
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GymBro">
+    <link rel="apple-touch-icon" href="assets/icon.svg">
+
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .log-entry {
+            background: var(--color-surface);
+            border-left: 4px solid var(--color-primary);
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            position: relative;
+        }
+
+        .log-date {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .log-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .log-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .stat-pill {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .delete-log-btn {
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 1.2rem;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        /* Logging Form Styles */
+        .logging-section {
+            background: var(--color-surface);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--spacing-md);
+            border: 1px solid var(--color-primary);
+        }
+
+        .exercise-log-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .exercise-log-item:last-child {
+            border-bottom: none;
+        }
+
+        .set-row {
+            display: grid;
+            grid-template-columns: 0.5fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 480px) {
+
+            .set-row,
+            .set-header {
+                grid-template-columns: 30px 1fr 1fr 1fr 30px !important;
+                gap: 4px !important;
+            }
+
+            .set-input {
+                padding: 0.4rem 0.2rem !important;
+                font-size: 0.9rem !important;
+            }
+
+            .set-label {
+                font-size: 0.8rem !important;
+            }
+        }
+
+        .set-label {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
+        .set-input {
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-main);
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .set-header {
+            display: grid;
+            grid-template-columns: 0.5fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--color-primary);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 999px;
+            font-size: 0.65rem;
+            padding: 0 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+    <style>
+        /* ... existing styles ... */
+        .exercise-log-item {
+            margin-bottom: 1.5rem;
+            background: var(--color-surface);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            position: relative;
+        }
+
+        .exercise-log-item.in-superset {
+            border-left: 3px solid #ff6b6b;
+            background: linear-gradient(to right, rgba(255, 107, 107, 0.05), var(--color-surface));
+        }
+
+        .superset-indicator {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .superset-controls {
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--color-border);
+            display: flex !important;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .superset-btn {
+            background: none;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .superset-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text-main);
+        }
+
+        .superset-rest-config {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .superset-rest-config.visible {
+            display: block;
+        }
+
+        .rest-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .rest-input-row input {
+            width: 50px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: white;
+            padding: 0.2rem;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .set-type-select {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-main);
+            border-radius: 4px;
+            padding: 0.2rem;
+            font-size: 0.8rem;
+            width: 80px;
+        }
+
+        /* Grid layout for set row */
+        .set-row {
+            display: grid;
+            grid-template-columns: 30px 80px 1fr 1fr 1fr 30px;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 480px) {
+
+            .set-row,
+            .set-header {
+                grid-template-columns: 20px 60px 1fr 1fr 1fr 20px !important;
+                gap: 2px !important;
+            }
+
+            .set-input {
+                padding: 0.4rem 0.1rem !important;
+                font-size: 0.85rem !important;
+            }
+
+            .set-type-select {
+                width: 100% !important;
+                font-size: 0.75rem !important;
+                padding: 0.1rem !important;
+            }
+
+            .set-label {
+                font-size: 0.75rem !important;
+            }
+        }
+
+        .set-header {
+            display: grid;
+            grid-template-columns: 30px 80px 1fr 1fr 1fr 30px;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
+            <nav>
+                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="creator.html">Creator</a></li>
+                    <li><a href="diary.html" class="text-primary">Diario</a></li>
+                    <li><a href="analysis.html">Analisi</a></li>
+                    <li><a href="body.html">Corpo</a></li>
+                    <li><a href="user.html">Profilo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section" style="padding-top: 160px;">
+        <div class="container">
+            <div class="flex"
+                style="justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <h1>Diario <span class="text-primary">Allenamento</span></h1>
+                <button id="startWorkoutBtn" class="btn btn-primary">Registra Allenamento</button>
+            </div>
+
+            <!-- Workout Selector (Hidden by default) -->
+            <div id="workoutSelector" class="card" style="display: none; margin-bottom: var(--spacing-md);">
+                <h3>Seleziona Scheda</h3>
+                <select id="savedWorkoutsSelect" style="margin: 1rem 0; width: 100%; padding: 0.8rem;">
+                    <option value="">-- Scegli una routine --</option>
+                </select>
+                <div style="display: flex; gap: 1rem;">
+                    <button id="loadWorkoutBtn" class="btn btn-primary" style="flex: 1;">Carica
+                        Scheda</button>
+                    <button id="cancelSelectBtn" class="btn btn-outline">Annulla</button>
+                </div>
+            </div>
+
+            <!-- Active Logging Area (Hidden by default) -->
+            <div id="loggingArea" class="logging-section" style="display: none;">
+                <h2 id="loggingTitle" style="margin-bottom: 1rem;">Log Workout</h2>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    <div>
+                        <label style="font-size: 0.9rem; color: var(--color-text-muted);">Data</label>
+                        <input type="date" id="logDate" class="set-input" style="text-align: left;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.9rem; color: var(--color-text-muted);">Durata
+                            (min)</label>
+                        <input type="number" id="logDuration" class="set-input" placeholder="es. 60">
+                    </div>
+                </div>
+
+                <div class="wellness-grid"
+                    style="display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:0.75rem; margin-bottom:1rem;">
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--color-text-muted);">Sonno (1-10)</label>
+                        <input type="number" id="logSleepQuality" class="set-input" min="1" max="10" placeholder="7">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--color-text-muted);">Energia (1-10)</label>
+                        <input type="number" id="logEnergyLevel" class="set-input" min="1" max="10" placeholder="7">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--color-text-muted);">Stress (1-10)</label>
+                        <input type="number" id="logStressLevel" class="set-input" min="1" max="10" placeholder="4">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--color-text-muted);">DOMS (1-10)</label>
+                        <input type="number" id="logSorenessLevel" class="set-input" min="1" max="10" placeholder="3">
+                    </div>
+                </div>
+
+                <!-- DOMS Details Section -->
+                <div id="domsDetailsSection"
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="font-size: 0.9rem; color: var(--color-text-muted); font-weight: 500;">💪 Dettagli
+                            DOMS</label>
+                        <button type="button" id="toggleDomsDetails"
+                            style="background: none; border: none; color: var(--color-primary); cursor: pointer; font-size: 0.8rem;">Espandi
+                            ▼</button>
+                    </div>
+                    <div id="domsDetailsContent" style="display: none;">
+                        <div style="margin-bottom: 1rem;">
+                            <label
+                                style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Gruppi
+                                Muscolari Doloranti</label>
+                            <div id="logSorenessMusclePicker" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                                <!-- Muscle chips will be generated here -->
+                            </div>
+                            <small id="logSorenessMuscleHint"
+                                style="display: block; margin-top: 0.5rem; color: var(--color-text-muted); font-size: 0.75rem;">Nessun
+                                gruppo selezionato</small>
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.5rem;">Causa
+                                DOMS / Dolore (opzionale)</label>
+                            <input type="text" id="logExternalCause" class="set-input"
+                                style="width: 100%; text-align: left;"
+                                placeholder="es. Partita di Padel, Corsa 10km, Trasloco...">
+                            <small
+                                style="display: block; margin-top: 0.25rem; color: var(--color-text-muted); font-size: 0.7rem;">Se
+                                il dolore è dovuto ad attività esterne alla palestra</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="exercisesLogContainer">
+                    <!-- Dynamic Exercises will go here -->
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <button id="finishWorkoutBtn" class="btn btn-primary" style="flex: 1;">Salva
+                        Allenamento</button>
+                    <button id="cancelLogBtn" class="btn btn-outline">Annulla</button>
+                </div>
+            </div>
+
+            <!-- History List -->
+            <div id="historyList">
+                <!-- Logs will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script type="module">
+        import { firestoreService } from './js/firestore-service.js';
+        import { MUSCLE_GROUPS } from './js/exercise-db.js';
+        import { prTracker } from './js/pr-tracker.js';
+
+        // Set types configuration (Mirrored from Creator)
+        const SET_TYPES = {
+            normal: { label: 'Normale', color: 'normal' },
+            warmup: { label: 'Warm-up', color: 'warmup' },
+            backoff: { label: 'Back-off', color: 'backoff' },
+            dropset: { label: 'Drop Set', color: 'dropset' },
+            amrap: { label: 'AMRAP', color: 'amrap' },
+            pause: { label: 'Pausa', color: 'pause' }
+        };
+
+        // Generate set type options HTML
+        function getSetTypeOptions(selectedType = 'normal') {
+            return Object.entries(SET_TYPES).map(([key, val]) =>
+                `<option value="${key}" ${key === selectedType ? 'selected' : ''}>${val.label}</option>`
+            ).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let nextSupersetId = 1;
+
+            // DOMS Muscle Picker Setup
+            const logSorenessMusclePicker = document.getElementById('logSorenessMusclePicker');
+            const logSorenessMuscleHint = document.getElementById('logSorenessMuscleHint');
+            const logExternalCause = document.getElementById('logExternalCause');
+            const toggleDomsDetails = document.getElementById('toggleDomsDetails');
+            const domsDetailsContent = document.getElementById('domsDetailsContent');
+
+            let selectedLogSorenessMuscles = new Set();
+
+            // Toggle DOMS details section
+            toggleDomsDetails.addEventListener('click', () => {
+                const isHidden = domsDetailsContent.style.display === 'none';
+                domsDetailsContent.style.display = isHidden ? 'block' : 'none';
+                toggleDomsDetails.textContent = isHidden ? 'Comprimi ▲' : 'Espandi ▼';
+            });
+
+            // Build muscle picker chips
+            function buildLogSorenessPicker() {
+                if (!logSorenessMusclePicker) return;
+                logSorenessMusclePicker.innerHTML = '';
+
+                Object.entries(MUSCLE_GROUPS).forEach(([id, meta]) => {
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'doms-chip';
+                    chip.dataset.muscle = id;
+                    chip.textContent = meta.label;
+                    chip.style.cssText = `
+                        background: rgba(255, 255, 255, 0.08);
+                        border: 1px solid rgba(255, 255, 255, 0.12);
+                        color: #fff;
+                        border-radius: 999px;
+                        padding: 0.25rem 0.6rem;
+                        font-size: 0.75rem;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                    `;
+
+                    chip.addEventListener('click', () => {
+                        if (selectedLogSorenessMuscles.has(id)) {
+                            selectedLogSorenessMuscles.delete(id);
+                            chip.style.background = 'rgba(255, 255, 255, 0.08)';
+                            chip.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                        } else {
+                            selectedLogSorenessMuscles.add(id);
+                            chip.style.background = 'rgba(0, 243, 255, 0.25)';
+                            chip.style.borderColor = 'rgba(0, 243, 255, 0.6)';
+                        }
+                        updateLogSorenessHint();
+                    });
+
+                    logSorenessMusclePicker.appendChild(chip);
+                });
+            }
+
+            function updateLogSorenessHint() {
+                if (!logSorenessMuscleHint) return;
+                if (selectedLogSorenessMuscles.size === 0) {
+                    logSorenessMuscleHint.textContent = 'Nessun gruppo selezionato';
+                } else {
+                    const labels = Array.from(selectedLogSorenessMuscles).map(id => MUSCLE_GROUPS[id]?.label || id);
+                    logSorenessMuscleHint.textContent = `Selezionati: ${labels.join(', ')}`;
+                }
+            }
+
+            function syncLogSorenessChips() {
+                if (!logSorenessMusclePicker) return;
+                logSorenessMusclePicker.querySelectorAll('.doms-chip').forEach(chip => {
+                    const id = chip.dataset.muscle;
+                    if (selectedLogSorenessMuscles.has(id)) {
+                        chip.style.background = 'rgba(0, 243, 255, 0.25)';
+                        chip.style.borderColor = 'rgba(0, 243, 255, 0.6)';
+                    } else {
+                        chip.style.background = 'rgba(255, 255, 255, 0.08)';
+                        chip.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                    }
+                });
+                updateLogSorenessHint();
+            }
+
+            function clearLogSorenessSelection() {
+                selectedLogSorenessMuscles.clear();
+                syncLogSorenessChips();
+                if (logExternalCause) logExternalCause.value = '';
+            }
+
+            // Initialize muscle picker
+            buildLogSorenessPicker();
+            // DOM Elements
+            const startBtn = document.getElementById('startWorkoutBtn');
+            const workoutSelector = document.getElementById('workoutSelector');
+            const savedWorkoutsSelect = document.getElementById('savedWorkoutsSelect');
+            const loadWorkoutBtn = document.getElementById('loadWorkoutBtn');
+            const cancelSelectBtn = document.getElementById('cancelSelectBtn');
+
+            const loggingArea = document.getElementById('loggingArea');
+            const loggingTitle = document.getElementById('loggingTitle');
+            const logDate = document.getElementById('logDate');
+            const logDuration = document.getElementById('logDuration');
+            const logSleepQuality = document.getElementById('logSleepQuality');
+            const logEnergyLevel = document.getElementById('logEnergyLevel');
+            const logStressLevel = document.getElementById('logStressLevel');
+            const logSorenessLevel = document.getElementById('logSorenessLevel');
+            const exercisesLogContainer = document.getElementById('exercisesLogContainer');
+            const finishWorkoutBtn = document.getElementById('finishWorkoutBtn');
+            const cancelLogBtn = document.getElementById('cancelLogBtn');
+
+            const historyList = document.getElementById('historyList');
+
+            // State
+            let currentWorkout = null;
+            let editingLogIndex = -1; // -1 means creating new
+
+            // Initialize Services
+            let storageService;
+            let unitService;
+            try {
+                storageService = window.storageService || new StorageService();
+                unitService = window.unitService || new UnitService();
+            } catch (e) {
+                console.error('Services not available:', e);
+            }
+
+            // 1. Load Saved Workouts into Select
+            let workoutsCache = [];
+            function populateWorkoutSelect() {
+                workoutsCache = JSON.parse(localStorage.getItem('ironflow_workouts') || '[]');
+                savedWorkoutsSelect.innerHTML = '<option value="">-- Scegli una routine --</option>';
+                workoutsCache.forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = w.id;
+                    opt.textContent = w.name;
+                    savedWorkoutsSelect.appendChild(opt);
+                });
+            }
+            populateWorkoutSelect();
+
+            // 2. Event Listeners for Navigation
+            startBtn.addEventListener('click', () => {
+                editingLogIndex = -1;
+                finishWorkoutBtn.textContent = 'Salva Allenamento';
+                startBtn.style.display = 'none';
+                workoutSelector.style.display = 'block';
+                historyList.style.display = 'none';
+            });
+
+            cancelSelectBtn.addEventListener('click', () => {
+                workoutSelector.style.display = 'none';
+                startBtn.style.display = 'block';
+                historyList.style.display = 'block';
+            });
+
+            cancelLogBtn.addEventListener('click', () => {
+                if (confirm('Sei sicuro di voler annullare? I dati inseriti andranno persi.')) {
+                    closeLogging();
+                }
+            });
+
+            function closeLogging() {
+                loggingArea.style.display = 'none';
+                startBtn.style.display = 'block';
+                historyList.style.display = 'block';
+                currentWorkout = null;
+                editingLogIndex = -1;
+                if (logSleepQuality) logSleepQuality.value = '';
+                if (logEnergyLevel) logEnergyLevel.value = '';
+                if (logStressLevel) logStressLevel.value = '';
+                if (logSorenessLevel) logSorenessLevel.value = '';
+                // Reset DOMS details
+                clearLogSorenessSelection();
+                if (domsDetailsContent) domsDetailsContent.style.display = 'none';
+                if (toggleDomsDetails) toggleDomsDetails.textContent = 'Espandi ▼';
+            }
+
+            // 3. Load Workout for Logging
+            loadWorkoutBtn.addEventListener('click', () => {
+                const workoutId = savedWorkoutsSelect.value;
+                if (!workoutId) {
+                    alert('Seleziona una scheda per continuare.');
+                    return;
+                }
+
+                currentWorkout = workoutsCache.find(w => w.id == workoutId);
+                if (!currentWorkout) return;
+
+                // Setup UI
+                workoutSelector.style.display = 'none';
+                loggingArea.style.display = 'block';
+                loggingTitle.textContent = currentWorkout.name;
+                logDate.valueAsDate = new Date();
+                logDuration.value = '';
+                logSleepQuality.value = '';
+                logEnergyLevel.value = '';
+                logStressLevel.value = '';
+                logSorenessLevel.value = '';
+
+                renderLoggingForm(currentWorkout);
+            });
+
+            // 4. Render Logging Form (with full edit capabilities)
+            function renderLoggingForm(workout, existingExercises = null) {
+                exercisesLogContainer.innerHTML = '';
+
+                // If editing, we might have different exercises than the base workout
+                const exercisesToRender = existingExercises || workout.exercises;
+                const isEditing = editingLogIndex >= 0;
+
+                // Reset superset ID counter based on existing data
+                exercisesToRender.forEach(ex => {
+                    if (ex.supersetId) {
+                        const idNum = parseInt(ex.supersetId.split('_')[1]);
+                        if (!isNaN(idNum) && idNum >= nextSupersetId) {
+                            nextSupersetId = idNum + 1;
+                        }
+                    }
+                });
+
+                exercisesToRender.forEach((ex, exIndex) => {
+                    const exDiv = document.createElement('div');
+                    exDiv.className = 'exercise-log-item';
+                    exDiv.dataset.exerciseIndex = exIndex;
+
+                    // Superset classes and attributes
+                    if (ex.supersetId) {
+                        exDiv.dataset.supersetId = ex.supersetId;
+                        exDiv.dataset.supersetRole = ex.supersetRole;
+                        exDiv.classList.add('in-superset');
+                    }
+
+                    const unitLabel = unitService && unitService.getSystem() === 'imperial' ? 'Lbs' : 'Kg';
+
+                    // Superset Indicator
+                    let supersetIndicator = '';
+                    if (ex.supersetId) {
+                        supersetIndicator = `<span class="superset-indicator">Superset ${ex.supersetRole}</span>`;
+                    }
+
+                    // Rest Configuration (Normal or Superset)
+                    let restConfigHtml = '';
+                    if (ex.supersetId && ex.supersetRole === 'A') {
+                        restConfigHtml = `
+                            <div class="superset-rest-config visible" data-superset-id="${ex.supersetId}">
+                                <div style="font-size: 0.8rem; color: #ff6b6b; font-weight: 500; margin-bottom: 0.5rem;">⏱️ Tempi di Recupero Superset</div>
+                                <div class="rest-input-row">
+                                    <label>Intra-Superset (A→B):</label>
+                                    <input type="number" class="intra-rest-input" value="${ex.intraRest || 0}" min="0" max="60" placeholder="0"> sec
+                                </div>
+                                <div class="rest-input-row">
+                                    <label>Inter-Superset (dopo round):</label>
+                                    <input type="number" class="inter-rest-input" value="${ex.interRest || 90}" min="0" max="300" placeholder="90"> sec
+                                </div>
+                            </div>
+                        `;
+                    } else if (!ex.supersetId) {
+                        restConfigHtml = `
+                            <div class="normal-rest-config" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+                                <label>Recupero:</label>
+                                <input type="number" class="ex-rest" value="${ex.rest || 90}" placeholder="90" style="width: 50px; background: var(--color-bg); border: 1px solid var(--color-border); color: white; padding: 0.2rem; text-align: center; border-radius: 4px;"> sec
+                            </div>
+                        `;
+                    }
+
+                    // Exercise header
+                    let headerHtml = `
+                        ${supersetIndicator}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <input type="text" class="exercise-name-input" value="${ex.name}" 
+                                   style="flex: 1; padding: 0.5rem; background: var(--color-bg); border: 1px solid var(--color-border); 
+                                          color: var(--color-text-main); border-radius: 4px; font-size: 1rem; font-weight: 600;"
+                                   placeholder="Nome esercizio">
+                            <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                                <button class="add-set-btn" data-exercise-index="${exIndex}" 
+                                        style="background: var(--color-primary); color: var(--color-bg); border: none; 
+                                               padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
+                                        title="Aggiungi set">+ Set</button>
+                                ${exercisesToRender.length > 1 ? `
+                                <button class="remove-exercise-btn" data-exercise-index="${exIndex}" 
+                                        style="background: #ff4444; color: white; border: none; 
+                                               padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
+                                        title="Rimuovi esercizio">× Ex</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ${restConfigHtml}
+                        <div class="set-header">
+                            <span>#</span>
+                            <span>Tipo</span>
+                            <span>${unitLabel}</span>
+                            <span>Reps</span>
+                            <span>RPE</span>
+                            <span></span>
+                        </div>
+                    `;
+
+                    const setsToRender = ex.sets || (Array.isArray(ex.sets) ? ex.sets : []);
+                    let numSets = 3;
+                    if (Array.isArray(setsToRender) && setsToRender.length > 0) {
+                        numSets = setsToRender.length;
+                    } else if (workout.exercises[exIndex]) {
+                        numSets = parseInt(workout.exercises[exIndex].sets) || 3;
+                    }
+
+                    let setsHtml = '';
+                    for (let i = 0; i < numSets; i++) {
+                        let weight = '';
+                        let reps = '';
+                        let rpe = '';
+                        let type = 'normal';
+
+                        if (Array.isArray(setsToRender) && setsToRender[i]) {
+                            let storedWeight = setsToRender[i].weight;
+                            if (unitService) {
+                                weight = unitService.convertWeight(storedWeight);
+                            } else {
+                                weight = storedWeight;
+                            }
+                            reps = setsToRender[i].reps;
+                            rpe = setsToRender[i].rpe || '';
+                            type = setsToRender[i].type || 'normal';
+                        } else {
+                            if (workout.exercises[exIndex]) {
+                                reps = workout.exercises[exIndex].reps || '';
+                            }
+                        }
+
+                        setsHtml += `
+                            <div class="set-row" data-set-index="${i}">
+                                <span class="set-label">${i + 1}</span>
+                                <select class="set-type-select">
+                                    ${getSetTypeOptions(type)}
+                                </select>
+                                <input type="number" class="set-input input-weight" placeholder="${unitLabel}" value="${weight}">
+                                <input type="number" class="set-input input-reps" placeholder="Reps" value="${reps}">
+                                <input type="number" class="set-input input-rpe" placeholder="RPE" value="${rpe}">
+                                <button class="remove-set-btn" data-set-index="${i}" 
+                                        style="background: none; border: none; color: #ff4444; cursor: pointer; font-size: 1rem; padding: 0;"
+                                        title="Rimuovi set">×</button>
+                            </div>
+                        `;
+                    }
+
+                    // Superset Controls
+                    const supersetControlsHtml = `
+                        <div class="superset-controls">
+                            <button type="button" class="superset-btn create-superset-btn" style="display: ${ex.supersetId ? 'none' : 'block'};">
+                                🔗 Crea Superset
+                            </button>
+                            <button type="button" class="superset-btn remove-superset-btn" style="display: ${ex.supersetId ? 'block' : 'none'};">
+                                ❌ Rimuovi Superset
+                            </button>
+                        </div>
+                    `;
+
+                    exDiv.innerHTML = headerHtml + setsHtml + supersetControlsHtml;
+                    exercisesLogContainer.appendChild(exDiv);
+                });
+
+                // Add "New Exercise" button
+                const addExerciseBtn = document.createElement('button');
+                addExerciseBtn.className = 'btn btn-outline';
+                addExerciseBtn.textContent = '+ Aggiungi Esercizio';
+                addExerciseBtn.style.width = '100%';
+                addExerciseBtn.style.marginTop = '1rem';
+                addExerciseBtn.addEventListener('click', addNewExercise);
+                exercisesLogContainer.appendChild(addExerciseBtn);
+
+                // Attach event listeners
+                attachExerciseControls();
+            }
+
+            // Add new exercise to the form
+            function addNewExercise() {
+                const exerciseItems = document.querySelectorAll('.exercise-log-item');
+                const newIndex = exerciseItems.length;
+
+                const exDiv = document.createElement('div');
+                exDiv.className = 'exercise-log-item';
+                exDiv.dataset.exerciseIndex = newIndex;
+
+                const unitLabel = unitService && unitService.getSystem() === 'imperial' ? 'Lbs' : 'Kg';
+
+                exDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <input type="text" class="exercise-name-input" value="" 
+                               style="flex: 1; padding: 0.5rem; background: var(--color-bg); border: 1px solid var(--color-border); 
+                                      color: var(--color-text-main); border-radius: 4px; font-size: 1rem; font-weight: 600;"
+                               placeholder="Nome esercizio">
+                        <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                            <button class="add-set-btn" data-exercise-index="${newIndex}" 
+                                    style="background: var(--color-primary); color: var(--color-bg); border: none; 
+                                           padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
+                                    title="Aggiungi set">+ Set</button>
+                            <button class="remove-exercise-btn" data-exercise-index="${newIndex}" 
+                                    style="background: #ff4444; color: white; border: none; 
+                                           padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
+                                    title="Rimuovi esercizio">× Ex</button>
+                        </div>
+                    </div>
+                    
+                    <div class="normal-rest-config" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+                        <label>Recupero:</label>
+                        <input type="number" class="ex-rest" value="90" placeholder="90" style="width: 50px; background: var(--color-bg); border: 1px solid var(--color-border); color: white; padding: 0.2rem; text-align: center; border-radius: 4px;"> sec
+                    </div>
+                    
+                    <div class="set-header">
+                        <span>#</span>
+                        <span>Tipo</span>
+                        <span>${unitLabel}</span>
+                        <span>Reps</span>
+                        <span>RPE</span>
+                        <span></span>
+                    </div>
+                    <div class="set-row" data-set-index="0">
+                        <span class="set-label">1</span>
+                        <select class="set-type-select">
+                            ${getSetTypeOptions('normal')}
+                        </select>
+                        <input type="number" class="set-input input-weight" placeholder="${unitLabel}" value="">
+                        <input type="number" class="set-input input-reps" placeholder="Reps" value="">
+                        <input type="number" class="set-input input-rpe" placeholder="RPE" value="">
+                        <button class="remove-set-btn" data-set-index="0" 
+                                style="background: none; border: none; color: #ff4444; cursor: pointer; font-size: 1rem; padding: 0;"
+                                title="Rimuovi set">×</button>
+                    </div>
+                    
+                    <div class="superset-controls">
+                        <button type="button" class="superset-btn create-superset-btn">
+                            🔗 Crea Superset
+                        </button>
+                        <button type="button" class="superset-btn remove-superset-btn" style="display: none;">
+                            ❌ Rimuovi Superset
+                        </button>
+                    </div>
+                `;
+
+                // Insert before the "Add Exercise" button
+                const addBtn = exercisesLogContainer.querySelector('.btn-outline');
+                exercisesLogContainer.insertBefore(exDiv, addBtn);
+
+                attachExerciseControls();
+            }
+
+            // Attach controls for add/remove set and exercise
+            function attachExerciseControls() {
+                // Add set buttons
+                document.querySelectorAll('.add-set-btn').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true)); // Remove old listeners
+                });
+                document.querySelectorAll('.add-set-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const exerciseDiv = e.target.closest('.exercise-log-item');
+                        // Find the set header to insert after, or the last set row
+                        const lastSetRow = exerciseDiv.querySelectorAll('.set-row');
+                        const newSetIndex = lastSetRow.length;
+                        const unitLabel = unitService && unitService.getSystem() === 'imperial' ? 'Lbs' : 'Kg';
+
+                        const newSetRow = document.createElement('div');
+                        newSetRow.className = 'set-row';
+                        newSetRow.dataset.setIndex = newSetIndex;
+                        newSetRow.innerHTML = `
+                            <span class="set-label">${newSetIndex + 1}</span>
+                            <select class="set-type-select">
+                                ${getSetTypeOptions('normal')}
+                            </select>
+                            <input type="number" class="set-input input-weight" placeholder="${unitLabel}" value="">
+                            <input type="number" class="set-input input-reps" placeholder="Reps" value="">
+                            <input type="number" class="set-input input-rpe" placeholder="RPE" value="">
+                            <button class="remove-set-btn" data-set-index="${newSetIndex}" 
+                                    style="background: none; border: none; color: #ff4444; cursor: pointer; font-size: 1rem; padding: 0;"
+                                    title="Rimuovi set">×</button>
+                        `;
+
+                        // Insert before superset controls
+                        const supersetControls = exerciseDiv.querySelector('.superset-controls');
+                        exerciseDiv.insertBefore(newSetRow, supersetControls);
+
+                        attachExerciseControls(); // Re-attach listeners
+                    });
+                });
+
+                // Remove set buttons
+                document.querySelectorAll('.remove-set-btn').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true));
+                });
+                document.querySelectorAll('.remove-set-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const setRow = e.target.closest('.set-row');
+                        const exerciseDiv = setRow.closest('.exercise-log-item');
+                        setRow.remove();
+
+                        // Renumber remaining sets
+                        const remainingSets = exerciseDiv.querySelectorAll('.set-row');
+                        remainingSets.forEach((row, idx) => {
+                            row.querySelector('.set-label').textContent = idx + 1;
+                            row.dataset.setIndex = idx;
+                        });
+                    });
+                });
+
+                // Remove exercise buttons
+                document.querySelectorAll('.remove-exercise-btn').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true));
+                });
+                document.querySelectorAll('.remove-exercise-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (confirm('Rimuovere questo esercizio?')) {
+                            const exerciseDiv = e.target.closest('.exercise-log-item');
+
+                            // If in superset, decouple first
+                            if (exerciseDiv.dataset.supersetId) {
+                                decoupleSuperset(exerciseDiv.dataset.supersetId);
+                            }
+
+                            exerciseDiv.remove();
+
+                            // Renumber remaining exercises
+                            const remainingExercises = document.querySelectorAll('.exercise-log-item');
+                            remainingExercises.forEach((div, idx) => {
+                                div.dataset.exerciseIndex = idx;
+                            });
+                        }
+                    });
+                });
+
+                // Superset Creation Buttons
+                document.querySelectorAll('.create-superset-btn').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true));
+                });
+                document.querySelectorAll('.create-superset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const currentExDiv = e.target.closest('.exercise-log-item');
+                        const allExercises = Array.from(document.querySelectorAll('.exercise-log-item'));
+                        const currentIndex = allExercises.indexOf(currentExDiv);
+                        const nextExDiv = allExercises[currentIndex + 1];
+
+                        if (!nextExDiv) {
+                            alert('Aggiungi prima un altro esercizio per creare un superset.');
+                            return;
+                        }
+
+                        if (currentExDiv.dataset.supersetId || nextExDiv.dataset.supersetId) {
+                            alert('Uno degli esercizi è già in un superset. Rimuovilo prima.');
+                            return;
+                        }
+
+                        // Create Superset ID
+                        const supersetId = 'ss_' + Date.now() + '_' + nextSupersetId++;
+
+                        // Update UI for A
+                        currentExDiv.dataset.supersetId = supersetId;
+                        currentExDiv.dataset.supersetRole = 'A';
+                        currentExDiv.classList.add('in-superset');
+
+                        // Add Indicator A
+                        const indicatorA = document.createElement('span');
+                        indicatorA.className = 'superset-indicator';
+                        indicatorA.textContent = 'Superset A';
+                        const headerA = currentExDiv.querySelector('.exercise-name-input').parentElement.parentElement; // messy selector, better insert at top
+                        currentExDiv.insertBefore(indicatorA, currentExDiv.firstChild);
+
+                        // Add Rest Config A
+                        const restConfigA = `
+                            <div class="superset-rest-config visible" data-superset-id="${supersetId}">
+                                <div style="font-size: 0.8rem; color: #ff6b6b; font-weight: 500; margin-bottom: 0.5rem;">⏱️ Tempi di Recupero Superset</div>
+                                <div class="rest-input-row">
+                                    <label>Intra-Superset (A→B):</label>
+                                    <input type="number" class="intra-rest-input" value="0" min="0" max="60" placeholder="0"> sec
+                                </div>
+                                <div class="rest-input-row">
+                                    <label>Inter-Superset (dopo round):</label>
+                                    <input type="number" class="inter-rest-input" value="90" min="0" max="300" placeholder="90"> sec
+                                </div>
+                            </div>
+                        `;
+                        // Remove normal rest config
+                        const normalRestA = currentExDiv.querySelector('.normal-rest-config');
+                        if (normalRestA) normalRestA.remove();
+
+                        // Insert new rest config after header
+                        currentExDiv.querySelector('.exercise-name-input').parentElement.insertAdjacentHTML('afterend', restConfigA);
+
+                        // Update Buttons A
+                        currentExDiv.querySelector('.create-superset-btn').style.display = 'none';
+                        currentExDiv.querySelector('.remove-superset-btn').style.display = 'block';
+
+                        // Update UI for B
+                        nextExDiv.dataset.supersetId = supersetId;
+                        nextExDiv.dataset.supersetRole = 'B';
+                        nextExDiv.classList.add('in-superset');
+
+                        // Add Indicator B
+                        const indicatorB = document.createElement('span');
+                        indicatorB.className = 'superset-indicator';
+                        indicatorB.textContent = 'Superset B';
+                        nextExDiv.insertBefore(indicatorB, nextExDiv.firstChild);
+
+                        // Remove normal rest config B
+                        const normalRestB = nextExDiv.querySelector('.normal-rest-config');
+                        if (normalRestB) normalRestB.remove();
+
+                        // Update Buttons B
+                        nextExDiv.querySelector('.create-superset-btn').style.display = 'none';
+                        nextExDiv.querySelector('.remove-superset-btn').style.display = 'block';
+                    });
+                });
+
+                // Superset Removal Buttons
+                document.querySelectorAll('.remove-superset-btn').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true));
+                });
+                document.querySelectorAll('.remove-superset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const currentExDiv = e.target.closest('.exercise-log-item');
+                        const supersetId = currentExDiv.dataset.supersetId;
+                        if (supersetId) {
+                            decoupleSuperset(supersetId);
+                        }
+                    });
+                });
+            }
+
+            // Helper to break a superset
+            function decoupleSuperset(supersetId) {
+                const exercises = document.querySelectorAll(`.exercise-log-item[data-superset-id="${supersetId}"]`);
+                exercises.forEach(exDiv => {
+                    delete exDiv.dataset.supersetId;
+                    delete exDiv.dataset.supersetRole;
+                    exDiv.classList.remove('in-superset');
+
+                    // Remove Indicator
+                    const indicator = exDiv.querySelector('.superset-indicator');
+                    if (indicator) indicator.remove();
+
+                    // Remove Superset Rest Config
+                    const ssRest = exDiv.querySelector('.superset-rest-config');
+                    if (ssRest) ssRest.remove();
+
+                    // Restore Normal Rest Config (if not present)
+                    if (!exDiv.querySelector('.normal-rest-config')) {
+                        const normalRestHtml = `
+                            <div class="normal-rest-config" style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+                                <label>Recupero:</label>
+                                <input type="number" class="ex-rest" value="90" placeholder="90" style="width: 50px; background: var(--color-bg); border: 1px solid var(--color-border); color: white; padding: 0.2rem; text-align: center; border-radius: 4px;"> sec
+                            </div>
+                        `;
+                        const headerRow = exDiv.querySelector('.exercise-name-input').parentElement;
+                        headerRow.insertAdjacentHTML('afterend', normalRestHtml);
+                    }
+
+                    // Reset Buttons
+                    exDiv.querySelector('.create-superset-btn').style.display = 'block';
+                    exDiv.querySelector('.remove-superset-btn').style.display = 'none';
+                });
+            }
+
+            // 5. Save Workout Log
+            const syncLogsToCloud = async () => {
+                try {
+                    await firestoreService.syncToCloud();
+                } catch (error) {
+                    console.warn('Sync diario fallita:', error.message || error);
+                }
+            };
+
+            finishWorkoutBtn.addEventListener('click', async () => {
+                if (!logDuration.value) {
+                    alert('Inserisci la durata dell\'allenamento.');
+                    return;
+                }
+
+                const logData = {
+                    id: editingLogIndex >= 0 ? null : Date.now(),
+                    workoutId: currentWorkout.id,
+                    workoutName: currentWorkout.name,
+                    date: logDate.value || new Date().toISOString(),
+                    duration: logDuration.value + ' min',
+                    exercises: [],
+                    totalVolume: 0,
+                    fromAI: !!currentWorkout?.fromAI
+                };
+                const sleepVal = parseInt(logSleepQuality.value, 10);
+                const energyVal = parseInt(logEnergyLevel.value, 10);
+                const stressVal = parseInt(logStressLevel.value, 10);
+                const sorenessVal = parseInt(logSorenessLevel.value, 10);
+                const externalCauseVal = logExternalCause ? logExternalCause.value.trim() : '';
+                const sorenessMusclesVal = Array.from(selectedLogSorenessMuscles);
+
+                if ([sleepVal, energyVal, stressVal, sorenessVal].some(val => !Number.isNaN(val)) || sorenessMusclesVal.length > 0 || externalCauseVal) {
+                    logData.wellness = {
+                        sleepQuality: Number.isNaN(sleepVal) ? null : sleepVal,
+                        energyLevel: Number.isNaN(energyVal) ? null : energyVal,
+                        stressLevel: Number.isNaN(stressVal) ? null : stressVal,
+                        sorenessLevel: Number.isNaN(sorenessVal) ? null : sorenessVal,
+                        sorenessMuscles: sorenessMusclesVal.length > 0 ? sorenessMusclesVal : undefined,
+                        sorenessLabels: sorenessMusclesVal.length > 0 ? sorenessMusclesVal.map(id => MUSCLE_GROUPS[id]?.label || id) : undefined,
+                        externalCause: externalCauseVal || undefined,
+                        recordedAt: new Date().toISOString()
+                    };
+                }
+
+                // Collect Data (including editable exercise names)
+                const exerciseItems = document.querySelectorAll('.exercise-log-item');
+
+                exerciseItems.forEach(item => {
+                    // Get exercise name from input field (editable)
+                    const exNameInput = item.querySelector('.exercise-name-input');
+                    const exName = exNameInput ? exNameInput.value.trim() : 'Esercizio';
+
+                    if (!exName) {
+                        return; // Skip exercises without name
+                    }
+
+                    const exData = {
+                        name: exName,
+                        sets: []
+                    };
+
+                    // Superset Data
+                    if (item.dataset.supersetId) {
+                        exData.supersetId = item.dataset.supersetId;
+                        exData.supersetRole = item.dataset.supersetRole;
+
+                        // Rest Times for A
+                        if (exData.supersetRole === 'A') {
+                            const intraInput = item.querySelector('.intra-rest-input');
+                            const interInput = item.querySelector('.inter-rest-input');
+                            if (intraInput) exData.intraRest = parseInt(intraInput.value) || 0;
+                            if (interInput) exData.interRest = parseInt(interInput.value) || 90;
+                        }
+                    } else {
+                        // Normal Rest
+                        const restInput = item.querySelector('.ex-rest');
+                        if (restInput) exData.rest = parseInt(restInput.value) || 90;
+                    }
+
+                    const setRows = item.querySelectorAll('.set-row');
+
+                    setRows.forEach(row => {
+                        let weightVal = parseFloat(row.querySelector('.input-weight').value) || 0;
+                        const reps = parseFloat(row.querySelector('.input-reps').value) || 0;
+                        const rpe = parseFloat(row.querySelector('.input-rpe').value) || 0;
+                        const typeSelect = row.querySelector('.set-type-select');
+                        const type = typeSelect ? typeSelect.value : 'normal';
+
+                        if (weightVal > 0 && reps > 0) {
+                            // Convert Input to Metric for Storage
+                            let metricWeight = weightVal;
+                            if (unitService) {
+                                metricWeight = unitService.toMetricWeight(weightVal);
+                            }
+
+                            exData.sets.push({ weight: metricWeight, reps, rpe, type });
+                            logData.totalVolume += (metricWeight * reps);
+                        }
+                    });
+
+                    if (exData.sets.length > 0) {
+                        logData.exercises.push(exData);
+                    }
+                });
+
+                if (logData.exercises.length === 0) {
+                    alert('Inserisci almeno un set valido (peso e ripetizioni).');
+                    return;
+                }
+
+                // Save to LocalStorage
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+
+                if (editingLogIndex >= 0) {
+                    logData.id = logs[editingLogIndex].id;
+                    logData.fromAI = logs[editingLogIndex].fromAI;
+                    if (!logData.wellness && logs[editingLogIndex].wellness) {
+                        logData.wellness = logs[editingLogIndex].wellness;
+                    }
+                    logs[editingLogIndex] = logData;
+                } else {
+                    logs.unshift(logData);
+                }
+
+                localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+
+                // 🏆 RILEVAMENTO PR - Controlla se ci sono nuovi Personal Record
+                try {
+                    const newPRs = prTracker.detectPRsFromLog(logData);
+                    if (newPRs.length > 0) {
+                        console.log('🏆 Nuovi PR rilevati:', newPRs);
+                        // Notifica ogni PR
+                        for (const pr of newPRs) {
+                            await prTracker.notifyPR(pr);
+                            // Piccolo delay tra notifiche multiple
+                            if (newPRs.indexOf(pr) < newPRs.length - 1) {
+                                await new Promise(r => setTimeout(r, 500));
+                            }
+                        }
+                    }
+                } catch (prError) {
+                    console.warn('PR detection error:', prError);
+                }
+
+                await syncLogsToCloud();
+
+                // Reset UI
+                closeLogging();
+                renderLogs();
+
+                // Auto-Sync
+                if (storageService && storageService.hasCredentials()) {
+                    // Show ephemeral status if possible, or just sync silently
+                    await storageService.syncData();
+                }
+            });
+
+            // 6. Render History
+            function renderLogs() {
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                historyList.innerHTML = '';
+
+                if (logs.length === 0) {
+                    historyList.innerHTML = '<p class="text-center" style="color: var(--color-text-muted); margin-top: 2rem;">Nessun allenamento registrato.</p>';
+                    return;
+                }
+
+                logs.forEach((log, index) => {
+                    const date = new Date(log.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+                    const div = document.createElement('div');
+                    div.className = 'log-entry';
+                    const aiTag = log.fromAI ? '<span class="ai-badge">AI</span>' : '';
+
+                    // Format volume nicely
+                    let volumeDisplay = '';
+                    if (unitService) {
+                        volumeDisplay = unitService.formatWeight(log.totalVolume);
+                    } else {
+                        volumeDisplay = log.totalVolume + ' kg';
+                    }
+
+                    div.innerHTML = `
+        <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 10px;">
+            <button class="share-log-btn" data-index="${index}" title="Condividi" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">🔗</button>
+            <button class="edit-log-btn" data-index="${index}" title="Modifica" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✏️</button>
+            <button class="delete-log-btn" data-index="${index}" title="Elimina" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#ff4444;">×</button>
+        </div>
+        <div class="log-date">${date}</div>
+        <div class="log-title">${log.workoutName}</div>
+        <div class="log-stats">
+            <span class="stat-pill">⏱ ${log.duration}</span>
+            <span class="stat-pill">⚖️ ${volumeDisplay}</span>
+            ${aiTag}
+        </div>
+    `;
+                    historyList.appendChild(div);
+                });
+
+                // Attach Listeners
+                document.querySelectorAll('.delete-log-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = e.target.closest('button').dataset.index;
+                        deleteLog(index);
+                    });
+                });
+
+                document.querySelectorAll('.edit-log-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = e.target.closest('button').dataset.index;
+                        editLog(index);
+                    });
+                });
+
+                document.querySelectorAll('.share-log-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const index = e.target.closest('button').dataset.index;
+                        await shareLog(index);
+                    });
+                });
+            }
+
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'ironflow_workouts') {
+                    populateWorkoutSelect();
+                }
+                if (event.key === 'ironflow_logs') {
+                    renderLogs();
+                }
+            });
+
+            window.addEventListener('focus', () => {
+                populateWorkoutSelect();
+                renderLogs();
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    populateWorkoutSelect();
+                    renderLogs();
+                }
+            });
+
+            // 7. Share Log
+            async function shareLog(index) {
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                const log = logs[index];
+                if (!log) return;
+
+                const btn = document.querySelector(`.share-log-btn[data-index="${index}"]`);
+                const originalText = btn.textContent;
+                btn.textContent = '⏳';
+                btn.disabled = true;
+
+                try {
+                    const shortId = await firestoreService.createSharedWorkoutLog(log);
+                    // Build clean share URL - use production URL, not localhost
+                    let baseUrl;
+                    if (window.location.origin.includes('localhost') || window.location.origin.includes('capacitor')) {
+                        // APK nativo o localhost - usa l'URL di produzione
+                        baseUrl = 'https://massimilianociconte.github.io/Palestra/diary.html';
+                    } else {
+                        baseUrl = `${window.location.origin}${window.location.pathname}`;
+                    }
+                    const shareUrl = `${baseUrl}?log=${shortId}`;
+
+                    showShareLogModal(log.workoutName, log.date, shareUrl);
+                } catch (error) {
+                    console.error('Error sharing log:', error);
+                    alert('Errore durante la condivisione: ' + error.message);
+                } finally {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            }
+
+            // Show share modal for logs
+            function showShareLogModal(workoutName, date, shareUrl) {
+                const formattedDate = new Date(date).toLocaleDateString('it-IT', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                });
+
+                const modalHTML = `
+                    <div id="shareLogModal" style="
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.95);
+                        z-index: 3000;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 1rem;
+                    ">
+                        <div class="card" style="max-width: 500px; width: 100%;">
+                            <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
+                                🔗 Condividi Allenamento
+                            </h3>
+                            
+                            <p style="margin-bottom: 0.5rem; color: var(--color-text-muted);">
+                                Condividi <strong style="color: var(--color-text);">${workoutName}</strong>
+                            </p>
+                            <p style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--color-text-muted);">
+                                📅 ${formattedDate}
+                            </p>
+                            
+                            <div style="
+                                background: rgba(255,255,255,0.05);
+                                padding: 1rem;
+                                border-radius: var(--radius-sm);
+                                border: 1px solid var(--color-border);
+                                margin-bottom: 1rem;
+                                word-break: break-all;
+                                font-family: monospace;
+                                font-size: 0.85rem;
+                                color: var(--color-primary);
+                            ">
+                                ${shareUrl}
+                            </div>
+                            
+                            <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+                                Chi riceve questo link potrà importare l'allenamento nel proprio diario.
+                            </p>
+                            
+                            <!-- Social Share Buttons -->
+                            <div style="margin-bottom: 1rem;">
+                                <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Condividi su:</p>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                    <button class="share-social-btn" data-platform="native" style="
+                                        background: linear-gradient(135deg, #00f3ff, #0099ff);
+                                        border: none;
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: var(--radius-sm);
+                                        cursor: pointer;
+                                        font-size: 0.85rem;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 0.3rem;
+                                    ">📤 Condividi</button>
+                                    <button class="share-social-btn" data-platform="whatsapp" style="
+                                        background: #25D366;
+                                        border: none;
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: var(--radius-sm);
+                                        cursor: pointer;
+                                        font-size: 0.85rem;
+                                    ">WhatsApp</button>
+                                    <button class="share-social-btn" data-platform="telegram" style="
+                                        background: #0088cc;
+                                        border: none;
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: var(--radius-sm);
+                                        cursor: pointer;
+                                        font-size: 0.85rem;
+                                    ">Telegram</button>
+                                    <button class="share-social-btn" data-platform="twitter" style="
+                                        background: #1DA1F2;
+                                        border: none;
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: var(--radius-sm);
+                                        cursor: pointer;
+                                        font-size: 0.85rem;
+                                    ">X/Twitter</button>
+                                    <button class="share-social-btn" data-platform="facebook" style="
+                                        background: #1877F2;
+                                        border: none;
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: var(--radius-sm);
+                                        cursor: pointer;
+                                        font-size: 0.85rem;
+                                    ">Facebook</button>
+                                    <button class="share-social-btn" data-platform="email" style="
+                                        background: #666;
+                                        border: none;
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: var(--radius-sm);
+                                        cursor: pointer;
+                                        font-size: 0.85rem;
+                                    ">📧 Email</button>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button id="shareLogModalClose" class="btn btn-outline" style="flex: 1;">
+                                    Chiudi
+                                </button>
+                                <button id="shareLogModalCopy" class="btn btn-primary" style="flex: 1;">
+                                    📋 Copia Link
+                                </button>
+                            </div>
+                            
+                            <p id="shareLogCopyFeedback" style="
+                                text-align: center;
+                                margin-top: 1rem;
+                                margin-bottom: 0;
+                                font-size: 0.85rem;
+                                color: var(--color-primary);
+                                min-height: 1.5em;
+                            "></p>
+                        </div>
+                    </div>
+                `;
+
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                const modal = document.getElementById('shareLogModal');
+                const closeBtn = document.getElementById('shareLogModalClose');
+                const copyBtn = document.getElementById('shareLogModalCopy');
+                const feedback = document.getElementById('shareLogCopyFeedback');
+
+                closeBtn.addEventListener('click', () => modal.remove());
+
+                // Social share button handlers
+                const shareText = `Guarda il mio allenamento: ${workoutName} - ${formattedDate}`;
+                modal.querySelectorAll('.share-social-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const platform = btn.dataset.platform;
+                        shareToSocialPlatform(platform, shareUrl, shareText);
+                    });
+                });
+
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(shareUrl);
+                        feedback.textContent = '✅ Link copiato negli appunti!';
+                        copyBtn.textContent = '✅ Copiato!';
+                        setTimeout(() => {
+                            copyBtn.textContent = '📋 Copia Link';
+                        }, 2000);
+                    } catch (error) {
+                        feedback.textContent = '📋 Seleziona e copia manualmente';
+                    }
+                });
+            }
+
+            // Share to social platform helper
+            function shareToSocialPlatform(platform, shareUrl, shareText) {
+                const encodedUrl = encodeURIComponent(shareUrl);
+                const encodedText = encodeURIComponent(shareText);
+
+                const socialUrls = {
+                    whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+                    telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
+                    twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+                    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+                    email: `mailto:?subject=${encodeURIComponent('Il mio allenamento')}&body=${encodedText}%20${encodedUrl}`
+                };
+
+                if (platform === 'native' && navigator.share) {
+                    navigator.share({
+                        title: 'Il mio allenamento',
+                        text: shareText,
+                        url: shareUrl
+                    }).catch(err => console.log('Share cancelled:', err));
+                } else if (platform === 'native') {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        const feedback = document.getElementById('shareLogCopyFeedback');
+                        if (feedback) feedback.textContent = '✅ Link copiato!';
+                    });
+                } else if (socialUrls[platform]) {
+                    window.open(socialUrls[platform], '_blank', 'width=600,height=400');
+                }
+            }
+
+            // Check for shared log on page load
+            async function checkForSharedLog() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const logId = urlParams.get('log');
+
+                if (logId) {
+                    console.log('Shared log detected:', logId);
+
+                    try {
+                        const logData = await firestoreService.getSharedWorkoutLog(logId);
+
+                        if (logData) {
+                            // Generate new local ID and import
+                            const importedLog = {
+                                id: Date.now(),
+                                ...logData,
+                                importedFrom: logId,
+                                importedAt: new Date().toISOString()
+                            };
+
+                            // Save to local storage
+                            const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                            logs.unshift(importedLog);
+                            localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+
+                            // Sync to cloud
+                            await syncLogsToCloud();
+
+                            // Clean URL
+                            window.history.replaceState({}, document.title, window.location.pathname);
+
+                            // Show success notification
+                            showImportNotification(logData.workoutName, true);
+
+                            // Re-render
+                            renderLogs();
+                        }
+                    } catch (error) {
+                        console.error('Error importing shared log:', error);
+                        showImportNotification(error.message, false);
+
+                        // Clean URL
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                }
+            }
+
+            // Show import notification
+            function showImportNotification(message, success) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 100px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--color-surface);
+                    border: 1px solid ${success ? 'var(--color-primary)' : '#ff4444'};
+                    padding: 1rem 1.5rem;
+                    border-radius: var(--radius-md);
+                    z-index: 4000;
+                    box-shadow: 0 4px 12px ${success ? 'rgba(0, 243, 255, 0.3)' : 'rgba(255, 68, 68, 0.3)'};
+                    animation: slideDown 0.3s ease-out;
+                `;
+
+                notification.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">${success ? '✅' : '❌'}</span>
+                        <div>
+                            <strong style="color: ${success ? 'var(--color-primary)' : '#ff4444'};">
+                                ${success ? 'Allenamento Importato!' : 'Errore Importazione'}
+                            </strong>
+                            <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                                ${message}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add animation styles if not present
+                if (!document.getElementById('importAnimStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'importAnimStyle';
+                    style.textContent = `
+                        @keyframes slideDown {
+                            from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+                            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 4000);
+            }
+
+            // Check for shared log on init
+            checkForSharedLog();
+
+            // 8. Delete Log
+            async function deleteLog(index) {
+                if (confirm('Sei sicuro di voler eliminare questo allenamento dal diario?')) {
+                    const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                    logs.splice(index, 1);
+                    localStorage.setItem('ironflow_logs', JSON.stringify(logs));
+
+                    renderLogs();
+
+                    await syncLogsToCloud();
+
+                    if (storageService && storageService.hasCredentials()) {
+                        await storageService.syncData();
+                    }
+                }
+            }
+
+            // 8. Edit Log
+            function editLog(index) {
+                const logs = JSON.parse(localStorage.getItem('ironflow_logs') || '[]');
+                const log = logs[index];
+                if (!log) return;
+
+                editingLogIndex = index;
+
+                // Mock a currentWorkout object from the log data
+                currentWorkout = {
+                    id: log.workoutId,
+                    name: log.workoutName,
+                    exercises: log.exercises,
+                    fromAI: log.fromAI
+                };
+
+                // Setup UI
+                startBtn.style.display = 'none';
+                historyList.style.display = 'none';
+                loggingArea.style.display = 'block';
+
+                loggingTitle.textContent = "Modifica: " + log.workoutName;
+                logDate.value = log.date.split('T')[0];
+                logDuration.value = parseFloat(log.duration) || '';
+                if (log.wellness) {
+                    logSleepQuality.value = log.wellness.sleepQuality ?? '';
+                    logEnergyLevel.value = log.wellness.energyLevel ?? '';
+                    logStressLevel.value = log.wellness.stressLevel ?? '';
+                    logSorenessLevel.value = log.wellness.sorenessLevel ?? '';
+
+                    // Load DOMS muscles
+                    selectedLogSorenessMuscles.clear();
+                    if (Array.isArray(log.wellness.sorenessMuscles)) {
+                        log.wellness.sorenessMuscles.forEach(m => selectedLogSorenessMuscles.add(m));
+                    }
+                    syncLogSorenessChips();
+
+                    // Load external cause
+                    if (logExternalCause) {
+                        logExternalCause.value = log.wellness.externalCause || '';
+                    }
+
+                    // Auto-expand DOMS section if there's data
+                    if (log.wellness.sorenessMuscles?.length > 0 || log.wellness.externalCause) {
+                        domsDetailsContent.style.display = 'block';
+                        toggleDomsDetails.textContent = 'Comprimi ▲';
+                    }
+                } else {
+                    logSleepQuality.value = '';
+                    logEnergyLevel.value = '';
+                    logStressLevel.value = '';
+                    logSorenessLevel.value = '';
+                    clearLogSorenessSelection();
+                }
+                finishWorkoutBtn.textContent = 'Aggiorna Allenamento';
+
+                renderLoggingForm(currentWorkout, log.exercises);
+            }
+
+            // Initial Render
+            renderLogs();
+
+            // --- AUTO-SYNC MANAGER ---
+            // Sincronizza automaticamente all'avvio e ogni 5 minuti
+            const AUTO_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti
+
+            const performAutoSync = async () => {
+                try {
+                    console.log('🔄 [Diary] Auto-sync in corso...');
+                    await firestoreService.syncToCloud();
+                    console.log('✅ [Diary] Auto-sync completato:', new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.warn('⚠️ [Diary] Auto-sync fallito:', error.message);
+                }
+            };
+
+            // Primo sync silenzioso dopo 2 secondi
+            setTimeout(performAutoSync, 2000);
+
+            // Sync ogni 5 minuti
+            if (!window.autoSyncInterval) {
+                window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);
+                console.log('🔄 [Diary] Auto-sync attivato: ogni 5 minuti');
+            }
+        });
+    </script>
+</body>
+
+</html>

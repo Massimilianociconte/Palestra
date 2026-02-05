@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connessione Google Fit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            background: #ef4444;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h2>Connessione in corso...</h2>
+        <p id="status">Autenticazione con Google Fit</p>
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Estrai parametri da URL query string (Authorization Code Flow)
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+
+        const statusEl = document.getElementById('status');
+        const errorEl = document.getElementById('error');
+        
+        // Funzione per salvare in localStorage (fallback per COOP)
+        function saveToLocalStorage(success, code, error) {
+            try {
+                if (success) {
+                    localStorage.setItem('fit_auth_success', 'true');
+                    localStorage.setItem('fit_auth_code', code);
+                    console.log('✅ Auth data saved to localStorage');
+                } else {
+                    localStorage.setItem('fit_auth_error', error || 'unknown_error');
+                    console.log('❌ Auth error saved to localStorage');
+                }
+            } catch (e) {
+                console.error('Cannot write to localStorage:', e);
+            }
+        }
+        
+        // Funzione per tentare di chiudere la finestra
+        function tryCloseWindow(delay = 1000) {
+            setTimeout(() => {
+                try {
+                    window.close();
+                } catch (e) {
+                    console.log('Cannot close window (COOP restriction)');
+                    // Mostra messaggio all'utente
+                    statusEl.innerHTML = '✅ Puoi chiudere questa finestra';
+                }
+            }, delay);
+        }
+
+        if (error) {
+            // Errore OAuth
+            statusEl.textContent = 'Errore durante l\'autenticazione';
+            errorEl.textContent = `Errore: ${error}`;
+            errorEl.style.display = 'block';
+            
+            // Salva in localStorage (fallback per COOP)
+            saveToLocalStorage(false, null, error);
+
+            // Invia messaggio di errore al parent (se possibile)
+            if (window.opener) {
+                try {
+                    window.opener.postMessage({
+                        type: 'oauth_error',
+                        error: error
+                    }, '*');
+                } catch (e) {
+                    console.log('postMessage blocked by COOP, using localStorage fallback');
+                }
+            }
+
+            tryCloseWindow(3000);
+        } else if (code) {
+            // Successo - invia code al parent
+            statusEl.textContent = 'Autenticazione completata!';
+            
+            // Salva in localStorage PRIMA di postMessage (fallback per COOP)
+            saveToLocalStorage(true, code, null);
+
+            // Invia messaggio al parent (se possibile)
+            if (window.opener) {
+                try {
+                    window.opener.postMessage({
+                        type: 'oauth_success',
+                        code: code
+                    }, '*');
+                } catch (e) {
+                    console.log('postMessage blocked by COOP, using localStorage fallback');
+                }
+            }
+
+            tryCloseWindow(1500);
+        } else {
+            // Nessun parametro valido
+            statusEl.textContent = 'Parametri mancanti';
+            errorEl.textContent = 'URL di callback non valido';
+            errorEl.style.display = 'block';
+
+            tryCloseWindow(3000);
+        }
+    </script>
+</body>
+
+</html>

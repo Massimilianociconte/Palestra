@@ -1,0 +1,31 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+
+# Android build artifacts
+android/app/build/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+*.apk
+*.aab
+
+# Capacitor
+dist/
+
+# Firebase Functions
+functions/.env
+functions/.env.local
+.runtimeconfig.json
+
+# Secrets
+*.secret
+.env
+.env.local
+
+# Firebase Config (contiene chiavi API)
+js/firebase-config.js
