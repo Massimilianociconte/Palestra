@@ -427,9 +427,11 @@ export class FriendshipService {
             const friendshipRef = doc(db, this.collectionName, friendshipId);
 
             // Use setDoc with merge to create OR update
+            // Include createdBy for Firestore rules (required on create)
             await setDoc(friendshipRef, {
                 participants: sortedParticipants,
                 status: 'blocked',
+                createdBy: blockerUid,
                 blockedBy: blockerUid,
                 blockedAt: serverTimestamp()
             }, { merge: true });

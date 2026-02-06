@@ -1673,3 +1673,59 @@ exports.searchUserByEmail = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('internal', error.message);
   }
 });
+
+// ============================================
+// ROOM CLEANUP - Archive inactive rooms
+// ============================================
+
+/**
+ * Scheduled function to archive inactive gymbro rooms.
+ * Runs every 6 hours. Archives rooms with no activity for 24+ hours.
+ */
+exports.cleanupInactiveRooms = functions.pubsub
+  .schedule('every 6 hours')
+  .onRun(async (context) => {
+    console.log('[RoomCleanup] Starting inactive room cleanup');
+
+    const db = admin.firestore();
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+
+    try {
+      // Find active/lobby rooms with no recent activity
+      const staleRooms = await db.collection('gymbro_rooms')
+        .where('status', 'in', ['lobby', 'active'])
+        .where('lastActivity', '<', cutoff)
+        .limit(50)
+        .get();
+
+      if (staleRooms.empty) {
+        console.log('[RoomCleanup] No stale rooms found');
+        return null;
+      }
+
+      console.log(`[RoomCleanup] Found ${staleRooms.size} stale rooms to archive`);
+
+      const batch = db.batch();
+      let count = 0;
+
+      for (const roomDoc of staleRooms.docs) {
+        batch.update(roomDoc.ref, {
+          status: 'archived',
+          archivedAt: admin.firestore.FieldValue.serverTimestamp(),
+          archivedReason: 'inactive_cleanup'
+        });
+        count++;
+
+        // Firestore batch limit is 500
+        if (count >= 450) break;
+      }
+
+      await batch.commit();
+      console.log(`[RoomCleanup] Archived ${count} inactive rooms`);
+
+      return null;
+    } catch (error) {
+      console.error('[RoomCleanup] Error:', error);
+      return null;
+    }
+  });

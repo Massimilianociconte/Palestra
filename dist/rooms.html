@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Stanze | GYMBRO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00f3ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/gymbro-social.css">
+    <link rel="stylesheet" href="css/gymbro-chat.css">
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+    <style>
+        .rooms-page {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 80px 1rem 120px;
+        }
+
+        /* Hero */
+        .rooms-hero {
+            text-align: center;
+            padding: 2rem 0;
+            position: relative;
+        }
+        .rooms-hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: var(--gradient-glow);
+            border-radius: 50%;
+            z-index: 0;
+            opacity: 0.5;
+        }
+        .rooms-hero-icon {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .rooms-hero-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .rooms-hero-subtitle {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Action Cards */
+        .rooms-action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .rooms-action-card {
+            background: var(--gradient-card);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .rooms-action-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .rooms-action-card:hover, .rooms-action-card:active {
+            transform: translateY(-4px);
+            border-color: rgba(0,243,255,0.3);
+            box-shadow: var(--shadow-glow);
+        }
+        .rooms-action-card:hover::before, .rooms-action-card:active::before { opacity: 1; }
+        .rooms-action-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .rooms-action-card-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+        }
+        .rooms-action-card-desc {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 0.25rem;
+        }
+
+        /* Create Room Form */
+        .create-room-section {
+            background: var(--gradient-card);
+            border: 1px solid rgba(0,243,255,0.2);
+            border-radius: 20px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        .create-room-section.active { display: block; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 0.5rem;
+        }
+        .form-input {
+            width: 100%;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .form-input:focus { border-color: var(--color-primary); }
+        .form-input::placeholder { color: rgba(255,255,255,0.3); }
+        .form-select {
+            width: 100%;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .form-submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            color: black;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .form-submit-btn:hover { transform: scale(1.02); box-shadow: var(--shadow-glow); }
+        .form-submit-btn:active { transform: scale(0.98); }
+        .form-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Join Room Section */
+        .join-room-section {
+            background: var(--gradient-card);
+            border: 1px solid rgba(0,243,255,0.2);
+            border-radius: 20px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        .join-room-section.active { display: block; }
+        .join-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .join-btn {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            padding: 0 1.5rem;
+            color: black;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* Room List */
+        .rooms-list-section {
+            margin-top: 1.5rem;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0 0.25rem;
+        }
+        .section-header-icon { font-size: 1rem; }
+        .section-header-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .room-card {
+            background: var(--gradient-card);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .room-card:hover {
+            border-color: rgba(0,243,255,0.3);
+            transform: translateX(4px);
+        }
+        .room-card-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        .room-card-info { flex: 1; min-width: 0; }
+        .room-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .room-card-meta {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 0.25rem;
+        }
+        .room-card-status {
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .room-card-status.lobby {
+            background: rgba(0,243,255,0.15);
+            color: var(--color-primary);
+            border: 1px solid rgba(0,243,255,0.3);
+        }
+        .room-card-status.active {
+            background: rgba(74,222,128,0.15);
+            color: #4ade80;
+            border: 1px solid rgba(74,222,128,0.3);
+        }
+
+        /* Invite Card */
+        .invite-card {
+            background: var(--gradient-card);
+            border: 1px solid rgba(255,165,0,0.3);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .invite-card-info { flex: 1; }
+        .invite-card-name { font-weight: 600; }
+        .invite-card-from {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 0.25rem;
+        }
+        .invite-card-actions { display: flex; gap: 0.5rem; }
+        .invite-accept-btn {
+            padding: 0.5rem 1rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 10px;
+            color: black;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .invite-decline-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* Active Room Container */
+        #activeRoomView {
+            display: none;
+        }
+        #activeRoomView.active {
+            display: block;
+        }
+        #roomBrowser.hidden {
+            display: none;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            background: var(--gradient-card);
+            border-radius: 20px;
+            border: 1px dashed rgba(255,255,255,0.1);
+        }
+        .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+        .empty-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .empty-text { font-size: 0.85rem; color: rgba(255,255,255,0.4); max-width: 250px; margin: 0 auto; }
+
+        /* Auth */
+        .auth-required {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+        .auth-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .auth-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .auth-text { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .auth-btn {
+            display: inline-block;
+            padding: 0.875rem 2rem;
+            background: var(--gradient-primary);
+            border-radius: 14px;
+            color: black;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+        }
+        .toast {
+            background: var(--gradient-card);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 1rem 1.5rem;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-card);
+            animation: toastIn 0.3s ease;
+            white-space: nowrap;
+        }
+        .toast.success { border-color: rgba(0,243,255,0.4); }
+        .toast.error { border-color: rgba(255,71,87,0.4); }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading */
+        .loading-spinner { display: flex; justify-content: center; padding: 2rem; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Back button for active room view */
+        .back-to-list-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        .back-to-list-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
+            <nav>
+                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="creator.html">📝 Crea</a></li>
+                    <li><a href="diary.html">📓 Diario</a></li>
+                    <li><a href="analysis.html">📈 Analisi</a></li>
+                    <li><a href="friends.html">👥 Amici</a></li>
+                    <li><a href="rooms.html" class="text-primary">🏠 Stanze</a></li>
+                    <li><a href="user.html">👤 Profilo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="rooms-page">
+        <!-- Auth Required -->
+        <div id="authRequired" class="auth-required" style="display: none;">
+            <div class="auth-icon">🔐</div>
+            <h2 class="auth-title">Accedi per continuare</h2>
+            <p class="auth-text">Effettua il login per creare o unirti a stanze di allenamento.</p>
+            <a href="user.html" class="auth-btn">Accedi ora</a>
+        </div>
+
+        <!-- Room Browser (main list view) -->
+        <div id="roomBrowser" style="display: none;">
+            <!-- Hero -->
+            <div class="rooms-hero">
+                <div class="rooms-hero-icon">🏠</div>
+                <h1 class="rooms-hero-title">STANZE</h1>
+                <p class="rooms-hero-subtitle">Allenati in tempo reale con i tuoi amici</p>
+            </div>
+
+            <!-- Action Cards -->
+            <div class="rooms-action-grid">
+                <div class="rooms-action-card" id="createRoomBtn">
+                    <span class="rooms-action-card-icon">➕</span>
+                    <span class="rooms-action-card-label">Crea Stanza</span>
+                    <span class="rooms-action-card-desc">Ospita un allenamento</span>
+                </div>
+                <div class="rooms-action-card" id="joinRoomBtn">
+                    <span class="rooms-action-card-icon">🚪</span>
+                    <span class="rooms-action-card-label">Unisciti</span>
+                    <span class="rooms-action-card-desc">Entra con codice</span>
+                </div>
+            </div>
+
+            <!-- Create Room Form -->
+            <div id="createRoomSection" class="create-room-section">
+                <div class="form-group">
+                    <label class="form-label">Nome Stanza</label>
+                    <input type="text" id="roomNameInput" class="form-input" placeholder="Es: Allenamento del lunedì" maxlength="50">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Max Partecipanti</label>
+                        <select id="roomCapacitySelect" class="form-select">
+                            <option value="2">2</option>
+                            <option value="4" selected>4</option>
+                            <option value="6">6</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Privacy</label>
+                        <select id="roomPrivacySelect" class="form-select">
+                            <option value="friends_only">Solo amici</option>
+                            <option value="invite_only">Solo invitati</option>
+                            <option value="public">Pubblica</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="createRoomSubmitBtn" class="form-submit-btn">🚀 Crea Stanza</button>
+            </div>
+
+            <!-- Join Room Section -->
+            <div id="joinRoomSection" class="join-room-section">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Codice Stanza</label>
+                    <div class="join-input-group">
+                        <input type="text" id="roomCodeInput" class="form-input" placeholder="Inserisci il codice" style="text-transform: uppercase;">
+                        <button id="joinRoomSubmitBtn" class="join-btn">Entra</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invites -->
+            <div id="invitesSection" class="rooms-list-section" style="display: none;">
+                <div class="section-header">
+                    <span class="section-header-icon">📬</span>
+                    <span class="section-header-text">Inviti Ricevuti</span>
+                </div>
+                <div id="invitesList"></div>
+            </div>
+
+            <!-- My Active Rooms -->
+            <div id="activeRoomsSection" class="rooms-list-section">
+                <div class="section-header">
+                    <span class="section-header-icon">🏋️</span>
+                    <span class="section-header-text">Le Mie Stanze</span>
+                </div>
+                <div id="activeRoomsList"></div>
+                <div id="roomsEmpty" class="empty-state" style="display: none;">
+                    <div class="empty-icon">🏠</div>
+                    <h3 class="empty-title">Nessuna stanza attiva</h3>
+                    <p class="empty-text">Crea una stanza o unisciti a quella di un amico per iniziare!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Room View (GymbRoomUI renders here) -->
+        <div id="activeRoomView">
+            <button class="back-to-list-btn" id="backToListBtn">← Torna alla lista</button>
+            <div id="roomContainer"></div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module">
+        import { auth } from './js/firebase-config.js';
+        import { gymbRoomService } from './js/services/gymbro-room-service.js';
+        import { GymbRoomUI } from './js/ui/gymbro-room-ui.js';
+
+        // State
+        let currentUser = null;
+        let activeRoomUI = null;
+
+        // DOM
+        const authRequired = document.getElementById('authRequired');
+        const roomBrowser = document.getElementById('roomBrowser');
+        const activeRoomView = document.getElementById('activeRoomView');
+        const roomContainer = document.getElementById('roomContainer');
+        const createRoomSection = document.getElementById('createRoomSection');
+        const joinRoomSection = document.getElementById('joinRoomSection');
+        const activeRoomsList = document.getElementById('activeRoomsList');
+        const invitesList = document.getElementById('invitesList');
+        const invitesSection = document.getElementById('invitesSection');
+        const roomsEmpty = document.getElementById('roomsEmpty');
+
+        // Auth listener
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                authRequired.style.display = 'none';
+                roomBrowser.style.display = 'block';
+                activeRoomView.style.display = 'none';
+                await loadAllData();
+            } else {
+                authRequired.style.display = 'block';
+                roomBrowser.style.display = 'none';
+                activeRoomView.style.display = 'none';
+            }
+        });
+
+        // Nav toggle
+        document.getElementById('mobileToggle')?.addEventListener('click', () => {
+            document.getElementById('navLinks')?.classList.toggle('active');
+        });
+
+        // Toggle create form
+        document.getElementById('createRoomBtn').addEventListener('click', () => {
+            createRoomSection.classList.toggle('active');
+            joinRoomSection.classList.remove('active');
+        });
+
+        // Toggle join form
+        document.getElementById('joinRoomBtn').addEventListener('click', () => {
+            joinRoomSection.classList.toggle('active');
+            createRoomSection.classList.remove('active');
+        });
+
+        // Create Room
+        document.getElementById('createRoomSubmitBtn').addEventListener('click', async () => {
+            const name = document.getElementById('roomNameInput').value.trim();
+            if (!name) {
+                showToast('Inserisci un nome per la stanza', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('createRoomSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Creazione...';
+
+            try {
+                const result = await gymbRoomService.createRoom({
+                    name: name,
+                    maxCapacity: parseInt(document.getElementById('roomCapacitySelect').value),
+                    privacy: document.getElementById('roomPrivacySelect').value
+                });
+
+                if (result.success) {
+                    showToast('Stanza creata!', 'success');
+                    createRoomSection.classList.remove('active');
+                    document.getElementById('roomNameInput').value = '';
+                    openRoom(result.data.roomId);
+                } else {
+                    showToast(result.error || 'Errore creazione', 'error');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Crea Stanza';
+            }
+        });
+
+        // Join Room
+        document.getElementById('joinRoomSubmitBtn').addEventListener('click', async () => {
+            const code = document.getElementById('roomCodeInput').value.trim();
+            if (!code) {
+                showToast('Inserisci un codice stanza', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('joinRoomSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳...';
+
+            try {
+                const result = await gymbRoomService.joinRoom(code);
+                if (result.success) {
+                    showToast('Entrato nella stanza!', 'success');
+                    joinRoomSection.classList.remove('active');
+                    document.getElementById('roomCodeInput').value = '';
+                    openRoom(code);
+                } else {
+                    showToast(result.error || 'Errore', 'error');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Entra';
+            }
+        });
+
+        // Back to list
+        document.getElementById('backToListBtn').addEventListener('click', () => {
+            if (activeRoomUI) {
+                activeRoomUI.cleanup();
+                activeRoomUI = null;
+            }
+            showBrowser();
+            loadAllData();
+        });
+
+        // Load rooms and invites
+        async function loadAllData() {
+            if (!currentUser) return;
+
+            try {
+                // Load active rooms
+                const roomsResult = await gymbRoomService.getMyActiveRooms();
+                if (roomsResult.success && roomsResult.data.length > 0) {
+                    roomsEmpty.style.display = 'none';
+                    activeRoomsList.innerHTML = roomsResult.data.map(room => `
+                        <div class="room-card" data-room-id="${room.roomId}">
+                            <span class="room-card-icon">${room.status === 'active' ? '🏋️' : '⏳'}</span>
+                            <div class="room-card-info">
+                                <div class="room-card-name">${room.name || 'Stanza'}</div>
+                                <div class="room-card-meta">${room.memberCount || '?'} partecipanti • ${room.myRole === 'host' ? 'Host' : 'Membro'}</div>
+                            </div>
+                            <span class="room-card-status ${room.status}">${room.status === 'active' ? 'In corso' : 'Lobby'}</span>
+                        </div>
+                    `).join('');
+
+                    // Add click handlers
+                    activeRoomsList.querySelectorAll('.room-card').forEach(card => {
+                        card.addEventListener('click', () => {
+                            openRoom(card.dataset.roomId);
+                        });
+                    });
+                } else {
+                    activeRoomsList.innerHTML = '';
+                    roomsEmpty.style.display = 'block';
+                }
+
+                // Load invites
+                const invitesResult = await gymbRoomService.getMyInvites();
+                if (invitesResult.success && invitesResult.data.length > 0) {
+                    invitesSection.style.display = 'block';
+                    invitesList.innerHTML = invitesResult.data.map(invite => `
+                        <div class="invite-card" data-room-id="${invite.roomId}" data-invite-id="${invite.inviteId}">
+                            <span style="font-size: 1.5rem;">📬</span>
+                            <div class="invite-card-info">
+                                <div class="invite-card-name">${invite.roomName || 'Stanza'}</div>
+                                <div class="invite-card-from">Da: ${invite.inviterName || 'Un amico'}</div>
+                            </div>
+                            <div class="invite-card-actions">
+                                <button class="invite-accept-btn" data-action="accept">Entra</button>
+                                <button class="invite-decline-btn" data-action="decline">✕</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Add invite action handlers
+                    invitesList.querySelectorAll('.invite-accept-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const card = btn.closest('.invite-card');
+                            const roomId = card.dataset.roomId;
+                            try {
+                                const result = await gymbRoomService.joinRoom(roomId);
+                                if (result.success) {
+                                    showToast('Entrato nella stanza!', 'success');
+                                    openRoom(roomId);
+                                } else {
+                                    showToast(result.error, 'error');
+                                }
+                            } catch (err) {
+                                showToast(err.message, 'error');
+                            }
+                        });
+                    });
+
+                    invitesList.querySelectorAll('.invite-decline-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const card = btn.closest('.invite-card');
+                            card.style.opacity = '0.5';
+                            card.style.pointerEvents = 'none';
+                            showToast('Invito rifiutato', 'success');
+                        });
+                    });
+                } else {
+                    invitesSection.style.display = 'none';
+                }
+
+            } catch (err) {
+                console.error('Error loading rooms:', err);
+                activeRoomsList.innerHTML = '';
+                roomsEmpty.style.display = 'block';
+            }
+        }
+
+        // Open a room (switch to room UI)
+        function openRoom(roomId) {
+            if (!currentUser) return;
+
+            // Hide browser, show room view
+            roomBrowser.classList.add('hidden');
+            activeRoomView.style.display = 'block';
+
+            // Cleanup previous
+            if (activeRoomUI) {
+                activeRoomUI.cleanup();
+            }
+
+            // Create room UI
+            activeRoomUI = new GymbRoomUI({
+                container: roomContainer,
+                roomId: roomId,
+                userId: currentUser.uid,
+                onRoomEnd: () => {
+                    showBrowser();
+                    loadAllData();
+                },
+                onError: (err) => {
+                    console.error('Room error:', err);
+                    showToast(err.message || 'Errore nella stanza', 'error');
+                }
+            });
+            activeRoomUI.init();
+        }
+
+        // Show browser view
+        function showBrowser() {
+            roomBrowser.classList.remove('hidden');
+            activeRoomView.style.display = 'none';
+            roomContainer.innerHTML = '';
+        }
+
+        // Toast
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+    <script type="module" src="./js/gymbro-chat.js"></script>
+</body>
+</html>

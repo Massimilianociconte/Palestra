@@ -3526,12 +3526,12 @@
                                 <div style="font-size: 0.8rem; color: var(--color-text-muted);">${exercisesCount} Esercizi</div>
                             </div>
                             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <button class="btn-icon start-workout" data-index="${index}" ${workoutIdAttr} title="Avvia Focus Mode" style="background: var(--color-primary); color: black; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                <button class="btn-icon start-workout" data-id="${w.id}" ${workoutIdAttr} title="Avvia Focus Mode" style="background: var(--color-primary); color: black; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                                     ▶
                                 </button>
                                 <a href="creator.html?id=${w.id}" style="padding: 0.5rem; font-size: 0.9rem; color: var(--color-text); text-decoration: none; border: 1px solid var(--color-border); border-radius: 4px;">Modifica</a>
-                                <span class="share-workout" data-index="${index}" title="Condividi Scheda" style="padding: 0.5rem; cursor: pointer; font-size: 1.2rem;">🔗</span>
-                                <span class="delete-workout" data-index="${index}" style="padding: 0.5rem; cursor: pointer;">🗑️</span>
+                                <span class="share-workout" data-id="${w.id}" title="Condividi Scheda" style="padding: 0.5rem; cursor: pointer; font-size: 1.2rem;">🔗</span>
+                                <span class="delete-workout" data-id="${w.id}" style="padding: 0.5rem; cursor: pointer;">🗑️</span>
                             </div>
                         `;
                         list.appendChild(div);
@@ -3539,10 +3539,9 @@
 
                     list.querySelectorAll('.start-workout').forEach(btn => {
                         btn.addEventListener('click', (e) => {
-                            const idx = Number(e.currentTarget.dataset.index);
                             const workoutId = e.currentTarget.dataset.id;
                             const stored = getStoredWorkouts();
-                            let targetWorkout = workoutId ? stored.find(w => String(w.id) === String(workoutId)) : stored[idx];
+                            const targetWorkout = workoutId ? stored.find(w => String(w.id) === String(workoutId)) : null;
 
                             if (!targetWorkout) {
                                 alert('Scheda non trovata. Aggiorna la pagina per sincronizzare le modifiche.');
@@ -3561,44 +3560,39 @@
                     // Share Workout Listener
                     list.querySelectorAll('.share-workout').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
-                            const idx = Number(e.target.dataset.index);
+                            const workoutId = e.target.dataset.id;
                             const stored = getStoredWorkouts();
-                            const workout = stored[idx];
-                            if (!workout) return;
+                            const workout = workoutId ? stored.find(w => String(w.id) === String(workoutId)) : null;
+                            if (!workout) {
+                                alert('Scheda non trovata. Aggiorna la pagina.');
+                                return;
+                            }
 
                             e.target.textContent = '⏳';
                             try {
-                                // URL-based sharing (No Database required)
-                                const json = JSON.stringify(workout);
-                                const encoded = btoa(encodeURIComponent(json));
+                                // Short-link sharing via Firestore
+                                if (firestoreService && typeof firestoreService.createSharedWorkout === 'function') {
+                                    const shortId = await firestoreService.createSharedWorkout(workout);
+                                    // Always use production URL for share links
+                                    const baseUrl = 'https://massimilianociconte.github.io/Palestra/user.html';
+                                    const shareUrl = `${baseUrl}?s=${shortId}`;
 
-                                const url = new URL(window.location.href);
-                                url.searchParams.set('shareData', encoded);
-                                url.searchParams.delete('shareId');
-
-                                const shareUrl = url.toString();
-
-                                if (shareUrl.length > 8000) {
-                                    alert('Scheda troppo grande per la condivisione via link.');
-                                    return;
-                                }
-
-                                // Native Share API (Mobile)
-                                if (navigator.share) {
-                                    await navigator.share({
-                                        title: `Allenamento: ${workout.name}`,
-                                        text: `Prova questa scheda di allenamento su GymBro: ${workout.name}`,
-                                        url: shareUrl
-                                    });
+                                    if (navigator.share) {
+                                        await navigator.share({
+                                            title: `Allenamento: ${workout.name}`,
+                                            text: `Prova questa scheda su GymBro: ${workout.name}`,
+                                            url: shareUrl
+                                        });
+                                    } else {
+                                        showShareModal(workout.name, shareUrl);
+                                    }
                                 } else {
-                                    // Desktop Fallback (Custom Modal)
-                                    showShareModal(workout.name, shareUrl);
+                                    alert('Sistema di condivisione non disponibile. Ricarica la pagina.');
                                 }
-
                             } catch (err) {
                                 console.error(err);
                                 if (err.name !== 'AbortError') {
-                                    alert('Errore condivisione.');
+                                    alert('Errore condivisione: ' + (err.message || 'Riprova'));
                                 }
                             } finally {
                                 e.target.textContent = '🔗';
@@ -3606,12 +3600,14 @@
                         });
                     });
 
+                    // Delete Workout Listener
                     list.querySelectorAll('.delete-workout').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
                             if (confirm('Sei sicuro?')) {
-                                const idx = Number(e.target.dataset.index);
-                                if (Number.isNaN(idx)) return;
+                                const workoutId = e.target.dataset.id;
                                 const workouts = getStoredWorkouts();
+                                const idx = workouts.findIndex(w => String(w.id) === String(workoutId));
+                                if (idx === -1) return;
                                 workouts.splice(idx, 1);
                                 localStorage.setItem('ironflow_workouts', JSON.stringify(workouts));
                                 renderWorkouts();

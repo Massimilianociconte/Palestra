@@ -13,6 +13,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/gymbro-social.css">
     <!-- QR Code Library - local copy for reliability -->
     <script src="js/lib/qrcode.min.js"></script>
     <script>
@@ -685,6 +686,7 @@
                     <li><a href="diary.html">📓 Diario</a></li>
                     <li><a href="analysis.html">📈 Analisi</a></li>
                     <li><a href="friends.html" class="text-primary">👥 Amici</a></li>
+                    <li><a href="rooms.html">🏠 Stanze</a></li>
                     <li><a href="user.html">👤 Profilo</a></li>
                 </ul>
             </nav>
@@ -1118,12 +1120,13 @@
             if (e.target.id === 'qrModal') closeQRModal();
         });
 
-        // QR Scanner
+        // QR Scanner (with web fallback)
         window.startQRScan = async function() {
             const isNative = typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform();
             
             if (!isNative) {
-                showToast('Scanner disponibile solo su app Android', 'error');
+                // Web fallback: show manual UID input
+                showUidInputModal();
                 return;
             }
 
@@ -1143,32 +1146,7 @@
                 });
 
                 if (result?.ScanResult) {
-                    const scannedData = result.ScanResult;
-                    
-                    if (!scannedData.startsWith('gymbro://friend/')) {
-                        showToast('QR Code non valido per GymBro', 'error');
-                        return;
-                    }
-
-                    const scannedUid = scannedData.replace('gymbro://friend/', '');
-                    
-                    if (scannedUid === currentUser.uid) {
-                        showToast('Non puoi scansionare il tuo QR!', 'error');
-                        return;
-                    }
-
-                    const friendResult = await friendshipService.createInstantFriendship(scannedUid);
-                    
-                    if (friendResult.success) {
-                        if (friendResult.data.status === 'already_friends') {
-                            showToast('Siete già amici! 👋', 'success');
-                        } else {
-                            showToast('Amico aggiunto! 🎉', 'success');
-                            await loadAllData();
-                        }
-                    } else {
-                        showToast(friendResult.error || 'Errore', 'error');
-                    }
+                    await processQRData(result.ScanResult);
                 }
             } catch (err) {
                 console.error('❌ QR scan error:', err);
@@ -1177,6 +1155,106 @@
                 }
             }
         };
+
+        // Process scanned QR data or manual UID
+        async function processQRData(scannedData) {
+            let targetUid = scannedData;
+
+            // Handle gymbro:// protocol
+            if (scannedData.startsWith('gymbro://friend/')) {
+                targetUid = scannedData.replace('gymbro://friend/', '');
+            }
+
+            targetUid = targetUid.trim();
+
+            if (!targetUid || targetUid.length < 10) {
+                showToast('Codice non valido', 'error');
+                return;
+            }
+
+            if (targetUid === currentUser.uid) {
+                showToast('Non puoi aggiungere te stesso!', 'error');
+                return;
+            }
+
+            try {
+                const friendResult = await friendshipService.createInstantFriendship(targetUid);
+                
+                if (friendResult.success) {
+                    if (friendResult.data.status === 'already_friends') {
+                        showToast('Siete già amici! 👋', 'success');
+                    } else {
+                        showToast('Amico aggiunto! 🎉', 'success');
+                        await loadAllData();
+                    }
+                } else {
+                    showToast(friendResult.error || 'Errore', 'error');
+                }
+            } catch (err) {
+                showToast(err.message || 'Errore aggiunta amico', 'error');
+            }
+        }
+
+        // Web fallback: manual UID input modal
+        function showUidInputModal() {
+            // Remove existing modal if present
+            const existing = document.getElementById('uidInputModal');
+            if (existing) existing.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'uidInputModal';
+            modal.className = 'modal-backdrop';
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-card">
+                    <div class="qr-modal-content">
+                        <h2 class="qr-title">📷 Aggiungi Amico</h2>
+                        <p class="qr-subtitle">Scanner non disponibile su web</p>
+                        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 1rem; line-height: 1.5;">
+                            Chiedi al tuo amico il suo <strong style="color: var(--color-primary);">codice utente</strong> 
+                            (visibile nel QR Code) e incollalo qui:
+                        </p>
+                        <input type="text" id="manualUidInput" class="invite-input" 
+                               placeholder="Incolla codice utente..." 
+                               style="width: 100%; margin-bottom: 1rem; box-sizing: border-box;">
+                        <button class="invite-btn" id="manualUidSubmit" 
+                                style="width: 100%; padding: 0.875rem; margin-bottom: 0.5rem; border-radius: 14px; font-size: 0.95rem;">
+                            Aggiungi Amico
+                        </button>
+                    </div>
+                    <button class="modal-close-btn" id="closeUidModal">Chiudi</button>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Focus input
+            setTimeout(() => document.getElementById('manualUidInput')?.focus(), 100);
+
+            // Submit handler
+            document.getElementById('manualUidSubmit').addEventListener('click', async () => {
+                const uid = document.getElementById('manualUidInput').value.trim();
+                if (!uid) {
+                    showToast('Inserisci un codice utente', 'error');
+                    return;
+                }
+                modal.remove();
+                await processQRData(uid);
+            });
+
+            // Enter key
+            document.getElementById('manualUidInput').addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('manualUidSubmit').click();
+                }
+            });
+
+            // Close handlers
+            document.getElementById('closeUidModal').addEventListener('click', () => modal.remove());
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
 
         // Friend Actions
         window.acceptRequest = async function(uid) {
@@ -1278,19 +1356,39 @@
         });
 
         // Helpers
+        const profileCache = new Map();
+        const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
         async function fetchUsersData(uids) {
             if (!uids.length) return {};
             
             const usersData = {};
-            const usersRef = collection(db, 'users');
-            
-            for (let i = 0; i < uids.length; i += 10) {
-                const batch = uids.slice(i, i + 10);
-                const q = query(usersRef, where('__name__', 'in', batch));
-                const snapshot = await getDocs(q);
-                snapshot.forEach(doc => {
-                    usersData[doc.id] = doc.data();
-                });
+            const now = Date.now();
+            const uncachedUids = [];
+
+            // Check cache first
+            for (const uid of uids) {
+                const cached = profileCache.get(uid);
+                if (cached && (now - cached.ts) < CACHE_TTL) {
+                    usersData[uid] = cached.data;
+                } else {
+                    uncachedUids.push(uid);
+                }
+            }
+
+            // Fetch only uncached profiles
+            if (uncachedUids.length > 0) {
+                const usersRef = collection(db, 'users');
+                for (let i = 0; i < uncachedUids.length; i += 10) {
+                    const batch = uncachedUids.slice(i, i + 10);
+                    const q = query(usersRef, where('__name__', 'in', batch));
+                    const snapshot = await getDocs(q);
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        usersData[doc.id] = data;
+                        profileCache.set(doc.id, { data, ts: now });
+                    });
+                }
             }
             
             return usersData;

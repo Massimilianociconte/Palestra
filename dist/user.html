@@ -1031,7 +1031,6 @@
 </head>
 
 <body>
-
     <header class="header">
         <div class="container">
             <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
@@ -1042,6 +1041,7 @@
                     <li><a href="diary.html">📓 Diario</a></li>
                     <li><a href="analysis.html">📈 Analisi</a></li>
                     <li><a href="friends.html">👥 Amici</a></li>
+                    <li><a href="rooms.html">🏠 Stanze</a></li>
                     <li><a href="user.html" class="text-primary">👤 Profilo</a></li>
                 </ul>
             </nav>
@@ -4557,9 +4557,13 @@
                         });
                     });
 
-                    // Share Workout Listener
+                    // Share Workout Listener (fallback only)
+                    // Primary sharing is handled by enhancements-loader.js (short-link system)
+                    // This fallback only fires if enhancements-loader fails to load/intercept
                     list.querySelectorAll('.share-workout').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
+                            // enhancements-loader.js intercepts this with stopImmediatePropagation
+                            // If we reach here, the enhanced handler didn't load
                             const workoutId = e.target.dataset.id;
                             const stored = getStoredWorkouts();
                             const workout = stored.find(w => String(w.id) === String(workoutId));
@@ -4570,37 +4574,30 @@
 
                             e.target.textContent = '⏳';
                             try {
-                                // URL-based sharing (No Database required)
-                                const json = JSON.stringify(workout);
-                                const encoded = btoa(encodeURIComponent(json));
+                                // Try short-link via firestoreService (same as enhancements-loader)
+                                if (firestoreService && typeof firestoreService.createSharedWorkout === 'function') {
+                                    const shortId = await firestoreService.createSharedWorkout(workout);
+                                    const baseUrl = window.location.origin.includes('localhost')
+                                        ? 'https://massimilianociconte.github.io/Palestra/user.html'
+                                        : `${window.location.origin}${window.location.pathname}`;
+                                    const shareUrl = `${baseUrl}?s=${shortId}`;
 
-                                const url = new URL(window.location.href);
-                                url.searchParams.set('shareData', encoded);
-                                url.searchParams.delete('shareId');
-
-                                const shareUrl = url.toString();
-
-                                if (shareUrl.length > 8000) {
-                                    alert('Scheda troppo grande per la condivisione via link.');
-                                    return;
-                                }
-
-                                // Native Share API (Mobile)
-                                if (navigator.share) {
-                                    await navigator.share({
-                                        title: `Allenamento: ${workout.name}`,
-                                        text: `Prova questa scheda di allenamento su GymBro: ${workout.name}`,
-                                        url: shareUrl
-                                    });
+                                    if (navigator.share) {
+                                        await navigator.share({
+                                            title: `Allenamento: ${workout.name}`,
+                                            text: `Prova questa scheda su GymBro: ${workout.name}`,
+                                            url: shareUrl
+                                        });
+                                    } else {
+                                        showShareModal(workout.name, shareUrl);
+                                    }
                                 } else {
-                                    // Desktop Fallback (Custom Modal)
-                                    showShareModal(workout.name, shareUrl);
+                                    alert('Sistema di condivisione non disponibile. Ricarica la pagina.');
                                 }
-
                             } catch (err) {
                                 console.error(err);
                                 if (err.name !== 'AbortError') {
-                                    alert('Errore condivisione.');
+                                    alert('Errore condivisione: ' + (err.message || 'Riprova'));
                                 }
                             } finally {
                                 e.target.textContent = '🔗';

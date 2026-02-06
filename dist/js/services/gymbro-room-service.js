@@ -34,7 +34,8 @@ import {
     serverTimestamp,
     writeBatch,
     runTransaction,
-    addDoc
+    addDoc,
+    increment
 } from '../firebase-config.js';
 
 /**
@@ -203,6 +204,7 @@ export class GymbRoomService {
                 workoutId: config.workoutId || null,
                 status: 'lobby',
                 maxCapacity: config.maxCapacity || 8,
+                memberCount: 1,
                 privacy: config.privacy || 'friends_only',
                 createdAt: serverTimestamp(),
                 lastActivity: serverTimestamp()
@@ -275,11 +277,17 @@ export class GymbRoomService {
                     throw new Error('Sei già nella room');
                 }
 
-                // Check capacity
-                const membersSnap = await getDocs(collection(db, this.collectionName, roomId, 'members'));
-                if (membersSnap.size >= roomData.maxCapacity) {
+                // Check capacity using atomic memberCount (avoids non-transactional getDocs)
+                const currentCount = roomData.memberCount || 0;
+                if (currentCount >= roomData.maxCapacity) {
                     throw new Error('Room piena');
                 }
+
+                // Increment memberCount atomically
+                transaction.update(roomRef, {
+                    memberCount: increment(1),
+                    lastActivity: serverTimestamp()
+                });
 
                 // Add as member
                 transaction.set(memberRef, {
@@ -301,10 +309,6 @@ export class GymbRoomService {
                     lastUpdate: serverTimestamp()
                 });
 
-                // Update room activity
-                transaction.update(roomRef, {
-                    lastActivity: serverTimestamp()
-                });
             });
 
             console.log(`[GymbRoomService] User ${uid} joined room ${roomId}`);
@@ -351,13 +355,15 @@ export class GymbRoomService {
                 // Archive the room if host leaves
                 batch.update(roomRef, {
                     status: 'archived',
+                    memberCount: increment(-1),
                     archivedAt: serverTimestamp(),
                     archivedReason: 'host_left'
                 });
                 console.log(`[GymbRoomService] Host ${uid} left, archiving room ${roomId}`);
             } else {
-                // Just update activity
+                // Decrement member count and update activity
                 batch.update(roomRef, {
+                    memberCount: increment(-1),
                     lastActivity: serverTimestamp()
                 });
             }
@@ -608,21 +614,23 @@ export class GymbRoomService {
 
             const roomsSnap = await getDocs(q);
 
-            const myRooms = [];
-
-            for (const roomDoc of roomsSnap.docs) {
+            // Parallel membership checks (fixes N+1 query)
+            const memberChecks = roomsSnap.docs.map(async (roomDoc) => {
                 const memberRef = doc(db, this.collectionName, roomDoc.id, 'members', uid);
                 const memberSnap = await getDoc(memberRef);
-
                 if (memberSnap.exists()) {
-                    myRooms.push({
+                    return {
                         roomId: roomDoc.id,
                         ...roomDoc.data(),
                         myRole: memberSnap.data().role,
                         createdAt: roomDoc.data().createdAt?.toDate?.()
-                    });
+                    };
                 }
-            }
+                return null;
+            });
+
+            const results = await Promise.all(memberChecks);
+            const myRooms = results.filter(Boolean);
 
             return { success: true, data: myRooms };
 
@@ -709,23 +717,23 @@ export class GymbRoomService {
             const roomsRef = collection(db, this.collectionName);
             const roomsSnap = await getDocs(query(roomsRef, where('status', 'in', ['lobby', 'active'])));
 
-            const invites = [];
-
-            for (const roomDoc of roomsSnap.docs) {
+            // Parallel invite queries (fixes N+1 sequential pattern)
+            const inviteChecks = roomsSnap.docs.map(async (roomDoc) => {
                 const invitesRef = collection(db, this.collectionName, roomDoc.id, 'invites');
                 const inviteSnap = await getDocs(
                     query(invitesRef, where('inviteeUid', '==', uid), where('status', '==', 'pending'))
                 );
+                return inviteSnap.docs.map(inviteDoc => ({
+                    inviteId: inviteDoc.id,
+                    roomId: roomDoc.id,
+                    roomName: roomDoc.data().name,
+                    ...inviteDoc.data(),
+                    createdAt: inviteDoc.data().createdAt?.toDate?.()
+                }));
+            });
 
-                for (const inviteDoc of inviteSnap.docs) {
-                    invites.push({
-                        inviteId: inviteDoc.id,
-                        roomId: roomDoc.id,
-                        ...inviteDoc.data(),
-                        createdAt: inviteDoc.data().createdAt?.toDate?.()
-                    });
-                }
-            }
+            const results = await Promise.all(inviteChecks);
+            const invites = results.flat();
 
             return { success: true, data: invites };
 
