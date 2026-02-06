@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gymbro-v3';
+const CACHE_NAME = 'gymbro-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -47,6 +47,9 @@ self.addEventListener('fetch', (event) => {
   
   // Solo richieste GET
   if (event.request.method !== 'GET') return;
+  
+  // Ignora richieste chrome-extension e altri schemi non supportati
+  if (!url.protocol.startsWith('http')) return;
   
   // Network-first per file dinamici (HTML, JS, CSS)
   if (url.pathname.endsWith('.html') || 
@@ -169,5 +172,16 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
     const { title, options } = event.data;
     self.registration.showNotification(title, options);
+  }
+  
+  // 🔴 KILL SWITCH v2.0 - Cancel all timer notifications
+  if (event.data && event.data.type === 'CANCEL_ALL_NOTIFICATIONS') {
+    console.log('Service Worker: Cancelling all notifications');
+    self.registration.getNotifications().then((notifications) => {
+      notifications.forEach((notification) => {
+        notification.close();
+        console.log('Closed notification:', notification.tag);
+      });
+    });
   }
 });
