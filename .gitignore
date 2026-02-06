@@ -14,10 +14,9 @@ functions/.env.local
 .env
 .env.local
 
-# Firebase Config (contiene chiavi API)
-# NOTE: dist/js/firebase-config.js is NOT gitignored — it must be deployed to GitHub Pages.
+# Firebase Config — NOT gitignored for web (needed by GitHub Pages)
 # Firebase web API keys are public by design; security is enforced via Firestore Security Rules.
-js/firebase-config.js
+# Only native app config remains gitignored (uses different keys).
 myapp-native/js/firebase-config.js
 
 # Android build output (contains copies of source files)
