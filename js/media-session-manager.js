@@ -28,6 +28,8 @@ export class MediaSessionManager {
         this.gainNode = null;
         this.isPlaying = false;
         this.isPaused = false;
+        this.timerSessionCounter = 0;
+        this.activeTimerSessionId = null;
         this.nativePlugin = null;
         this.initialTimerDuration = null;
         this.onTimerComplete = null;
@@ -63,6 +65,11 @@ export class MediaSessionManager {
                 });
 
                 this.nativePlugin.addListener("timerComplete", () => {
+                    if (this.activeTimerSessionId === null) {
+                        return;
+                    }
+
+                    this.stopTimerDisplay();
                     this.onTimerComplete?.();
                 });
             }
@@ -394,6 +401,8 @@ export class MediaSessionManager {
         this.stopTimerDisplay();
         this.initialTimerDuration = initialSeconds;
         this.onTimerComplete = onComplete;
+        const timerSessionId = ++this.timerSessionCounter;
+        this.activeTimerSessionId = timerSessionId;
         let remainingSeconds = initialSeconds;
 
         if (this.isNative && this.nativePlugin) {
@@ -411,6 +420,11 @@ export class MediaSessionManager {
                         onTick?.(remainingSeconds);
                     }
                     if (remainingSeconds <= 0) {
+                        if (this.activeTimerSessionId !== timerSessionId) {
+                            return;
+                        }
+
+                        this.activeTimerSessionId = null;
                         this.stopTimerDisplay();
                         onComplete?.();
                     }
@@ -443,6 +457,11 @@ export class MediaSessionManager {
             }
 
             if (remainingSeconds <= 0) {
+                if (this.activeTimerSessionId !== timerSessionId) {
+                    return;
+                }
+
+                this.activeTimerSessionId = null;
                 this.stopTimerDisplay();
                 this.updateMetadata({
                     title: "✅ Riposo completato!",
@@ -463,6 +482,7 @@ export class MediaSessionManager {
         }
 
         this.initialTimerDuration = null;
+        this.activeTimerSessionId = null;
 
         if (this.isNative && this.nativePlugin) {
             void this.nativePlugin.stopTimer().catch((error) => {
