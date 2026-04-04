@@ -63,6 +63,125 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        .trend-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .trend-summary-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.18) 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1rem;
+        }
+
+        .trend-summary-card.is-empty {
+            text-align: center;
+            color: var(--color-text-muted);
+        }
+
+        .trend-summary-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .trend-summary-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .trend-badge {
+            padding: 0.18rem 0.45rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            color: var(--color-text-muted);
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        .trend-summary-value {
+            display: flex;
+            align-items: baseline;
+            gap: 0.35rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .trend-summary-number {
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            line-height: 1;
+            color: var(--color-text-main);
+        }
+
+        .trend-summary-unit {
+            font-size: 0.78rem;
+            color: var(--color-text-muted);
+        }
+
+        .trend-delta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .trend-delta--up {
+            color: #f6c945;
+        }
+
+        .trend-delta--down {
+            color: #00f3ff;
+        }
+
+        .trend-delta--stable {
+            color: #9aa4b2;
+        }
+
+        .trend-summary-footer {
+            margin-top: 0.5rem;
+            font-size: 0.74rem;
+            color: var(--color-text-muted);
+            line-height: 1.4;
+        }
+
+        .trend-insight-card {
+            margin-top: 0.9rem;
+            padding: 0.95rem 1rem;
+            background: linear-gradient(135deg, rgba(0,243,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(0,243,255,0.16);
+            border-radius: var(--radius-md);
+        }
+
+        .trend-insight-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--color-primary);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.45rem;
+        }
+
+        .trend-insight-body {
+            font-size: 0.86rem;
+            color: var(--color-text-main);
+            line-height: 1.5;
+        }
+
+
         /* Measures Grid 2x2 */
         .measures-grid {
             display: grid;
@@ -509,6 +628,8 @@
                 <div class="chart-container">
                     <canvas id="progressChart"></canvas>
                 </div>
+                <div id="bodyTrendSummary" class="trend-summary-grid"></div>
+                <div id="bodyTrendInsight" class="trend-insight-card"></div>
             </div>
 
             <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
@@ -739,6 +860,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             // --- Elements ---
             const statsDisplay = document.getElementById('statsDisplay');
+            const bodyTrendSummary = document.getElementById('bodyTrendSummary');
+            const bodyTrendInsight = document.getElementById('bodyTrendInsight');
             const editStatsBtn = document.getElementById('editStatsBtn');
             const statsModal = document.getElementById('statsModal');
             const saveStatsBtn = document.getElementById('saveStatsBtn');
@@ -757,6 +880,7 @@
             const healthSyncStatus = document.getElementById('healthSyncStatus');
             const refreshHealthData = document.getElementById('refreshHealthData');
             const refreshIcon = document.getElementById('refreshIcon');
+            const DAY_MS = 24 * 60 * 60 * 1000;
 
             // --- State ---
             let bodyStats = JSON.parse(localStorage.getItem('ironflow_body_stats') || '[]');
@@ -1142,6 +1266,261 @@
                 });
             });
 
+            function average(values) {
+                if (!values.length) return null;
+                return values.reduce((sum, value) => sum + value, 0) / values.length;
+            }
+
+            function toNumeric(value) {
+                const parsed = typeof value === 'number' ? value : parseFloat(value);
+                return Number.isFinite(parsed) ? parsed : null;
+            }
+
+            function roundMetric(value, decimals = 1) {
+                if (!Number.isFinite(value)) return null;
+                const factor = 10 ** decimals;
+                return Math.round(value * factor) / factor;
+            }
+
+            function formatMetric(value, decimals = 1) {
+                if (!Number.isFinite(value)) return '-';
+                return roundMetric(value, decimals).toFixed(decimals);
+            }
+
+            function formatRelativeDays(days) {
+                if (days === null || days === undefined) return 'n/d';
+                if (days <= 0) return 'oggi';
+                if (days === 1) return '1 giorno fa';
+                return `${days} giorni fa`;
+            }
+
+            function getLatestCheckinInfo() {
+                if (!bodyStats.length) return null;
+                const latestStat = bodyStats[bodyStats.length - 1];
+                const timestamp = new Date(latestStat.date || latestStat.recordedAt).getTime();
+                if (Number.isNaN(timestamp)) return null;
+                return {
+                    timestamp,
+                    stat: latestStat,
+                    daysSince: Math.max(0, Math.round((Date.now() - timestamp) / DAY_MS))
+                };
+            }
+
+            function getMetricEntries(metric, converter) {
+                return bodyStats
+                    .map(stat => {
+                        const timestamp = new Date(stat.date || stat.recordedAt).getTime();
+                        const rawValue = toNumeric(stat[metric]);
+                        if (Number.isNaN(timestamp) || rawValue === null) return null;
+                        const value = converter ? converter(rawValue) : rawValue;
+                        return Number.isFinite(value) ? { timestamp, value, stat } : null;
+                    })
+                    .filter(Boolean)
+                    .sort((a, b) => a.timestamp - b.timestamp);
+            }
+
+            function computeTrendWindow(metric, options = {}) {
+                const entries = getMetricEntries(metric, options.converter);
+                if (!entries.length) return null;
+
+                const now = Date.now();
+                const windowDays = options.windowDays || 14;
+                const fallbackCount = options.fallbackCount || 3;
+                const recentCutoff = now - (windowDays * DAY_MS);
+                const previousCutoff = now - ((windowDays * 2) * DAY_MS);
+                const stableThreshold = options.stableThreshold || 0.2;
+
+                let recentEntries = entries.filter(entry => entry.timestamp >= recentCutoff);
+                let previousEntries = entries.filter(entry => entry.timestamp >= previousCutoff && entry.timestamp < recentCutoff);
+                let badgeLabel = `${windowDays} giorni`;
+
+                if (!recentEntries.length || !previousEntries.length) {
+                    recentEntries = entries.slice(-fallbackCount);
+                    previousEntries = entries.slice(-fallbackCount * 2, -fallbackCount);
+                    badgeLabel = `${recentEntries.length} rilev.`;
+                }
+
+                const latest = entries[entries.length - 1];
+                const recentAvg = average(recentEntries.map(entry => entry.value));
+                const previousAvg = average(previousEntries.map(entry => entry.value));
+                const delta = previousAvg === null ? null : recentAvg - previousAvg;
+                const direction = delta === null
+                    ? 'stable'
+                    : Math.abs(delta) < stableThreshold
+                        ? 'stable'
+                        : delta > 0
+                            ? 'up'
+                            : 'down';
+
+                return {
+                    latest,
+                    recentAvg,
+                    previousAvg,
+                    delta,
+                    direction,
+                    badgeLabel,
+                    totalEntries: entries.length
+                };
+            }
+
+            function calculateSmoothedSeries(values, windowSize) {
+                return values.map((_, index) => {
+                    const sample = [];
+                    for (let pointer = index; pointer >= 0 && sample.length < windowSize; pointer -= 1) {
+                        const candidate = values[pointer];
+                        if (Number.isFinite(candidate)) {
+                            sample.unshift(candidate);
+                        }
+                    }
+                    if (!sample.length) return null;
+                    return roundMetric(average(sample), 1);
+                });
+            }
+
+            function getTrendDeltaClass(direction) {
+                if (direction === 'up') return 'trend-delta trend-delta--up';
+                if (direction === 'down') return 'trend-delta trend-delta--down';
+                return 'trend-delta trend-delta--stable';
+            }
+
+            function getTrendDeltaText(trend, unit) {
+                if (!trend || trend.delta === null) return 'Servono piu check-in per il confronto';
+                const formattedDelta = `${trend.delta > 0 ? '+' : ''}${formatMetric(trend.delta, 1)} ${unit}`;
+                if (trend.direction === 'stable') {
+                    return `Trend stabile (${formattedDelta})`;
+                }
+                return `${formattedDelta} vs blocco precedente`;
+            }
+
+            function renderTrendSummary() {
+                if (!bodyTrendSummary || !bodyTrendInsight) return;
+
+                if (!bodyStats.length) {
+                    bodyTrendSummary.innerHTML = `
+                        <div class="trend-summary-card is-empty">
+                            <div class="trend-summary-title">📊 Trend corpo</div>
+                            <div class="trend-summary-footer">Aggiungi almeno un check-in per vedere andamento, media e insight.</div>
+                        </div>
+                    `;
+                    bodyTrendInsight.innerHTML = `
+                        <div class="trend-insight-title">✨ Insight rapido</div>
+                        <div class="trend-insight-body">Registra peso, grasso e misure con costanza per trasformare i check-in in segnali davvero utili.</div>
+                    `;
+                    return;
+                }
+
+                const weightTrend = computeTrendWindow('weight', {
+                    windowDays: 14,
+                    fallbackCount: 3,
+                    stableThreshold: unitService && typeof unitService.getSystem === 'function' && unitService.getSystem() === 'imperial' ? 0.5 : 0.2,
+                    converter: value => unitService ? unitService.convertWeight(value) : value
+                });
+
+                const fatTrend = computeTrendWindow('fat', {
+                    windowDays: 21,
+                    fallbackCount: 2,
+                    stableThreshold: 0.3
+                });
+
+                const latestCheckin = getLatestCheckinInfo();
+                const recentCheckins = bodyStats.filter(stat => {
+                    const timestamp = new Date(stat.date || stat.recordedAt).getTime();
+                    return !Number.isNaN(timestamp) && timestamp >= (Date.now() - (30 * DAY_MS));
+                }).length;
+
+                const cards = [];
+
+                if (weightTrend) {
+                    cards.push(`
+                        <div class="trend-summary-card">
+                            <div class="trend-summary-head">
+                                <div class="trend-summary-title">⚖️ Trend peso</div>
+                                <span class="trend-badge">${weightTrend.badgeLabel}</span>
+                            </div>
+                            <div class="trend-summary-value">
+                                <span class="trend-summary-number">${formatMetric(weightTrend.recentAvg, 1)}</span>
+                                <span class="trend-summary-unit">${weightUnit}</span>
+                            </div>
+                            <div class="${getTrendDeltaClass(weightTrend.direction)}">
+                                ${weightTrend.direction === 'up' ? '↗' : weightTrend.direction === 'down' ? '↘' : '→'}
+                                <span>${getTrendDeltaText(weightTrend, weightUnit)}</span>
+                            </div>
+                            <div class="trend-summary-footer">Ultimo check-in a ${formatRelativeDays(latestCheckin ? latestCheckin.daysSince : null)}.</div>
+                        </div>
+                    `);
+                }
+
+                if (fatTrend) {
+                    cards.push(`
+                        <div class="trend-summary-card">
+                            <div class="trend-summary-head">
+                                <div class="trend-summary-title">📉 Trend grasso</div>
+                                <span class="trend-badge">${fatTrend.badgeLabel}</span>
+                            </div>
+                            <div class="trend-summary-value">
+                                <span class="trend-summary-number">${formatMetric(fatTrend.recentAvg, 1)}</span>
+                                <span class="trend-summary-unit">%</span>
+                            </div>
+                            <div class="${getTrendDeltaClass(fatTrend.direction)}">
+                                ${fatTrend.direction === 'up' ? '↗' : fatTrend.direction === 'down' ? '↘' : '→'}
+                                <span>${getTrendDeltaText(fatTrend, '%')}</span>
+                            </div>
+                            <div class="trend-summary-footer">${fatTrend.totalEntries} rilevazioni con body fat salvate.</div>
+                        </div>
+                    `);
+                }
+
+                cards.push(`
+                    <div class="trend-summary-card">
+                        <div class="trend-summary-head">
+                            <div class="trend-summary-title">🗓️ Ritmo check-in</div>
+                            <span class="trend-badge">30 giorni</span>
+                        </div>
+                        <div class="trend-summary-value">
+                            <span class="trend-summary-number">${recentCheckins}</span>
+                            <span class="trend-summary-unit">check-in</span>
+                        </div>
+                        <div class="trend-delta trend-delta--stable">
+                            ⏱️
+                            <span>${latestCheckin ? formatRelativeDays(latestCheckin.daysSince) : 'Nessun check-in'}</span>
+                        </div>
+                        <div class="trend-summary-footer">${photos.length} foto progressi salvate nel diario corpo.</div>
+                    </div>
+                `);
+
+                let insightText = 'Mantieni i check-in ravvicinati: una cadenza regolare rende molto più leggibili variazioni di peso, grasso e misure.';
+
+                if (weightTrend && fatTrend) {
+                    if (weightTrend.direction === 'stable' && fatTrend.direction === 'down') {
+                        insightText = 'Peso stabile e grasso in calo: segnali compatibili con una buona ricomposizione corporea.';
+                    } else if (weightTrend.direction === 'up' && fatTrend.direction !== 'up') {
+                        insightText = 'Peso in salita con grasso sotto controllo: andamento tipico di bulk pulito o ricomposizione ben gestita.';
+                    } else if (weightTrend.direction === 'down' && fatTrend.direction === 'down') {
+                        insightText = 'Peso e grasso in calo insieme: il trend va verso definizione, ma controlla che la performance resti stabile.';
+                    } else if (weightTrend.direction === 'up' && fatTrend.direction === 'up') {
+                        insightText = 'Peso e grasso stanno salendo entrambi: utile monitorare surplus calorico, NEAT e frequenza dei check-in.';
+                    }
+                } else if (weightTrend) {
+                    if (weightTrend.direction === 'up') {
+                        insightText = 'Il peso medio recente sta salendo: verifica che la velocita del trend sia coerente con il tuo obiettivo attuale.';
+                    } else if (weightTrend.direction === 'down') {
+                        insightText = 'Il peso medio recente sta scendendo: ottimo se sei in definizione, da monitorare se invece cerchi performance e massa.';
+                    } else {
+                        insightText = 'Il peso medio e abbastanza stabile: per interpretarlo meglio abbinalo a body fat, misure e foto progressi.';
+                    }
+                }
+
+                if (latestCheckin && latestCheckin.daysSince > 10) {
+                    insightText += ' Hai lasciato passare parecchi giorni dall’ultimo check-in: un aggiornamento ora renderebbe il trend piu affidabile.';
+                }
+
+                bodyTrendSummary.innerHTML = cards.join('');
+                bodyTrendInsight.innerHTML = `
+                    <div class="trend-insight-title">✨ Insight rapido</div>
+                    <div class="trend-insight-body">${insightText}</div>
+                `;
+            }
+
             function initChart() {
                 // Sort stats by date
                 bodyStats.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -1151,6 +1530,8 @@
                 // Convert data for chart
                 const weightData = bodyStats.map(s => unitService ? unitService.convertWeight(s.weight) : s.weight);
                 const fatData = bodyStats.map(s => s.fat);
+                const weightTrendData = calculateSmoothedSeries(weightData, 4);
+                const fatTrendData = calculateSmoothedSeries(fatData, 3);
 
                 if (chart) chart.destroy();
 
@@ -1170,6 +1551,20 @@
                         yAxisID: 'y',
                         fill: currentChartMetric === 'weight'
                     });
+                    if (weightData.filter(value => Number.isFinite(value)).length >= 3) {
+                        datasets.push({
+                            label: `Trend Peso (${weightUnit})`,
+                            data: weightTrendData,
+                            borderColor: '#fff8a6',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            borderDash: [8, 4],
+                            tension: 0.35,
+                            yAxisID: 'y',
+                            fill: false
+                        });
+                    }
                     scales.y = {
                         type: 'linear',
                         display: true,
@@ -1190,6 +1585,20 @@
                         yAxisID: currentChartMetric === 'all' ? 'y1' : 'y',
                         fill: currentChartMetric === 'fat'
                     });
+                    if (fatData.filter(value => Number.isFinite(value)).length >= 2) {
+                        datasets.push({
+                            label: 'Trend Grasso (%)',
+                            data: fatTrendData,
+                            borderColor: '#00f3ff',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            borderDash: [6, 4],
+                            tension: 0.35,
+                            yAxisID: currentChartMetric === 'all' ? 'y1' : 'y',
+                            fill: false
+                        });
+                    }
 
                     if (currentChartMetric === 'all') {
                         scales.y1 = {
@@ -1293,6 +1702,7 @@
                                 `).join('')}
                             </div>
                         `;
+                renderTrendSummary();
             }
 
             // --- Render Photos ---
