@@ -4,7 +4,9 @@
   "description": "",
   "main": "service-worker.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check": "node scripts/validate-static-app.mjs",
+    "test": "npm run check && npm run build",
+    "build": "node build.js"
   },
   "repository": {
     "type": "git",
@@ -20,7 +22,14 @@
   "homepage": "https://github.com/Atomiksnip3r04/Palestra#readme",
   "dependencies": {
     "@capacitor/android": "^7.4.4",
+    "@capacitor/barcode-scanner": "^2.2.4",
     "@capacitor/cli": "^7.4.4",
-    "@capacitor/core": "^7.4.4"
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/filesystem": "^7.1.6",
+    "@capacitor/share": "^7.0.3"
+  },
+  "devDependencies": {
+    "clean-css": "^5.3.3",
+    "terser": "^5.46.0"
   }
 }

@@ -4,7 +4,8 @@
   "description": "",
   "main": "service-worker.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "check": "node scripts/validate-static-app.mjs",
+    "test": "npm run check && npm run build",
     "build": "node build.js"
   },
   "repository": {
