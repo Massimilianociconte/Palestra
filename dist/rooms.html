@@ -5,6 +5,18 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Stanze | GYMBRO</title>
+    <meta name="description" content="Crea o unisciti a stanze di allenamento condivise su GYMBRO. Allenati in tempo reale con i tuoi partner.">
+    <link rel="canonical" href="https://massimilianociconte.github.io/Palestra/rooms.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://massimilianociconte.github.io/Palestra/rooms.html">
+    <meta property="og:title" content="Stanze Allenamento | GYMBRO">
+    <meta property="og:description" content="Crea o unisciti a stanze condivise su GYMBRO. Allenati in tempo reale con i tuoi partner.">
+    <meta property="og:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
@@ -13,22 +25,63 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GymBro">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/gymbro-social.css">
     <link rel="stylesheet" href="css/gymbro-chat.css">
+    <link rel="stylesheet" href="css/lucide-icons.css">
+    <script src="js/capacitor-bootstrap.js"></script>
+    <script src="js/sanitize.js"></script>
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
     <style>
+        /* ====== ROOMS PAGE — PREMIUM REDESIGN ====== */
+
         .rooms-page {
             max-width: 600px;
             margin: 0 auto;
             padding: 80px 1rem 120px;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Hero */
+        /* Decorative mesh gradients */
+        .rooms-page::before {
+            content: '';
+            position: fixed;
+            top: -25%;
+            right: -20%;
+            width: 65%;
+            height: 65%;
+            background: radial-gradient(ellipse, rgba(0,243,255,0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+            animation: roomsMesh 22s ease-in-out infinite alternate;
+        }
+        .rooms-page::after {
+            content: '';
+            position: fixed;
+            bottom: -15%;
+            left: -15%;
+            width: 55%;
+            height: 55%;
+            background: radial-gradient(ellipse, rgba(0,180,255,0.04) 0%, transparent 55%);
+            pointer-events: none;
+            z-index: 0;
+            animation: roomsMesh 28s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes roomsMesh {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-25px, 20px) scale(1.08); }
+            100% { transform: translate(20px, -15px) scale(0.96); }
+        }
+
+        /* Hero — Dramatic with orbit ring */
         .rooms-hero {
             text-align: center;
-            padding: 2rem 0;
+            padding: 2.5rem 0;
             position: relative;
+            z-index: 1;
         }
         .rooms-hero::before {
             content: '';
@@ -38,57 +91,86 @@
             transform: translate(-50%, -50%);
             width: 200px;
             height: 200px;
-            background: var(--gradient-glow);
+            background: radial-gradient(circle, rgba(0,243,255,0.1) 0%, transparent 65%);
             border-radius: 50%;
             z-index: 0;
-            opacity: 0.5;
+            filter: blur(25px);
+            animation: heroGlow 4s ease-in-out infinite;
+        }
+        .rooms-hero::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -55%);
+            width: 120px;
+            height: 120px;
+            border: 1px solid rgba(0,243,255,0.08);
+            border-radius: 50%;
+            z-index: 0;
+            animation: orbitRing 12s linear infinite;
+        }
+        @keyframes heroGlow {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.2); }
+        }
+        @keyframes orbitRing {
+            0% { transform: translate(-50%, -55%) rotate(0deg); }
+            100% { transform: translate(-50%, -55%) rotate(360deg); }
         }
         .rooms-hero-icon {
             font-size: 4rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.6rem;
             position: relative;
             z-index: 1;
-            animation: float 3s ease-in-out infinite;
+            animation: roomIconFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 25px rgba(0,243,255,0.25));
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        @keyframes roomIconFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-12px) scale(1.05); }
         }
         .rooms-hero-title {
             font-family: 'Oswald', sans-serif;
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            background: var(--gradient-primary);
+            background: linear-gradient(135deg, #ffffff 0%, var(--color-primary) 50%, #00b4ff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin: 0;
             position: relative;
             z-index: 1;
+            letter-spacing: 3px;
         }
         .rooms-hero-subtitle {
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.45);
             font-size: 0.9rem;
             margin-top: 0.5rem;
             position: relative;
             z-index: 1;
+            letter-spacing: 0.5px;
         }
 
-        /* Action Cards */
+        /* Action Cards — Premium glassmorphism with animated gradient borders */
         .rooms-action-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
+            gap: 0.85rem;
+            margin-bottom: 1.75rem;
+            position: relative;
+            z-index: 1;
         }
         .rooms-action-card {
-            background: var(--gradient-card);
+            background: linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px;
-            padding: 1.5rem 1rem;
+            border-radius: 20px;
+            padding: 1.75rem 1rem 1.5rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
         }
@@ -97,81 +179,126 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 2px;
-            background: var(--gradient-primary);
+            background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.35s;
+        }
+        .rooms-action-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: radial-gradient(circle at 50% 0%, rgba(0,243,255,0.06) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
         }
         .rooms-action-card:hover, .rooms-action-card:active {
-            transform: translateY(-4px);
-            border-color: rgba(0,243,255,0.3);
-            box-shadow: var(--shadow-glow);
+            transform: translateY(-5px);
+            border-color: rgba(0,243,255,0.25);
+            box-shadow: 0 12px 40px rgba(0,243,255,0.1), 0 0 0 1px rgba(0,243,255,0.08);
         }
         .rooms-action-card:hover::before, .rooms-action-card:active::before { opacity: 1; }
+        .rooms-action-card:hover::after, .rooms-action-card:active::after { opacity: 1; }
         .rooms-action-card-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 2.8rem;
+            margin-bottom: 0.6rem;
             display: block;
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .rooms-action-card:hover .rooms-action-card-icon {
+            transform: scale(1.15) translateY(-3px);
         }
         .rooms-action-card-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+            transition: color 0.3s;
+        }
+        .rooms-action-card:hover .rooms-action-card-label {
+            color: var(--color-primary);
         }
         .rooms-action-card-desc {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.4);
-            margin-top: 0.25rem;
+            font-size: 0.73rem;
+            color: rgba(255,255,255,0.35);
+            margin-top: 0.3rem;
+            transition: color 0.3s;
+        }
+        .rooms-action-card:hover .rooms-action-card-desc {
+            color: rgba(255,255,255,0.5);
         }
 
-        /* Create Room Form */
+        /* Create Room Form — Premium glass panel */
         .create-room-section {
-            background: var(--gradient-card);
-            border: 1px solid rgba(0,243,255,0.2);
-            border-radius: 20px;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,243,255,0.15);
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
             display: none;
-            animation: slideDown 0.3s ease;
+            animation: slideDown 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .create-room-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,243,255,0.4), transparent);
         }
         .create-room-section.active { display: block; }
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(-14px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
         .form-group {
             margin-bottom: 1rem;
         }
         .form-label {
             display: block;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.6);
             margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
         }
         .form-input {
             width: 100%;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 0.875rem 1rem;
+            background: rgba(0,0,0,0.45);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
             color: white;
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.2s;
+            transition: all 0.3s ease;
             box-sizing: border-box;
         }
-        .form-input:focus { border-color: var(--color-primary); }
-        .form-input::placeholder { color: rgba(255,255,255,0.3); }
+        .form-input:focus { 
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(0,243,255,0.1), 0 0 20px rgba(0,243,255,0.06);
+        }
+        .form-input::placeholder { color: rgba(255,255,255,0.2); }
         .form-select {
             width: 100%;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 0.875rem 1rem;
+            background: rgba(0,0,0,0.45);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
             color: white;
             font-size: 1rem;
             outline: none;
             box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .form-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(0,243,255,0.1);
         }
         .form-row {
             display: grid;
@@ -181,28 +308,45 @@
         .form-submit-btn {
             width: 100%;
             padding: 1rem;
-            background: var(--gradient-primary);
+            background: linear-gradient(135deg, var(--color-primary), #00b4ff);
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             color: black;
             font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0,243,255,0.25);
+            letter-spacing: 0.3px;
         }
-        .form-submit-btn:hover { transform: scale(1.02); box-shadow: var(--shadow-glow); }
+        .form-submit-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 30px rgba(0,243,255,0.35);
+        }
         .form-submit-btn:active { transform: scale(0.98); }
-        .form-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .form-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
-        /* Join Room Section */
+        /* Join Room Section — Premium glass */
         .join-room-section {
-            background: var(--gradient-card);
-            border: 1px solid rgba(0,243,255,0.2);
-            border-radius: 20px;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,243,255,0.15);
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
             display: none;
-            animation: slideDown 0.3s ease;
+            animation: slideDown 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .join-room-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,243,255,0.4), transparent);
         }
         .join-room-section.active { display: block; }
         .join-input-group {
@@ -210,20 +354,28 @@
             gap: 0.5rem;
         }
         .join-btn {
-            background: var(--gradient-primary);
+            background: linear-gradient(135deg, var(--color-primary), #00b4ff);
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 0 1.5rem;
             color: black;
             font-weight: 700;
             font-size: 0.9rem;
             cursor: pointer;
             white-space: nowrap;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,243,255,0.2);
+        }
+        .join-btn:hover {
+            box-shadow: 0 6px 24px rgba(0,243,255,0.35);
+            transform: translateY(-1px);
         }
 
-        /* Room List */
+        /* Room List — Enhanced */
         .rooms-list-section {
-            margin-top: 1.5rem;
+            margin-top: 1.75rem;
+            position: relative;
+            z-index: 1;
         }
         .section-header {
             display: flex;
@@ -234,31 +386,61 @@
         }
         .section-header-icon { font-size: 1rem; }
         .section-header-text {
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
             color: rgba(255,255,255,0.4);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
+
+        /* Room Cards — Premium glassmorphism */
         .room-card {
-            background: var(--gradient-card);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px;
-            padding: 1rem 1.25rem;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 18px;
+            padding: 1.1rem 1.25rem;
             margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 1rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: roomCardIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+        }
+        .room-card:nth-child(1) { animation-delay: 0s; }
+        .room-card:nth-child(2) { animation-delay: 60ms; }
+        .room-card:nth-child(3) { animation-delay: 120ms; }
+        .room-card:nth-child(4) { animation-delay: 180ms; }
+        @keyframes roomCardIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .room-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0,243,255,0.03) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
         }
         .room-card:hover {
-            border-color: rgba(0,243,255,0.3);
-            transform: translateX(4px);
+            border-color: rgba(0,243,255,0.2);
+            transform: translateX(5px);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,243,255,0.08);
         }
+        .room-card:hover::before { opacity: 1; }
         .room-card-icon {
-            font-size: 2rem;
+            font-size: 2.2rem;
             flex-shrink: 0;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .room-card:hover .room-card-icon {
+            transform: scale(1.12);
         }
         .room-card-info { flex: 1; min-width: 0; }
         .room-card-name {
@@ -267,6 +449,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--color-text-main, #f0f0f0);
         }
         .room-card-meta {
             font-size: 0.8rem;
@@ -274,36 +457,53 @@
             margin-top: 0.25rem;
         }
         .room-card-status {
-            padding: 0.3rem 0.75rem;
+            padding: 0.35rem 0.85rem;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
             flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .room-card-status.lobby {
-            background: rgba(0,243,255,0.15);
+            background: rgba(0,243,255,0.1);
             color: var(--color-primary);
-            border: 1px solid rgba(0,243,255,0.3);
+            border: 1px solid rgba(0,243,255,0.2);
+            box-shadow: 0 0 12px rgba(0,243,255,0.08);
         }
         .room-card-status.active {
-            background: rgba(74,222,128,0.15);
+            background: rgba(74,222,128,0.1);
             color: #4ade80;
-            border: 1px solid rgba(74,222,128,0.3);
+            border: 1px solid rgba(74,222,128,0.2);
+            box-shadow: 0 0 12px rgba(74,222,128,0.08);
+            animation: statusPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes statusPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(74,222,128,0.08); }
+            50% { box-shadow: 0 0 16px rgba(74,222,128,0.15); }
         }
 
-        /* Invite Card */
+        /* Invite Card — Premium */
         .invite-card {
-            background: var(--gradient-card);
-            border: 1px solid rgba(255,165,0,0.3);
-            border-radius: 16px;
-            padding: 1rem 1.25rem;
+            background: linear-gradient(145deg, rgba(255,165,0,0.05) 0%, rgba(0,0,0,0.2) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,165,0,0.2);
+            border-radius: 18px;
+            padding: 1.1rem 1.25rem;
             margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 1rem;
+            transition: all 0.3s ease;
+            animation: roomCardIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+        }
+        .invite-card:hover {
+            border-color: rgba(255,165,0,0.35);
+            transform: translateX(3px);
         }
         .invite-card-info { flex: 1; }
-        .invite-card-name { font-weight: 600; }
+        .invite-card-name { font-weight: 600; color: var(--color-text-main, #f0f0f0); }
         .invite-card-from {
             font-size: 0.8rem;
             color: rgba(255,255,255,0.4);
@@ -311,28 +511,42 @@
         }
         .invite-card-actions { display: flex; gap: 0.5rem; }
         .invite-accept-btn {
-            padding: 0.5rem 1rem;
-            background: var(--gradient-primary);
+            padding: 0.55rem 1.1rem;
+            background: linear-gradient(135deg, var(--color-primary), #00b4ff);
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             color: black;
             font-weight: 700;
             font-size: 0.8rem;
             cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 10px rgba(0,243,255,0.2);
+        }
+        .invite-accept-btn:hover {
+            box-shadow: 0 4px 16px rgba(0,243,255,0.35);
+            transform: translateY(-1px);
         }
         .invite-decline-btn {
-            padding: 0.5rem 1rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: rgba(255,255,255,0.6);
+            padding: 0.55rem 1.1rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.5);
             font-size: 0.8rem;
             cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .invite-decline-btn:hover {
+            background: rgba(255,71,87,0.08);
+            border-color: rgba(255,71,87,0.2);
+            color: #ff6b7a;
         }
 
         /* Active Room Container */
         #activeRoomView {
             display: none;
+            position: relative;
+            z-index: 1;
         }
         #activeRoomView.active {
             display: block;
@@ -341,37 +555,79 @@
             display: none;
         }
 
-        /* Empty State */
+        /* Empty State — Premium */
         .empty-state {
             text-align: center;
-            padding: 3rem 1.5rem;
-            background: var(--gradient-card);
-            border-radius: 20px;
-            border: 1px dashed rgba(255,255,255,0.1);
+            padding: 3.5rem 1.5rem;
+            background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.15) 100%);
+            border-radius: 24px;
+            border: 1px dashed rgba(255,255,255,0.08);
+            position: relative;
+            overflow: hidden;
         }
-        .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
-        .empty-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .empty-text { font-size: 0.85rem; color: rgba(255,255,255,0.4); max-width: 250px; margin: 0 auto; }
+        .empty-state::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(0,243,255,0.04) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .empty-icon { 
+            font-size: 4rem; 
+            margin-bottom: 1rem; 
+            opacity: 0.45;
+            animation: emptyFloat 4s ease-in-out infinite;
+        }
+        @keyframes emptyFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .empty-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.6rem; color: var(--color-text-main, #f0f0f0); }
+        .empty-text { font-size: 0.85rem; color: rgba(255,255,255,0.4); max-width: 260px; margin: 0 auto; line-height: 1.6; }
 
-        /* Auth */
+        /* Auth — Premium */
         .auth-required {
             text-align: center;
-            padding: 3rem 1.5rem;
+            padding: 4rem 1.5rem;
+            position: relative;
+        }
+        .auth-required::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(0,243,255,0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
         .auth-icon { font-size: 4rem; margin-bottom: 1rem; }
-        .auth-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .auth-text { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .auth-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-text-main, #f0f0f0); }
+        .auth-text { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 1.75rem; line-height: 1.6; }
         .auth-btn {
             display: inline-block;
-            padding: 0.875rem 2rem;
-            background: var(--gradient-primary);
-            border-radius: 14px;
+            padding: 0.9rem 2.5rem;
+            background: linear-gradient(135deg, var(--color-primary), #00b4ff);
+            border-radius: 16px;
             color: black;
             font-weight: 700;
             text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,243,255,0.25);
+        }
+        .auth-btn:hover {
+            box-shadow: 0 8px 30px rgba(0,243,255,0.4);
+            transform: translateY(-2px);
         }
 
-        /* Toast */
+        /* Toast — Premium glass */
         .toast-container {
             position: fixed;
             bottom: 100px;
@@ -380,51 +636,65 @@
             z-index: 2000;
         }
         .toast {
-            background: var(--gradient-card);
-            border: 1px solid rgba(255,255,255,0.15);
-            padding: 1rem 1.5rem;
-            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(18,18,18,0.95), rgba(10,10,10,0.98));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 0.85rem 1.5rem;
+            border-radius: 16px;
             font-size: 0.9rem;
-            box-shadow: var(--shadow-card);
-            animation: toastIn 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            animation: toastIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             white-space: nowrap;
+            color: var(--color-text-main, #f0f0f0);
         }
-        .toast.success { border-color: rgba(0,243,255,0.4); }
-        .toast.error { border-color: rgba(255,71,87,0.4); }
+        .toast.success { 
+            border-color: rgba(0,243,255,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,243,255,0.1);
+        }
+        .toast.error { 
+            border-color: rgba(255,71,87,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,71,87,0.1);
+        }
         @keyframes toastIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* Loading */
+        /* Loading — Enhanced */
         .loading-spinner { display: flex; justify-content: center; padding: 2rem; }
         .spinner {
             width: 36px; height: 36px;
-            border: 3px solid rgba(255,255,255,0.1);
+            border: 3px solid rgba(255,255,255,0.06);
             border-top-color: var(--color-primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
+            box-shadow: 0 0 15px rgba(0,243,255,0.1);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Back button for active room view */
+        /* Back button — Premium */
         .back-to-list-btn {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.75rem 1.25rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: rgba(255,255,255,0.7);
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.15) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            color: rgba(255,255,255,0.65);
             font-size: 0.9rem;
             cursor: pointer;
             margin-bottom: 1rem;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
         }
         .back-to-list-btn:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.08);
             color: white;
+            border-color: rgba(0,243,255,0.2);
+            transform: translateX(-3px);
         }
     </style>
 </head>
@@ -433,14 +703,15 @@
         <div class="container">
             <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
             <nav>
-                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <div class="mobile-toggle" id="mobileToggle"><i data-lucide="menu"></i></div>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="creator.html">📝 Crea</a></li>
-                    <li><a href="diary.html">📓 Diario</a></li>
-                    <li><a href="analysis.html">📈 Analisi</a></li>
-                    <li><a href="friends.html">👥 Amici</a></li>
-                    <li><a href="rooms.html" class="text-primary">🏠 Stanze</a></li>
-                    <li><a href="user.html">👤 Profilo</a></li>
+                    <li><a href="creator.html"><i data-lucide="file-pen-line"></i> Crea</a></li>
+                    <li><a href="diary.html"><i data-lucide="book-open"></i> Diario</a></li>
+                    <li><a href="analysis.html"><i data-lucide="trending-up"></i> Analisi</a></li>
+                    <li><a href="body.html"><i data-lucide="ruler"></i> Corpo</a></li>
+                    <li><a href="friends.html"><i data-lucide="users"></i> Amici</a></li>
+                    <li><a href="rooms.html" class="text-primary"><i data-lucide="home"></i> Stanze</a></li>
+                    <li><a href="user.html"><i data-lucide="user"></i> Profilo</a></li>
                 </ul>
             </nav>
         </div>
@@ -449,7 +720,7 @@
     <main class="rooms-page">
         <!-- Auth Required -->
         <div id="authRequired" class="auth-required" style="display: none;">
-            <div class="auth-icon">🔐</div>
+            <div class="auth-icon"><i data-lucide="lock"></i></div>
             <h2 class="auth-title">Accedi per continuare</h2>
             <p class="auth-text">Effettua il login per creare o unirti a stanze di allenamento.</p>
             <a href="user.html" class="auth-btn">Accedi ora</a>
@@ -459,7 +730,7 @@
         <div id="roomBrowser" style="display: none;">
             <!-- Hero -->
             <div class="rooms-hero">
-                <div class="rooms-hero-icon">🏠</div>
+                <div class="rooms-hero-icon"><i data-lucide="home"></i></div>
                 <h1 class="rooms-hero-title">STANZE</h1>
                 <p class="rooms-hero-subtitle">Allenati in tempo reale con i tuoi amici</p>
             </div>
@@ -467,12 +738,12 @@
             <!-- Action Cards -->
             <div class="rooms-action-grid">
                 <div class="rooms-action-card" id="createRoomBtn">
-                    <span class="rooms-action-card-icon">➕</span>
+                    <span class="rooms-action-card-icon"><i data-lucide="plus"></i></span>
                     <span class="rooms-action-card-label">Crea Stanza</span>
                     <span class="rooms-action-card-desc">Ospita un allenamento</span>
                 </div>
                 <div class="rooms-action-card" id="joinRoomBtn">
-                    <span class="rooms-action-card-icon">🚪</span>
+                    <span class="rooms-action-card-icon"><i data-lucide="door-open"></i></span>
                     <span class="rooms-action-card-label">Unisciti</span>
                     <span class="rooms-action-card-desc">Entra con codice</span>
                 </div>
@@ -503,7 +774,7 @@
                         </select>
                     </div>
                 </div>
-                <button id="createRoomSubmitBtn" class="form-submit-btn">🚀 Crea Stanza</button>
+                <button id="createRoomSubmitBtn" class="form-submit-btn"><i data-lucide="rocket"></i> Crea Stanza</button>
             </div>
 
             <!-- Join Room Section -->
@@ -520,7 +791,7 @@
             <!-- Invites -->
             <div id="invitesSection" class="rooms-list-section" style="display: none;">
                 <div class="section-header">
-                    <span class="section-header-icon">📬</span>
+                    <span class="section-header-icon"><i data-lucide="mail-open"></i></span>
                     <span class="section-header-text">Inviti Ricevuti</span>
                 </div>
                 <div id="invitesList"></div>
@@ -529,12 +800,12 @@
             <!-- My Active Rooms -->
             <div id="activeRoomsSection" class="rooms-list-section">
                 <div class="section-header">
-                    <span class="section-header-icon">🏋️</span>
+                    <span class="section-header-icon"><i data-lucide="dumbbell"></i></span>
                     <span class="section-header-text">Le Mie Stanze</span>
                 </div>
                 <div id="activeRoomsList"></div>
                 <div id="roomsEmpty" class="empty-state" style="display: none;">
-                    <div class="empty-icon">🏠</div>
+                    <div class="empty-icon"><i data-lucide="home"></i></div>
                     <h3 class="empty-title">Nessuna stanza attiva</h3>
                     <p class="empty-text">Crea una stanza o unisciti a quella di un amico per iniziare!</p>
                 </div>
@@ -543,7 +814,7 @@
 
         <!-- Active Room View (GymbRoomUI renders here) -->
         <div id="activeRoomView">
-            <button class="back-to-list-btn" id="backToListBtn">← Torna alla lista</button>
+            <button class="back-to-list-btn" id="backToListBtn"><i data-lucide="arrow-left"></i> Torna alla lista</button>
             <div id="roomContainer"></div>
         </div>
     </main>
@@ -587,11 +858,6 @@
             }
         });
 
-        // Nav toggle
-        document.getElementById('mobileToggle')?.addEventListener('click', () => {
-            document.getElementById('navLinks')?.classList.toggle('active');
-        });
-
         // Toggle create form
         document.getElementById('createRoomBtn').addEventListener('click', () => {
             createRoomSection.classList.toggle('active');
@@ -614,7 +880,7 @@
 
             const btn = document.getElementById('createRoomSubmitBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ Creazione...';
+            btn.textContent = 'Creazione...';
 
             try {
                 const result = await gymbRoomService.createRoom({
@@ -635,13 +901,14 @@
                 showToast(err.message, 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = '🚀 Crea Stanza';
+                btn.innerHTML = '<i data-lucide="rocket"></i> Crea Stanza';
+                refreshLucideIcons(btn);
             }
         });
 
         // Join Room
         document.getElementById('joinRoomSubmitBtn').addEventListener('click', async () => {
-            const code = document.getElementById('roomCodeInput').value.trim();
+            const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
             if (!code) {
                 showToast('Inserisci un codice stanza', 'error');
                 return;
@@ -649,7 +916,7 @@
 
             const btn = document.getElementById('joinRoomSubmitBtn');
             btn.disabled = true;
-            btn.textContent = '⏳...';
+            btn.textContent = '...';
 
             try {
                 const result = await gymbRoomService.joinRoom(code);
@@ -689,15 +956,17 @@
                 if (roomsResult.success && roomsResult.data.length > 0) {
                     roomsEmpty.style.display = 'none';
                     activeRoomsList.innerHTML = roomsResult.data.map(room => `
-                        <div class="room-card" data-room-id="${room.roomId}">
-                            <span class="room-card-icon">${room.status === 'active' ? '🏋️' : '⏳'}</span>
+                        <div class="room-card" data-room-id="${escapeAttr(room.roomId)}">
+                            <span class="room-card-icon">${room.status === 'active' ? lucideIcon('dumbbell') : lucideIcon('clock')}</span>
                             <div class="room-card-info">
-                                <div class="room-card-name">${room.name || 'Stanza'}</div>
-                                <div class="room-card-meta">${room.memberCount || '?'} partecipanti • ${room.myRole === 'host' ? 'Host' : 'Membro'}</div>
+                                <div class="room-card-name">${escapeHtml(room.name || 'Stanza')}</div>
+                                <div class="room-card-meta">${escapeHtml(room.memberCount || '?')} partecipanti • ${room.myRole === 'host' ? 'Host' : 'Membro'}</div>
                             </div>
-                            <span class="room-card-status ${room.status}">${room.status === 'active' ? 'In corso' : 'Lobby'}</span>
+                            <span class="room-card-status ${room.status === 'active' ? 'active' : 'lobby'}">${room.status === 'active' ? 'In corso' : 'Lobby'}</span>
                         </div>
                     `).join('');
+
+                    refreshLucideIcons(activeRoomsList);
 
                     // Add click handlers
                     activeRoomsList.querySelectorAll('.room-card').forEach(card => {
@@ -715,18 +984,20 @@
                 if (invitesResult.success && invitesResult.data.length > 0) {
                     invitesSection.style.display = 'block';
                     invitesList.innerHTML = invitesResult.data.map(invite => `
-                        <div class="invite-card" data-room-id="${invite.roomId}" data-invite-id="${invite.inviteId}">
-                            <span style="font-size: 1.5rem;">📬</span>
+                        <div class="invite-card" data-room-id="${escapeAttr(invite.roomId)}" data-invite-id="${escapeAttr(invite.inviteId)}">
+                            <span style="font-size: 1.5rem;">${lucideIcon('mail-open')}</span>
                             <div class="invite-card-info">
-                                <div class="invite-card-name">${invite.roomName || 'Stanza'}</div>
-                                <div class="invite-card-from">Da: ${invite.inviterName || 'Un amico'}</div>
+                                <div class="invite-card-name">${escapeHtml(invite.roomName || 'Stanza')}</div>
+                                <div class="invite-card-from">Da: ${escapeHtml(invite.inviterName || 'Un amico')}</div>
                             </div>
                             <div class="invite-card-actions">
                                 <button class="invite-accept-btn" data-action="accept">Entra</button>
-                                <button class="invite-decline-btn" data-action="decline">✕</button>
+                                <button class="invite-decline-btn" data-action="decline"><i data-lucide="x"></i></button>
                             </div>
                         </div>
                     `).join('');
+
+                    refreshLucideIcons(invitesList);
 
                     // Add invite action handlers
                     invitesList.querySelectorAll('.invite-accept-btn').forEach(btn => {
@@ -734,16 +1005,20 @@
                             e.stopPropagation();
                             const card = btn.closest('.invite-card');
                             const roomId = card.dataset.roomId;
+                            const inviteId = card.dataset.inviteId;
+                            btn.disabled = true;
                             try {
-                                const result = await gymbRoomService.joinRoom(roomId);
+                                const result = await gymbRoomService.acceptInvite(roomId, inviteId);
                                 if (result.success) {
                                     showToast('Entrato nella stanza!', 'success');
                                     openRoom(roomId);
                                 } else {
                                     showToast(result.error, 'error');
+                                    btn.disabled = false;
                                 }
                             } catch (err) {
                                 showToast(err.message, 'error');
+                                btn.disabled = false;
                             }
                         });
                     });
@@ -752,9 +1027,22 @@
                         btn.addEventListener('click', async (e) => {
                             e.stopPropagation();
                             const card = btn.closest('.invite-card');
-                            card.style.opacity = '0.5';
-                            card.style.pointerEvents = 'none';
-                            showToast('Invito rifiutato', 'success');
+                            const roomId = card.dataset.roomId;
+                            const inviteId = card.dataset.inviteId;
+                            btn.disabled = true;
+                            try {
+                                const result = await gymbRoomService.declineInvite(roomId, inviteId);
+                                if (result.success) {
+                                    showToast('Invito rifiutato', 'success');
+                                    await loadAllData();
+                                } else {
+                                    showToast(result.error || 'Errore rifiuto invito', 'error');
+                                    btn.disabled = false;
+                                }
+                            } catch (err) {
+                                showToast(err.message, 'error');
+                                btn.disabled = false;
+                            }
                         });
                     });
                 } else {
@@ -819,6 +1107,20 @@
             }, 3000);
         }
     </script>
+    <script src="js/main.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lucide-init.js"></script>
     <script type="module" src="./js/gymbro-chat.js"></script>
+
+    <!-- Footer -->
+    <footer class="section" style="border-top: 1px solid var(--color-border); padding: 2rem 0; margin-top: 4rem;">
+        <div class="container text-center">
+            <p style="font-size: 0.8rem;">&copy; 2024 GYMBRO. Built for performance.</p>
+            <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Termini di Servizio</a>
+            </p>
+        </div>
+    </footer>
+
 </body>
 </html>

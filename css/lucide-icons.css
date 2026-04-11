@@ -1,0 +1,203 @@
+/* ========================================
+   Lucide Icons - Global Styles
+   Colore primario: #00f3ff (var(--color-primary))
+   ======================================== */
+
+/* Base icon behavior */
+.lucide {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    stroke-width: 2;
+}
+
+/* Card icons (landing page feature cards) */
+.card-icon .lucide {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--color-primary, #00f3ff);
+    filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.15));
+}
+
+/* Navigation inline icons */
+.nav-links .lucide {
+    width: 1rem;
+    height: 1rem;
+    vertical-align: -0.15em;
+}
+
+/* Health card icons (body.html) */
+.health-card-icon .lucide {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Measure icons (body measurements) */
+.measure-icon .lucide {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+/* Stat pill icons (diary) */
+.stat-icon .lucide {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+/* Metric icons (analysis cards) */
+.metric-icon .lucide {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* Action card icons (friends/rooms) */
+.action-card-icon .lucide,
+.rooms-action-card-icon .lucide {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Wellness icons (diary logging) */
+.wellness-icon .lucide {
+    width: 1.4rem;
+    height: 1.4rem;
+}
+
+/* Meta icons (diary date/timer) */
+.meta-icon .lucide {
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-primary, #00f3ff);
+}
+
+/* Rest timer icon */
+.rest-icon .lucide {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+/* Insight box icons */
+.insight-box .lucide,
+.icon .lucide {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+/* Logging header icon */
+.logging-header-icon .lucide {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--color-primary, #00f3ff);
+}
+
+/* Empty state icon */
+.empty-state-icon .lucide,
+.empty-icon .lucide {
+    width: 3rem;
+    height: 3rem;
+    color: var(--color-primary, #00f3ff);
+    opacity: 0.6;
+}
+
+/* Section header icons */
+.section-header-icon .lucide {
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-primary, #00f3ff);
+}
+
+/* Auth icon */
+.auth-icon .lucide {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--color-primary, #00f3ff);
+}
+
+/* Hero icon */
+.hero-icon .lucide {
+    width: 3rem;
+    height: 3rem;
+    color: var(--color-primary, #00f3ff);
+}
+
+/* Invite header icon */
+.invite-header-icon .lucide {
+    width: 1.2rem;
+    height: 1.2rem;
+    color: var(--color-primary, #00f3ff);
+}
+
+/* AI exercise icons */
+.ai-exercise-icon .lucide {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+/* AI reasoning icon */
+.ai-reasoning-icon .lucide {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: var(--color-primary, #00f3ff);
+}
+
+/* Calendar stat icons */
+.cal-stat-icon .lucide {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+/* Inline icon utility - various sizes */
+.lucide-xs { width: 0.65rem !important; height: 0.65rem !important; }
+.lucide-sm { width: 0.85rem !important; height: 0.85rem !important; }
+.lucide-md { width: 1.2rem !important; height: 1.2rem !important; }
+.lucide-lg { width: 1.5rem !important; height: 1.5rem !important; }
+.lucide-xl { width: 2rem !important; height: 2rem !important; }
+.lucide-2xl { width: 2.5rem !important; height: 2.5rem !important; }
+.lucide-3xl { width: 3rem !important; height: 3rem !important; }
+.lucide-4xl { width: 4rem !important; height: 4rem !important; }
+
+/* Color utilities */
+.lucide-primary { color: var(--color-primary, #00f3ff) !important; }
+.lucide-muted { color: var(--color-text-muted, #a0a0a0) !important; }
+.lucide-white { color: #ffffff !important; }
+.lucide-success { color: #00ff88 !important; }
+.lucide-warning { color: #ffcc00 !important; }
+.lucide-danger { color: #ff6b6b !important; }
+.lucide-gold { color: #ffd700 !important; }
+.lucide-orange { color: #ff8844 !important; }
+
+/* Glow effect for primary-colored icons */
+.lucide-glow {
+    filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.3));
+}
+
+/* Workout action icons in user.html */
+.btn-icon-action .lucide {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Banner icons */
+.banner-icon .lucide {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* PR session icon */
+.pr-session-icon .lucide {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: #ffd700;
+}
+
+/* FAB icon */
+.fab .lucide {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+/* Mobile toggle (hamburger) */
+.mobile-toggle .lucide {
+    width: 1.5rem;
+    height: 1.5rem;
+}

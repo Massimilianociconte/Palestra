@@ -6,6 +6,18 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Corpo | GYMBRO</title>
+    <meta name="description" content="Monitora la composizione corporea, peso, body fat e foto dei progressi con GYMBRO.">
+    <link rel="canonical" href="https://massimilianociconte.github.io/Palestra/body.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://massimilianociconte.github.io/Palestra/body.html">
+    <meta property="og:title" content="Traccia il tuo Corpo | GYMBRO">
+    <meta property="og:description" content="Monitora la composizione corporea, peso, body fat e foto dei progressi con GYMBRO.">
+    <meta property="og:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
@@ -18,11 +30,13 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GymBro">
-    <link rel="apple-touch-icon" href="assets/icon.svg">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/gymbro-chat.css">
+    <link rel="stylesheet" href="css/lucide-icons.css">
+    <script src="js/sanitize.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -180,7 +194,6 @@
             color: var(--color-text-main);
             line-height: 1.5;
         }
-
 
         /* Measures Grid 2x2 */
         .measures-grid {
@@ -362,14 +375,16 @@
         }
 
         .photo-card.has-bfai::after {
-            content: '📊';
+            content: '';
             position: absolute;
             top: 8px;
             right: 8px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.7) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3v16a2 2 0 0 0 2 2h16'/%3E%3Cpath d='M7 16h.01'/%3E%3Cpath d='M11 12h.01'/%3E%3Cpath d='M15 8h.01'/%3E%3Cpath d='M19 4h.01'/%3E%3C/svg%3E") no-repeat center center;
+            width: 28px;
+            height: 28px;
+            padding: 0;
             border-radius: 4px;
-            font-size: 0.9rem;
+            font-size: 0;
         }
 
         /* Photo detail modal */
@@ -560,14 +575,15 @@
         <div class="container">
             <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
             <nav>
-                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <div class="mobile-toggle" id="mobileToggle"><i data-lucide="menu"></i></div>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="creator.html">📝 Crea Schede</a></li>
-                    <li><a href="diary.html">📓 Diario</a></li>
-                    <li><a href="analysis.html">📈 Analisi</a></li>
-                    <li><a href="friends.html">👥 Amici</a></li>
-                    <li><a href="rooms.html">🏠 Stanze</a></li>
-                    <li><a href="user.html">👤 Profilo</a></li>
+                    <li><a href="creator.html"><i data-lucide="file-pen-line"></i> Crea Schede</a></li>
+                    <li><a href="diary.html"><i data-lucide="book-open"></i> Diario</a></li>
+                    <li><a href="analysis.html"><i data-lucide="trending-up"></i> Analisi</a></li>
+                    <li><a href="body.html" class="text-primary"><i data-lucide="ruler"></i> Corpo</a></li>
+                    <li><a href="friends.html"><i data-lucide="users"></i> Amici</a></li>
+                    <li><a href="rooms.html"><i data-lucide="home"></i> Stanze</a></li>
+                    <li><a href="user.html"><i data-lucide="user"></i> Profilo</a></li>
                 </ul>
             </nav>
         </div>
@@ -591,7 +607,7 @@
                     <div style="display: flex; gap: 0.75rem; align-items: center;">
                         <span id="healthSyncStatus" style="font-size: 0.8rem; color: var(--color-text-muted);"></span>
                         <button id="refreshHealthData" class="btn btn-outline btn-sm">
-                            <span id="refreshIcon">🔄</span> Aggiorna
+                            <span id="refreshIcon"><i data-lucide="refresh-cw"></i></span> Aggiorna
                         </button>
                     </div>
                 </div>
@@ -608,7 +624,7 @@
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 0.6rem;">
-                            <span style="font-size: 1.2rem;">🏥</span>
+                            <span style="font-size: 1.2rem;"><i data-lucide="hospital"></i></span>
                             <span style="font-size: 0.85rem; color: var(--color-text-muted);">Connetti Google Fit per
                                 dati salute</span>
                         </div>
@@ -621,9 +637,9 @@
             <!-- Chart Section with Toggle -->
             <div style="margin-bottom: var(--spacing-md);">
                 <div class="chart-toggle-container">
-                    <button class="chart-toggle-btn active" data-metric="all">📊 Tutti</button>
-                    <button class="chart-toggle-btn" data-metric="weight">⚖️ Peso</button>
-                    <button class="chart-toggle-btn" data-metric="fat">📉 Grasso</button>
+                    <button class="chart-toggle-btn active" data-metric="all"><i data-lucide="bar-chart-3"></i> Tutti</button>
+                    <button class="chart-toggle-btn" data-metric="weight"><i data-lucide="scale"></i> Peso</button>
+                    <button class="chart-toggle-btn" data-metric="fat"><i data-lucide="trending-down"></i> Grasso</button>
                 </div>
                 <div class="chart-container">
                     <canvas id="progressChart"></canvas>
@@ -772,7 +788,7 @@
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(80px, 1fr)); gap:0.5rem; max-height:150px; overflow-y:auto;"
                     id="photoPreviewGrid"></div>
                 <small style="color:#888; display:block; margin-top:0.5rem;">
-                    📸 <span id="photoCount">0</span> foto selezionate
+                    <i data-lucide="camera" style="width:14px;height:14px;display:inline;"></i> <span id="photoCount">0</span> foto selezionate
                     <span id="bfaiPhotoHint" style="display:none; color:#00f3ff;"> • Per BF-AI: fronte + lato + retro =
                         maggiore precisione</span>
                 </small>
@@ -789,8 +805,8 @@
                     <input type="checkbox" id="enableBfaiAnalysis"
                         style="width:20px; height:20px; margin-top:2px; accent-color:#00f3ff;">
                     <span>
-                        <strong style="color:#00f3ff;">🎯 Analizza Body Fat con AI</strong><br>
-                        <small style="color:#888;">Calcola body fat % con 7 formule scientifiche<br>📷 Per risultati
+                        <strong style="color:#00f3ff;"><i data-lucide="crosshair" style="width:14px;height:14px;display:inline;"></i> Analizza Body Fat con AI</strong><br>
+                        <small style="color:#888;">Calcola body fat % con 7 formule scientifiche<br><i data-lucide="camera" style="width:12px;height:12px;display:inline;"></i> Per risultati
                             migliori: carica fronte + lato + retro</small>
                     </span>
                 </label>
@@ -1039,7 +1055,7 @@
             function renderHealthCards(data, trends = {}) {
                 const cards = [
                     {
-                        icon: '👟',
+                        icon: lucideIcon('footprints', {size: 24}),
                         label: 'Passi',
                         sublabel: 'media/giorno',
                         value: data?.steps,
@@ -1048,7 +1064,7 @@
                         trend: trends.steps
                     },
                     {
-                        icon: '❤️',
+                        icon: lucideIcon('heart', {size: 24, color: '#ff6b6b'}),
                         label: 'Frequenza Cardiaca',
                         sublabel: 'oggi',
                         value: data?.heartRate,
@@ -1057,7 +1073,7 @@
                         trend: trends.heartRate
                     },
                     {
-                        icon: '⚖️',
+                        icon: lucideIcon('scale', {size: 24}),
                         label: 'Peso',
                         sublabel: 'ultimo',
                         value: data?.weight,
@@ -1066,7 +1082,7 @@
                         trend: trends.weight
                     },
                     {
-                        icon: '🔥',
+                        icon: lucideIcon('flame', {size: 24, color: '#ff8844'}),
                         label: 'Calorie',
                         sublabel: 'media/giorno',
                         value: data?.calories,
@@ -1075,7 +1091,7 @@
                         trend: trends.calories
                     },
                     {
-                        icon: '📏',
+                        icon: lucideIcon('ruler', {size: 24}),
                         label: 'Distanza',
                         sublabel: 'media/giorno',
                         value: data?.distance ? data.distance / 1000 : null, // Convert meters to km
@@ -1084,7 +1100,7 @@
                         trend: trends.distance
                     },
                     {
-                        icon: '😴',
+                        icon: lucideIcon('moon', {size: 24, color: '#a78bfa'}),
                         label: 'Sonno',
                         sublabel: 'media/notte',
                         value: data?.sleep,
@@ -1093,7 +1109,7 @@
                         trend: trends.sleep
                     },
                     {
-                        icon: '⏱️',
+                        icon: lucideIcon('timer', {size: 24}),
                         label: 'Minuti Attivi',
                         sublabel: 'media/giorno',
                         value: data?.activeMinutes,
@@ -1102,7 +1118,7 @@
                         trend: trends.activeMinutes
                     },
                     {
-                        icon: '💓',
+                        icon: lucideIcon('heart-pulse', {size: 24, color: '#ff6b6b'}),
                         label: 'HRV',
                         value: data?.hrv,
                         unit: 'ms',
@@ -1110,7 +1126,7 @@
                         trend: trends.hrv
                     },
                     {
-                        icon: '📊',
+                        icon: lucideIcon('bar-chart-3', {size: 24}),
                         label: 'Grasso Corporeo',
                         value: data?.bodyFat,
                         unit: '%',
@@ -1118,7 +1134,7 @@
                         trend: trends.bodyFat
                     },
                     {
-                        icon: '📐',
+                        icon: lucideIcon('ruler', {size: 24}),
                         label: 'Altezza',
                         value: data?.height,
                         unit: 'cm',
@@ -1126,7 +1142,7 @@
                         trend: trends.height
                     },
                     {
-                        icon: '💧',
+                        icon: lucideIcon('droplets', {size: 24, color: '#60a5fa'}),
                         label: 'Idratazione',
                         value: data?.hydration,
                         unit: 'ml',
@@ -1134,7 +1150,7 @@
                         trend: trends.hydration
                     },
                     {
-                        icon: '🩺',
+                        icon: lucideIcon('stethoscope', {size: 24}),
                         label: 'Pressione',
                         value: data?.bloodPressure ? `${data.bloodPressure.systolic}/${data.bloodPressure.diastolic}` : null,
                         unit: 'mmHg',
@@ -1142,7 +1158,7 @@
                         trend: trends.bloodPressure
                     },
                     {
-                        icon: '🩸',
+                        icon: lucideIcon('droplet', {size: 24, color: '#ff6b6b'}),
                         label: 'Glicemia',
                         value: data?.bloodGlucose,
                         unit: 'mg/dL',
@@ -1150,7 +1166,7 @@
                         trend: trends.bloodGlucose
                     },
                     {
-                        icon: '🫁',
+                        icon: lucideIcon('wind', {size: 24}),
                         label: 'SpO2',
                         value: data?.oxygenSaturation,
                         unit: '%',
@@ -1194,6 +1210,7 @@
                                 </div>
                             `;
                 }).join('');
+                if (window.refreshLucideIcons) refreshLucideIcons();
             }
 
             // Refresh health data button
@@ -1398,21 +1415,23 @@
                 if (!bodyStats.length) {
                     bodyTrendSummary.innerHTML = `
                         <div class="trend-summary-card is-empty">
-                            <div class="trend-summary-title">📊 Trend corpo</div>
+                            <div class="trend-summary-title">${lucideIcon('activity', { size: 16 })} Trend corpo</div>
                             <div class="trend-summary-footer">Aggiungi almeno un check-in per vedere andamento, media e insight.</div>
                         </div>
                     `;
                     bodyTrendInsight.innerHTML = `
-                        <div class="trend-insight-title">✨ Insight rapido</div>
+                        <div class="trend-insight-title">${lucideIcon('sparkles', { size: 16 })} Insight rapido</div>
                         <div class="trend-insight-body">Registra peso, grasso e misure con costanza per trasformare i check-in in segnali davvero utili.</div>
                     `;
+                    if (window.refreshLucideIcons) refreshLucideIcons(bodyTrendSummary);
+                    if (window.refreshLucideIcons) refreshLucideIcons(bodyTrendInsight);
                     return;
                 }
 
                 const weightTrend = computeTrendWindow('weight', {
                     windowDays: 14,
                     fallbackCount: 3,
-                    stableThreshold: unitService && typeof unitService.getSystem === 'function' && unitService.getSystem() === 'imperial' ? 0.5 : 0.2,
+                    stableThreshold: unitService && unitService.getSystem() === 'imperial' ? 0.5 : 0.2,
                     converter: value => unitService ? unitService.convertWeight(value) : value
                 });
 
@@ -1434,7 +1453,7 @@
                     cards.push(`
                         <div class="trend-summary-card">
                             <div class="trend-summary-head">
-                                <div class="trend-summary-title">⚖️ Trend peso</div>
+                                <div class="trend-summary-title">${lucideIcon('scale', { size: 16 })} Trend peso</div>
                                 <span class="trend-badge">${weightTrend.badgeLabel}</span>
                             </div>
                             <div class="trend-summary-value">
@@ -1442,7 +1461,7 @@
                                 <span class="trend-summary-unit">${weightUnit}</span>
                             </div>
                             <div class="${getTrendDeltaClass(weightTrend.direction)}">
-                                ${weightTrend.direction === 'up' ? '↗' : weightTrend.direction === 'down' ? '↘' : '→'}
+                                ${weightTrend.direction === 'up' ? lucideIcon('arrow-up-right', { size: 14 }) : weightTrend.direction === 'down' ? lucideIcon('arrow-down-right', { size: 14 }) : lucideIcon('minus', { size: 14 })}
                                 <span>${getTrendDeltaText(weightTrend, weightUnit)}</span>
                             </div>
                             <div class="trend-summary-footer">Ultimo check-in a ${formatRelativeDays(latestCheckin ? latestCheckin.daysSince : null)}.</div>
@@ -1454,7 +1473,7 @@
                     cards.push(`
                         <div class="trend-summary-card">
                             <div class="trend-summary-head">
-                                <div class="trend-summary-title">📉 Trend grasso</div>
+                                <div class="trend-summary-title">${lucideIcon('trending-down', { size: 16 })} Trend grasso</div>
                                 <span class="trend-badge">${fatTrend.badgeLabel}</span>
                             </div>
                             <div class="trend-summary-value">
@@ -1462,7 +1481,7 @@
                                 <span class="trend-summary-unit">%</span>
                             </div>
                             <div class="${getTrendDeltaClass(fatTrend.direction)}">
-                                ${fatTrend.direction === 'up' ? '↗' : fatTrend.direction === 'down' ? '↘' : '→'}
+                                ${fatTrend.direction === 'up' ? lucideIcon('arrow-up-right', { size: 14 }) : fatTrend.direction === 'down' ? lucideIcon('arrow-down-right', { size: 14 }) : lucideIcon('minus', { size: 14 })}
                                 <span>${getTrendDeltaText(fatTrend, '%')}</span>
                             </div>
                             <div class="trend-summary-footer">${fatTrend.totalEntries} rilevazioni con body fat salvate.</div>
@@ -1473,7 +1492,7 @@
                 cards.push(`
                     <div class="trend-summary-card">
                         <div class="trend-summary-head">
-                            <div class="trend-summary-title">🗓️ Ritmo check-in</div>
+                            <div class="trend-summary-title">${lucideIcon('calendar-range', { size: 16 })} Ritmo check-in</div>
                             <span class="trend-badge">30 giorni</span>
                         </div>
                         <div class="trend-summary-value">
@@ -1481,7 +1500,7 @@
                             <span class="trend-summary-unit">check-in</span>
                         </div>
                         <div class="trend-delta trend-delta--stable">
-                            ⏱️
+                            ${lucideIcon('clock-3', { size: 14 })}
                             <span>${latestCheckin ? formatRelativeDays(latestCheckin.daysSince) : 'Nessun check-in'}</span>
                         </div>
                         <div class="trend-summary-footer">${photos.length} foto progressi salvate nel diario corpo.</div>
@@ -1516,9 +1535,12 @@
 
                 bodyTrendSummary.innerHTML = cards.join('');
                 bodyTrendInsight.innerHTML = `
-                    <div class="trend-insight-title">✨ Insight rapido</div>
+                    <div class="trend-insight-title">${lucideIcon('sparkles', { size: 16 })} Insight rapido</div>
                     <div class="trend-insight-body">${insightText}</div>
                 `;
+
+                if (window.refreshLucideIcons) refreshLucideIcons(bodyTrendSummary);
+                if (window.refreshLucideIcons) refreshLucideIcons(bodyTrendInsight);
             }
 
             function initChart() {
@@ -1678,12 +1700,12 @@
 
                 // All metrics in uniform 2x2 grid (3 rows)
                 const allItems = [
-                    { label: 'Peso', val: w, unit: weightUnit, icon: '⚖️' },
-                    { label: 'Grasso', val: latest.fat, unit: '%', icon: '📉' },
-                    { label: 'Torace', val: c, unit: lengthUnit, icon: '📏' },
-                    { label: 'Braccio', val: a, unit: lengthUnit, icon: '💪' },
-                    { label: 'Vita', val: wa, unit: lengthUnit, icon: '📐' },
-                    { label: 'Gambe', val: l, unit: lengthUnit, icon: '🦵' }
+                    { label: 'Peso', val: w, unit: weightUnit, icon: lucideIcon('scale', {size: 14}) },
+                    { label: 'Grasso', val: latest.fat, unit: '%', icon: lucideIcon('trending-down', {size: 14}) },
+                    { label: 'Torace', val: c, unit: lengthUnit, icon: lucideIcon('ruler', {size: 14}) },
+                    { label: 'Braccio', val: a, unit: lengthUnit, icon: lucideIcon('dumbbell', {size: 14}) },
+                    { label: 'Vita', val: wa, unit: lengthUnit, icon: lucideIcon('ruler', {size: 14}) },
+                    { label: 'Gambe', val: l, unit: lengthUnit, icon: lucideIcon('person-standing', {size: 14}) }
                 ];
 
                 statsDisplay.innerHTML = `
@@ -1702,6 +1724,7 @@
                                 `).join('')}
                             </div>
                         `;
+                if (window.refreshLucideIcons) refreshLucideIcons();
                 renderTrendSummary();
             }
 
@@ -1724,11 +1747,13 @@
                                 </div>
                                 <div class="photo-info">
                                     <div class="photo-info-date">${photoDate}</div>
-                                    ${p.note ? `<div class="photo-info-note">${p.note}</div>` : ''}
+                                    ${p.note ? `<div class="photo-info-note">${escapeHtml(p.note)}</div>` : ''}
                                 </div>
                             </div>
                             `;
                 }).join('');
+
+                if (window.refreshLucideIcons) refreshLucideIcons();
 
                 // Add click handlers
                 photoGallery.querySelectorAll('.photo-card').forEach(card => {
@@ -1761,7 +1786,7 @@
                     const comp = photo.bfai.composition;
                     bfaiPanel = `
                                 <div style="padding:1rem; background:var(--color-surface); border-radius:8px;">
-                                    <h3 style="color:var(--color-primary); margin-bottom:1rem;">📊 Analisi Body Fat</h3>
+                                    <h3 style="color:var(--color-primary); margin-bottom:1rem;">${lucideIcon('bar-chart-3', {size: 18})} Analisi Body Fat</h3>
                                     <div style="text-align:center; margin-bottom:1.5rem;">
                                         <div style="font-size:3rem; font-weight:700; color:${bfColor};">${bfValue}%</div>
                                         <div style="color:${bfColor}; font-size:0.9rem;">${photo.bfai.category || 'Calcolato'}</div>
@@ -1777,32 +1802,34 @@
                                             <div style="font-size:1.2rem; color:#00ff88; font-weight:600;">${comp.leanMassKg || '?'} kg</div>
                                         </div>
                                     </div>` : ''}
-                                    ${photo.bfai.multiPhoto ? '<div style="font-size:0.75rem; color:#888; text-align:center;">📷 Multi-foto</div>' : ''}
+                                    ${photo.bfai.multiPhoto ? '<div style="font-size:0.75rem; color:#888; text-align:center;">' + lucideIcon('camera', {size: 14}) + ' Multi-foto</div>' : ''}
                                 </div>`;
                 }
 
                 const overlay = document.createElement('div');
                 overlay.className = 'photo-detail-overlay';
+                const _bfaiPanel = bfaiPanel;
                 overlay.innerHTML = `
                             <div class="photo-detail-content" style="max-width:${hasBfai ? '900px' : '500px'};">
                                 <div style="display:grid; grid-template-columns:${hasBfai ? '1fr 1fr' : '1fr'}; gap:1rem; padding:1rem;">
                                     <div>
-                                        <img src="${photo.url}" style="width:100%; border-radius:8px; max-height:60vh; object-fit:contain;">
+                                        <img src="${photo.url}" alt="Foto progresso dettagliata" style="width:100%; border-radius:8px; max-height:60vh; object-fit:contain;">
                                         <div style="margin-top:1rem; color:#888;">
                                             <div style="font-size:0.9rem;">${new Date(photo.date).toLocaleString('it-IT')}</div>
-                                            ${photo.note ? '<div style="margin-top:0.5rem;">' + photo.note + '</div>' : ''}
+                                            ${photo.note ? '<div style="margin-top:0.5rem;">' + escapeHtml(photo.note) + '</div>' : ''}
                                         </div>
                                     </div>
                                     ${bfaiPanel}
                                 </div>
                                 <div style="padding:1rem; border-top:1px solid var(--color-border); display:flex; gap:1rem;">
                                     <button class="btn btn-outline close-overlay-btn" style="flex:1;">Chiudi</button>
-                                    <button class="btn delete-photo-btn" style="flex:1; background:#ff4444; border-color:#ff4444;">🗑️ Elimina</button>
+                                    <button class="btn delete-photo-btn" style="flex:1; background:#ff4444; border-color:#ff4444;"><i data-lucide="trash-2"></i> Elimina</button>
                                     <a href="${photo.url}" target="_blank" class="btn btn-primary" style="flex:1; text-align:center; text-decoration:none;">Apri</a>
                                 </div>
                             </div>`;
 
                 document.body.appendChild(overlay);
+                if (window.refreshLucideIcons) refreshLucideIcons();
                 overlay.querySelector('.close-overlay-btn').onclick = () => overlay.remove();
                 overlay.querySelector('.delete-photo-btn').onclick = () => {
                     if (confirm('Eliminare questa foto?')) {
@@ -1953,12 +1980,13 @@
                             const div = document.createElement('div');
                             div.style.cssText = 'position:relative; aspect-ratio:3/4; border-radius:8px; overflow:hidden; border:1px solid var(--color-border);';
                             div.innerHTML = `
-                                        <img src="${ev.target.result}" style="width:100%; height:100%; object-fit:cover;">
+                                        <img src="${ev.target.result}" alt="Anteprima foto progresso" style="width:100%; height:100%; object-fit:cover;">
                                         <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; padding:2px 6px; border-radius:4px; font-size:0.7rem;">
-                                            ${idx === 0 ? '📷 1' : idx === 1 ? '📷 2' : '📷 3'}
+                                            ${idx === 0 ? '<i data-lucide="camera" style="width:12px;height:12px;display:inline;"></i> 1' : idx === 1 ? '<i data-lucide="camera" style="width:12px;height:12px;display:inline;"></i> 2' : '<i data-lucide="camera" style="width:12px;height:12px;display:inline;"></i> 3'}
                                         </span>
                                     `;
                             previewGrid.appendChild(div);
+                            if (window.refreshLucideIcons) refreshLucideIcons();
                         };
                         reader.readAsDataURL(file);
                     });
@@ -2013,7 +2041,8 @@
                         confirmUploadBtn.disabled = false;
                         return;
                     }
-                    uploadStatus.innerHTML = '<span style="color:#00f3ff;">⏳ Analisi Body Fat in corso...</span>';
+                    uploadStatus.innerHTML = '<span style="color:#00f3ff;"><i data-lucide="loader" style="width:14px;height:14px;display:inline;"></i> Analisi Body Fat in corso...</span>';
+                    if (window.refreshLucideIcons) refreshLucideIcons();
                     try {
                         // Use multiple photos for better BF-AI analysis
                         const bfaiParams = {
@@ -2026,7 +2055,7 @@
 
                         // If multiple photos, analyze each and average results
                         if (files.length > 1) {
-                            uploadStatus.innerHTML = '<span style="color:#00f3ff;">⏳ Analisi ' + files.length + ' foto in corso...</span>';
+                            uploadStatus.innerHTML = '<span style="color:#00f3ff;"><i data-lucide="loader" style="width:14px;height:14px;display:inline;"></i> Analisi ' + files.length + ' foto in corso...</span>';
                             const results = [];
                             for (let i = 0; i < Math.min(files.length, 3); i++) {
                                 try {
@@ -2047,11 +2076,12 @@
                             bfaiResult = await bfAIService.analyzePhoto(file, bfaiParams);
                         }
                         document.getElementById('bfaiResultsContainer').innerHTML = bfAIService.generateResultsHTML(bfaiResult);
+                        if (window.refreshLucideIcons) refreshLucideIcons();
                         const multiMsg = bfaiResult.multiPhoto ? ' (' + bfaiResult.photoCount + ' foto analizzate)' : '';
-                        uploadStatus.innerHTML = '<span style="color:#00ff88;">✓ Analisi BF-AI completata!' + multiMsg + '</span>';
+                        uploadStatus.innerHTML = '<span style="color:#00ff88;"><i data-lucide="check" style="width:14px;height:14px;display:inline;"></i> Analisi BF-AI completata!' + multiMsg + '</span>';
                     } catch (bfErr) {
                         console.error('BF-AI Error:', bfErr);
-                        uploadStatus.innerHTML = '<span style="color:#ff6666;">⚠ Errore BF-AI: ' + bfErr.message + '</span>';
+                        uploadStatus.innerHTML = '<span style="color:#ff6666;"><i data-lucide="alert-triangle" style="width:14px;height:14px;display:inline;"></i> Errore BF-AI: ' + escapeHtml(bfErr.message) + '</span>';
                     }
                 } else {
                     uploadStatus.textContent = 'Caricamento e compressione...';
@@ -2103,7 +2133,7 @@
                         if (bfaiResult) {
                             uploadStatus.innerHTML = `
                                         <div style="margin-top:1rem; padding:1rem; background:rgba(0,255,136,0.1); border:1px solid #00ff88; border-radius:8px;">
-                                            <div style="color:#00ff88; font-weight:600; margin-bottom:0.5rem;">✓ Foto caricate e analisi completata!</div>
+                                            <div style="color:#00ff88; font-weight:600; margin-bottom:0.5rem;"><i data-lucide="check" style="width:14px;height:14px;display:inline;"></i> Foto caricate e analisi completata!</div>
                                             <div style="color:#888; font-size:0.85rem; margin-bottom:1rem;">I risultati BF-AI sono stati salvati con le foto.</div>
                                             <button id="closeAfterUploadBtn" class="btn btn-primary" style="width:100%;">Chiudi</button>
                                         </div>
@@ -2111,6 +2141,7 @@
                             document.getElementById('closeAfterUploadBtn').addEventListener('click', () => {
                                 photoModal.style.display = 'none';
                             });
+                            if (window.refreshLucideIcons) refreshLucideIcons();
                         } else {
                             photoModal.style.display = 'none';
                         }
@@ -2162,6 +2193,19 @@
         });
     </script>
     <script type="module" src="./js/gymbro-chat.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lucide-init.js"></script>
+
+    <!-- Footer -->
+    <footer class="section" style="border-top: 1px solid var(--color-border); padding: 2rem 0; margin-top: 4rem;">
+        <div class="container text-center">
+            <p style="font-size: 0.8rem;">&copy; 2024 GYMBRO. Built for performance.</p>
+            <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Termini di Servizio</a>
+            </p>
+        </div>
+    </footer>
+
 </body>
 
 </html>

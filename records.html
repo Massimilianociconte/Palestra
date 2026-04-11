@@ -4,15 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Record Storici | GymBro</title>
+    <meta name="description" content="Consulta i tuoi record personali e storici su GYMBRO. Panca, squat, stacco e tutti i PR tracciati.">
+    <link rel="canonical" href="https://massimilianociconte.github.io/Palestra/records.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://massimilianociconte.github.io/Palestra/records.html">
+    <meta property="og:title" content="Record Storici | GYMBRO">
+    <meta property="og:description" content="Consulta i tuoi record personali e storici su GYMBRO. Tutti i PR tracciati.">
+    <meta property="og:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary">
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/gymbro-chat.css">
+    <link rel="stylesheet" href="css/lucide-icons.css">
+    <script src="js/sanitize.js"></script>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
     <meta name="theme-color" content="#00f3ff">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GymBro">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
     <!-- Tailwind CSS Play CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1042,15 +1059,15 @@
             <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
 
             <nav>
-                <div class="mobile-toggle" id="mobileToggle" onclick="history.back()" style="cursor:pointer;">✕</div>
+                <div class="mobile-toggle" id="mobileToggle" onclick="history.back()" style="cursor:pointer;"><i data-lucide="x"></i></div>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="creator.html">📝 Crea Schede</a></li>
-                    <li><a href="diary.html">📓 Diario</a></li>
-                    <li><a href="analysis.html">📈 Analisi</a></li>
+                    <li><a href="creator.html"><i data-lucide="file-pen-line"></i> Crea Schede</a></li>
+                    <li><a href="diary.html"><i data-lucide="book-open"></i> Diario</a></li>
+                    <li><a href="analysis.html"><i data-lucide="trending-up"></i> Analisi</a></li>
                     <li><a href="body.html"><i data-lucide="ruler"></i> Corpo</a></li>
-                    <li><a href="friends.html">👥 Amici</a></li>
-                    <li><a href="rooms.html">🏠 Stanze</a></li>
-                    <li><a href="user.html">👤 Profilo</a></li>
+                    <li><a href="friends.html"><i data-lucide="users"></i> Amici</a></li>
+                    <li><a href="rooms.html"><i data-lucide="home"></i> Stanze</a></li>
+                    <li><a href="user.html"><i data-lucide="user"></i> Profilo</a></li>
                 </ul>
             </nav>
         </div>
@@ -1094,7 +1111,7 @@
             <div class="pr-session-banner" id="sessionPRHighlight"
                 style="display:none; background:var(--neon-gold); color:black; padding:1.5rem; border-radius:var(--radius-lg); margin-bottom:2rem; box-shadow:0 0 30px rgba(255, 215, 0, 0.3);">
                 <div class="pr-session-header" style="display:flex; align-items:center; gap:1rem;">
-                    <span class="pr-session-icon" style="font-size:2.5rem;">🏆</span>
+                    <span class="pr-session-icon"><i data-lucide="trophy" style="width:40px;height:40px;color:#ffd700;"></i></span>
                     <div>
                         <div class="pr-session-title"
                             style="font-family:var(--font-display); font-size:1.5rem; font-weight:800; text-transform:uppercase;">
@@ -1139,17 +1156,17 @@
                     <!-- Category Filters -->
                     <div id="categoryFilters" class="flex gap-3 overflow-x-auto pb-4 pt-2 px-2 scrollbar-hide"
                         style="margin: -8px; padding: 8px; overflow: visible;">
-                        <button class="pr-filter-chip active" data-filter="all">✨ Tutti</button>
-                        <button class="pr-filter-chip" data-filter="weight">🏋️ Peso Max</button>
-                        <button class="pr-filter-chip" data-filter="1rm">💪 1RM</button>
-                        <button class="pr-filter-chip" data-filter="reps">🔁 Reps</button>
-                        <button class="pr-filter-chip" data-filter="volume">📊 Volume</button>
+                        <button class="pr-filter-chip active" data-filter="all"><i data-lucide="sparkles"></i> Tutti</button>
+                        <button class="pr-filter-chip" data-filter="weight"><i data-lucide="dumbbell"></i> Peso Max</button>
+                        <button class="pr-filter-chip" data-filter="1rm"><i data-lucide="zap"></i> 1RM</button>
+                        <button class="pr-filter-chip" data-filter="reps"><i data-lucide="repeat"></i> Reps</button>
+                        <button class="pr-filter-chip" data-filter="volume"><i data-lucide="bar-chart-2"></i> Volume</button>
                     </div>
 
                     <!-- Time Filters -->
                     <div id="dateFilters" class="flex gap-3 overflow-x-auto pb-4 pt-2 px-2 scrollbar-hide"
                         style="margin: -8px; padding: 8px; overflow: visible;">
-                        <button class="pr-filter-chip pr-date-chip active" data-date="all">🗓️ Sempre</button>
+                        <button class="pr-filter-chip pr-date-chip active" data-date="all"><i data-lucide="calendar"></i> Sempre</button>
                         <button class="pr-filter-chip pr-date-chip" data-date="30">30 giorni</button>
                         <button class="pr-filter-chip pr-date-chip" data-date="90">3 Mesi</button>
                         <button class="pr-filter-chip pr-date-chip" data-date="365">1 Anno</button>
@@ -1248,6 +1265,7 @@
                 sessionList.innerHTML = prs.map(pr => {
                     return pr.records.map(record => renderCompactPRCard(pr.exercise, record, pr.timestamp || pr.date, true)).join('');
                 }).join('');
+                if (typeof refreshLucideIcons === 'function') refreshLucideIcons();
             }
 
             function renderPRs() {
@@ -1257,6 +1275,7 @@
                     renderAllPRsView();
                 }
                 updateClearFiltersVisibility();
+                if (typeof refreshLucideIcons === 'function') refreshLucideIcons();
             }
 
             function renderHistoryView() {
@@ -1305,7 +1324,7 @@
                         <div class="mb-8">
                             <div class=\"sticky top-0 z-10 flex items-center gap-4 py-4 mb-4 bg-[#0d0d15]/95 backdrop-blur-xl border-b border-[#2d2d44]\">
                                 <span class=\"text-[0.65rem] font-extrabold text-[#8b8b9e] uppercase tracking-[0.2em] flex items-center gap-2\">
-                                    <span class=\"text-[#00f3ff] opacity-70\">●</span> ${dateLabel.replace('📅 ', '')}
+                                    ${lucideIcon('calendar-days', {size: 12, color: '#00f3ff'})} ${dateLabel}
                                 </span>
                                 <div class=\"flex-1 h-px bg-[#2d2d44]\"></div>
                             </div>
@@ -1366,15 +1385,15 @@
 
                     let label;
                     if (prDateOnly.getTime() === today.getTime()) {
-                        label = '📅 Oggi';
+                        label = 'Oggi';
                     } else if (prDateOnly.getTime() === yesterday.getTime()) {
-                        label = '📅 Ieri';
+                        label = 'Ieri';
                     } else if (prDateOnly >= thisWeekStart) {
-                        label = '📅 Questa settimana';
+                        label = 'Questa settimana';
                     } else if (prDateOnly >= thisMonthStart) {
-                        label = '📅 Questo mese';
+                        label = 'Questo mese';
                     } else {
-                        label = `📅 ${prDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })}`;
+                        label = prDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
                     }
 
                     if (!groups[label]) groups[label] = [];
@@ -1415,9 +1434,13 @@
 
                 // Highlight matching text if searching
                 const highlightMatch = (text) => {
-                    if (!searchQuery) return text;
-                    const regex = new RegExp(`(${searchQuery})`, 'gi');
-                    return text.replace(regex, '<mark class="bg-[#00f3ff40] text-white px-0.5 rounded">$1</mark>');
+                    const safe = escapeHtml(text);
+                    if (!searchQuery) return safe;
+                    try {
+                        const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`(${escaped})`, 'gi');
+                        return safe.replace(regex, '<mark class="bg-[#00f3ff40] text-white px-0.5 rounded">$1</mark>');
+                    } catch(e) { return safe; }
                 };
 
                 return `
@@ -1478,7 +1501,7 @@
                 return `
                     <div class="relative bg-[#1a1a2e] border-2 border-[#2d2d44] rounded-2xl mb-4 overflow-hidden group hover:border-[#00f3ff40] transition-all">
                         <div class="p-4 pb-2">
-                            <div class="text-white font-black text-sm tracking-tight">${pr.displayName}</div>
+                            <div class="text-white font-black text-sm tracking-tight">${escapeHtml(pr.displayName)}</div>
                         </div>
                         <div class="grid grid-cols-${records.length} gap-2 p-4 pt-0">
                             ${records.map(r => `
@@ -1498,7 +1521,7 @@
                 return `
                     <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
                         <div class="relative mb-6">
-                            <div class="text-6xl animate-pulse">⚡</div>
+                            <div class="animate-pulse">${lucideIcon('zap', {size: 48, color: '#00f3ff'})}</div>
                             <div class="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full"></div>
                         </div>
                         <h3 class="text-xl font-black text-white uppercase tracking-wider mb-2">Nessun Record</h3>
@@ -1568,10 +1591,6 @@
                 });
             }
 
-            // Mobile nav
-            document.getElementById('mobileToggle')?.addEventListener('click', () => {
-                document.getElementById('navLinks')?.classList.toggle('active');
-            });
         });
     </script>
     <script type="module" src="./js/gymbro-chat.js"></script>
@@ -1579,13 +1598,15 @@
     <!-- Footer -->
     <footer class="section" style="border-top: 1px solid var(--color-border); padding: 2rem 0; margin-top: 4rem;">
         <div class="container text-center">
-            <p>Realizzato da <a href="https://webnovis.com">WebNovis</a> — 
-            Agenzia web a Rho, Milano</p>
-            <p>Vuoi un sito professionale? 
-            <a href="https://webnovis.com/contatti">Contattaci</a></p>
+            <p style="font-size: 0.8rem;">&copy; 2024 GYMBRO. Built for performance.</p>
+            <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Termini di Servizio</a>
+            </p>
         </div>
     </footer>
 
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lucide-init.js"></script>
 </body>
 
 </html>

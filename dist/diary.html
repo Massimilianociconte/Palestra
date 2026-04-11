@@ -7,6 +7,18 @@
             content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
         <title>Diario | GYMBRO</title>
+        <meta name="description" content="Registra ogni sessione di allenamento nel diario digitale GYMBRO. Storico completo dei tuoi progressi e record personali.">
+        <link rel="canonical" href="https://massimilianociconte.github.io/Palestra/diary.html">
+
+        <!-- Open Graph -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://massimilianociconte.github.io/Palestra/diary.html">
+        <meta property="og:title" content="Diario Allenamenti | GYMBRO">
+        <meta property="og:description" content="Registra ogni sessione di allenamento. Storico completo dei tuoi progressi e record personali.">
+        <meta property="og:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
+        <meta property="og:locale" content="it_IT">
+        <meta name="twitter:card" content="summary">
+
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -24,11 +36,14 @@
             content="black-translucent"
         />
         <meta name="apple-mobile-web-app-title" content="GymBro" />
-        <link rel="apple-touch-icon" href="assets/icon.svg" />
+        <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 
         <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
         <link rel="stylesheet" href="css/style.css" />
         <link rel="stylesheet" href="css/gymbro-chat.css" />
+        <link rel="stylesheet" href="css/lucide-icons.css" />
+        <script src="js/capacitor-bootstrap.js"></script>
+        <script src="js/sanitize.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
         <style>
             /* =========================
@@ -122,6 +137,17 @@
 
             .log-action-btn:active {
                 transform: scale(0.9);
+            }
+
+            .log-action-btn.share-log-btn,
+            .log-action-btn.edit-log-btn {
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+            .log-action-btn.share-log-btn:hover,
+            .log-action-btn.edit-log-btn:hover {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.1);
             }
 
             .log-action-btn.delete-btn {
@@ -1011,18 +1037,19 @@
                     >GYM<span class="text-primary">BRO</span></a
                 >
                 <nav>
-                    <div class="mobile-toggle" id="mobileToggle">☰</div>
+                    <div class="mobile-toggle" id="mobileToggle"><i data-lucide="menu"></i></div>
                     <ul class="nav-links" id="navLinks">
-                        <li><a href="creator.html">📝 Crea Schede</a></li>
+                        <li><a href="creator.html"><i data-lucide="file-pen-line"></i> Crea Schede</a></li>
                         <li>
                             <a href="diary.html" class="text-primary"
-                                >📓 Diario</a
+                                ><i data-lucide="book-open"></i> Diario</a
                             >
                         </li>
-                        <li><a href="analysis.html">📈 Analisi</a></li>
-                        <li><a href="friends.html">👥 Amici</a></li>
-                        <li><a href="rooms.html">🏠 Stanze</a></li>
-                        <li><a href="user.html">👤 Profilo</a></li>
+                        <li><a href="analysis.html"><i data-lucide="trending-up"></i> Analisi</a></li>
+                        <li><a href="body.html"><i data-lucide="ruler"></i> Corpo</a></li>
+                        <li><a href="friends.html"><i data-lucide="users"></i> Amici</a></li>
+                        <li><a href="rooms.html"><i data-lucide="home"></i> Stanze</a></li>
+                        <li><a href="user.html"><i data-lucide="user"></i> Profilo</a></li>
                     </ul>
                 </nav>
             </div>
@@ -1194,7 +1221,7 @@
                         class="fab"
                         title="Registra Allenamento"
                     >
-                        ➕
+                        <i data-lucide="plus"></i>
                     </button>
                 </div>
 
@@ -1209,7 +1236,7 @@
                         border: 1px solid rgba(255, 255, 255, 0.1);
                     "
                 >
-                    <h3 style="margin-bottom: 0.5rem">🎯 Seleziona Scheda</h3>
+                    <h3 style="margin-bottom: 0.5rem"><i data-lucide="target"></i> Seleziona Scheda</h3>
                     <p
                         style="
                             font-size: 0.85rem;
@@ -1239,7 +1266,7 @@
                             class="btn btn-primary"
                             style="flex: 1; border-radius: 12px"
                         >
-                            ✅ Carica Scheda
+                            <i data-lucide="check"></i> Carica Scheda
                         </button>
                         <button
                             id="cancelSelectBtn"
@@ -1259,7 +1286,7 @@
                 >
                     <!-- Header Compatto -->
                     <div class="logging-header">
-                        <div class="logging-header-icon">📝</div>
+                        <div class="logging-header-icon"><i data-lucide="file-pen-line"></i></div>
                         <h2
                             id="loggingTitle"
                             style="
@@ -1278,11 +1305,11 @@
                     <!-- Data + Durata - Riga compatta -->
                     <div class="meta-row-primary">
                         <div class="meta-input-group">
-                            <span class="meta-icon">📅</span>
+                            <span class="meta-icon"><i data-lucide="calendar"></i></span>
                             <input type="date" id="logDate" />
                         </div>
                         <div class="meta-input-group">
-                            <span class="meta-icon">⏱️</span>
+                            <span class="meta-icon"><i data-lucide="timer"></i></span>
                             <input
                                 type="number"
                                 id="logDuration"
@@ -1303,7 +1330,7 @@
                                 onclick="openStatsInfoModal('sleep')"
                                 >?</span
                             >
-                            <span class="wellness-icon">😴</span>
+                            <span class="wellness-icon"><i data-lucide="moon"></i></span>
                             <input
                                 type="number"
                                 id="logSleepQuality"
@@ -1321,7 +1348,7 @@
                                 onclick="openStatsInfoModal('energy')"
                                 >?</span
                             >
-                            <span class="wellness-icon">🔋</span>
+                            <span class="wellness-icon"><i data-lucide="battery-medium"></i></span>
                             <input
                                 type="number"
                                 id="logEnergyLevel"
@@ -1339,7 +1366,7 @@
                                 onclick="openStatsInfoModal('stress')"
                                 >?</span
                             >
-                            <span class="wellness-icon">🧘</span>
+                            <span class="wellness-icon"><i data-lucide="brain"></i></span>
                             <input
                                 type="number"
                                 id="logStressLevel"
@@ -1357,7 +1384,7 @@
                                 onclick="openStatsInfoModal('doms')"
                                 >?</span
                             >
-                            <span class="wellness-icon">💪</span>
+                            <span class="wellness-icon"><i data-lucide="dumbbell"></i></span>
                             <input
                                 type="number"
                                 id="logSorenessLevel"
@@ -1392,7 +1419,7 @@
                                     color: var(--color-text-muted);
                                     font-weight: 500;
                                 "
-                                >💪 Dettagli DOMS</label
+                                ><i data-lucide="dumbbell"></i> Dettagli DOMS</label
                             >
                             <button
                                 type="button"
@@ -1896,14 +1923,14 @@
                         if (ex.supersetId && ex.supersetRole === "A") {
                             restConfigHtml = `
                             <div class="superset-rest-config visible" data-superset-id="${ex.supersetId}">
-                                <div class="superset-rest-title">⏱️ Recupero Superset</div>
+                                <div class="superset-rest-title">${lucideIcon('timer', {size: 14})} Recupero Superset</div>
                                 <div class="superset-rest-grid">
                                     <span class="rest-label">A→B:</span>
                                     <div class="rest-value-box">
                                         <input type="number" class="intra-rest-input" value="${ex.intraRest || 0}" min="0" max="60" placeholder="0">
                                         <span class="rest-suffix">sec</span>
                                     </div>
-                                    <span class="rest-label">🔁 Round:</span>
+                                    <span class="rest-label">${lucideIcon('repeat', {size: 12})} Round:</span>
                                     <div class="rest-value-box">
                                         <input type="number" class="inter-rest-input" value="${ex.interRest || 90}" min="0" max="300" placeholder="90">
                                         <span class="rest-suffix">sec</span>
@@ -1915,7 +1942,7 @@
                             restConfigHtml = `
                             <div class="normal-rest-config">
                                 <div class="rest-inline-box">
-                                    <span class="rest-icon">⏱️</span>
+                                    <span class="rest-icon">${lucideIcon('timer', {size: 14})}</span>
                                     <input type="number" class="ex-rest" value="${ex.rest || 90}" placeholder="90">
                                     <span class="rest-suffix">sec</span>
                                 </div>
@@ -2016,10 +2043,10 @@
                         const supersetControlsHtml = `
                         <div class="superset-controls">
                             <button type="button" class="superset-btn create-superset-btn" style="display: ${ex.supersetId ? "none" : "block"};">
-                                🔗 Superset
+                                ${lucideIcon('link', {size: 14})} Superset
                             </button>
                             <button type="button" class="superset-btn remove-superset-btn" style="display: ${ex.supersetId ? "block" : "none"};">
-                                ❌ Rimuovi
+                                ${lucideIcon('x', {size: 14})} Rimuovi
                             </button>
                         </div>
                     `;
@@ -2040,6 +2067,7 @@
 
                     // Attach event listeners
                     attachExerciseControls();
+                    if (window.refreshLucideIcons) refreshLucideIcons();
                 }
 
                 // Add new exercise to the form
@@ -2073,7 +2101,7 @@
 
                     <div class="normal-rest-config">
                         <div class="rest-inline-box">
-                            <span class="rest-icon">⏱️</span>
+                            <span class="rest-icon">${lucideIcon('timer', {size: 14})}</span>
                             <input type="number" class="ex-rest" value="90" placeholder="90">
                             <span class="rest-suffix">sec</span>
                         </div>
@@ -2102,10 +2130,10 @@
 
                     <div class="superset-controls">
                         <button type="button" class="superset-btn create-superset-btn">
-                            🔗 Superset
+                            ${lucideIcon('link', {size: 14})} Superset
                         </button>
                         <button type="button" class="superset-btn remove-superset-btn" style="display: none;">
-                            ❌ Rimuovi
+                            ${lucideIcon('x', {size: 14})} Rimuovi
                         </button>
                     </div>
                 `;
@@ -2116,6 +2144,7 @@
                     exercisesLogContainer.insertBefore(exDiv, addBtn);
 
                     attachExerciseControls();
+                    if (window.refreshLucideIcons) refreshLucideIcons();
                 }
 
                 // Attach controls for add/remove set and exercise
@@ -2292,14 +2321,14 @@
                                 // Add Rest Config A - Griglia allineata
                                 const restConfigA = `
                             <div class="superset-rest-config visible" data-superset-id="${supersetId}">
-                                <div class="superset-rest-title">⏱️ Recupero Superset</div>
+                                <div class="superset-rest-title">${lucideIcon('timer', {size: 14})} Recupero Superset</div>
                                 <div class="superset-rest-grid">
                                     <span class="rest-label">A→B:</span>
                                     <div class="rest-value-box">
                                         <input type="number" class="intra-rest-input" value="0" min="0" max="60" placeholder="0">
                                         <span class="rest-suffix">sec</span>
                                     </div>
-                                    <span class="rest-label">🔁 Round:</span>
+                                    <span class="rest-label">${lucideIcon('repeat', {size: 12})} Round:</span>
                                     <div class="rest-value-box">
                                         <input type="number" class="inter-rest-input" value="90" min="0" max="300" placeholder="90">
                                         <span class="rest-suffix">sec</span>
@@ -2357,6 +2386,7 @@
                                 nextExDiv.querySelector(
                                     ".remove-superset-btn",
                                 ).style.display = "block";
+                                if (window.refreshLucideIcons) refreshLucideIcons();
                             });
                         });
 
@@ -2408,7 +2438,7 @@
                             const normalRestHtml = `
                             <div class="normal-rest-config">
                                 <div class="rest-inline-box">
-                                    <span class="rest-icon">⏱️</span>
+                                    <span class="rest-icon">${lucideIcon('timer', {size: 14})}</span>
                                     <input type="number" class="ex-rest" value="90" placeholder="90">
                                     <span class="rest-suffix">sec</span>
                                 </div>
@@ -2431,6 +2461,7 @@
                             ".remove-superset-btn",
                         ).style.display = "none";
                     });
+                    if (window.refreshLucideIcons) refreshLucideIcons();
                 }
 
                 function updateExerciseIndices() {
@@ -2837,11 +2868,12 @@
                     if (logs.length === 0) {
                         historyList.innerHTML = `
                         <div class="empty-state">
-                            <div class="empty-state-icon">📓</div>
+                            <div class="empty-state-icon">${lucideIcon('book-open', {size: 48})}</div>
                             <p class="empty-state-text">Nessun allenamento registrato</p>
-                            <p style="font-size: 0.85rem; opacity: 0.7;">Premi ➕ per iniziare</p>
+                            <p style="font-size: 0.85rem; opacity: 0.7;">Premi ${lucideIcon('plus', {size: 14})} per iniziare</p>
                         </div>
                     `;
+                        if (window.refreshLucideIcons) refreshLucideIcons();
                         return;
                     }
 
@@ -2884,26 +2916,27 @@
                         div.innerHTML = `
         <!-- Livello 1: Data + Azioni -->
         <div class="log-entry-header">
-            <span class="log-date">${date}</span>
+            <span class="log-date">${escapeHtml(date)}</span>
             <div class="log-actions">
-                <button class="log-action-btn share-log-btn" data-id="${log.id}" title="Condividi">🔗</button>
-                <button class="log-action-btn edit-log-btn" data-id="${log.id}" title="Modifica">✏️</button>
-                <button class="log-action-btn delete-btn delete-log-btn" data-id="${log.id}" title="Elimina">🗑️</button>
+                <button class="log-action-btn share-log-btn" data-id="${escapeAttr(log.id)}" title="Condividi">${lucideIcon('share-2', {size: 16})}</button>
+                <button class="log-action-btn edit-log-btn" data-id="${escapeAttr(log.id)}" title="Modifica">${lucideIcon('pencil', {size: 16})}</button>
+                <button class="log-action-btn delete-btn delete-log-btn" data-id="${escapeAttr(log.id)}" title="Elimina">${lucideIcon('trash-2', {size: 16})}</button>
             </div>
         </div>
         <!-- Livello 2: Titolo -->
-        <div class="log-title">${log.workoutName}</div>
+        <div class="log-title">${escapeHtml(log.workoutName)}</div>
         <!-- Livello 3: Stats inline -->
         <div class="log-stats">
-            <span class="stat-pill"><span class="stat-icon">⏱️</span> <span class="stat-value">${durationVal}</span></span>
-            <span class="stat-pill"><span class="stat-icon">🏋️</span> <span class="stat-value">${volumeDisplay}</span></span>
-            ${log.fromAI ? '<span class="stat-pill ai-pill">✨ AI</span>' : ""}
+            <span class="stat-pill"><span class="stat-icon">${lucideIcon('timer', {size: 12})}</span> <span class="stat-value">${durationVal}</span></span>
+            <span class="stat-pill"><span class="stat-icon">${lucideIcon('dumbbell', {size: 12})}</span> <span class="stat-value">${volumeDisplay}</span></span>
+            ${log.fromAI ? '<span class="stat-pill ai-pill">' + lucideIcon('sparkles', {size: 12}) + ' AI</span>' : ""}
         </div>
     `;
                         historyList.appendChild(div);
                     });
 
                     // Attach Listeners
+                    if (window.refreshLucideIcons) refreshLucideIcons();
                     document
                         .querySelectorAll(".delete-log-btn")
                         .forEach((btn) => {
@@ -2972,8 +3005,9 @@
                     const btn = document.querySelector(
                         `.share-log-btn[data-id="${logId}"]`,
                     );
-                    const originalText = btn.textContent;
-                    btn.textContent = "⏳";
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = lucideIcon('loader-2', {size: 16});
+                    if (window.refreshLucideIcons) refreshLucideIcons(btn);
                     btn.disabled = true;
 
                     try {
@@ -3000,7 +3034,8 @@
                             "Errore durante la condivisione: " + error.message,
                         );
                     } finally {
-                        btn.textContent = originalText;
+                        btn.innerHTML = originalHTML;
+                        if (window.refreshLucideIcons) refreshLucideIcons(btn);
                         btn.disabled = false;
                     }
                 }
@@ -3016,6 +3051,10 @@
                             year: "numeric",
                         },
                     );
+
+                    const safeName = escapeHtml(workoutName);
+                    const safeDate = escapeHtml(formattedDate);
+                    const safeUrl = escapeHtml(shareUrl);
 
                     const modalHTML = `
                     <div id="shareLogModal" style="
@@ -3033,14 +3072,14 @@
                     ">
                         <div class="card" style="max-width: 500px; width: 100%;">
                             <h3 style="margin-bottom: 1rem; color: var(--color-primary);">
-                                🔗 Condividi Allenamento
+                                ${lucideIcon('share-2', {size: 18})} Condividi Allenamento
                             </h3>
 
                             <p style="margin-bottom: 0.5rem; color: var(--color-text-muted);">
-                                Condividi <strong style="color: var(--color-text);">${workoutName}</strong>
+                                Condividi <strong style="color: var(--color-text);">${safeName}</strong>
                             </p>
                             <p style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--color-text-muted);">
-                                📅 ${formattedDate}
+                                ${lucideIcon('calendar', {size: 14})} ${safeDate}
                             </p>
 
                             <div style="
@@ -3054,7 +3093,7 @@
                                 font-size: 0.85rem;
                                 color: var(--color-primary);
                             ">
-                                ${shareUrl}
+                                ${safeUrl}
                             </div>
 
                             <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
@@ -3076,7 +3115,7 @@
                                         display: flex;
                                         align-items: center;
                                         gap: 0.3rem;
-                                    ">📤 Condividi</button>
+                                    ">${lucideIcon('share', {size: 14})} Condividi</button>
                                     <button class="share-social-btn" data-platform="whatsapp" style="
                                         background: #25D366;
                                         border: none;
@@ -3121,7 +3160,7 @@
                                         border-radius: var(--radius-sm);
                                         cursor: pointer;
                                         font-size: 0.85rem;
-                                    ">📧 Email</button>
+                                    ">${lucideIcon('mail', {size: 14})} Email</button>
                                 </div>
                             </div>
 
@@ -3130,7 +3169,7 @@
                                     Chiudi
                                 </button>
                                 <button id="shareLogModalCopy" class="btn btn-primary" style="flex: 1;">
-                                    📋 Copia Link
+                                    ${lucideIcon('clipboard', {size: 14})} Copia Link
                                 </button>
                             </div>
 
@@ -3147,6 +3186,7 @@
                 `;
 
                     document.body.insertAdjacentHTML("beforeend", modalHTML);
+                    if (window.refreshLucideIcons) refreshLucideIcons();
 
                     const modal = document.getElementById("shareLogModal");
                     const closeBtn =
@@ -3159,7 +3199,7 @@
 
                     closeBtn.addEventListener("click", () => modal.remove());
 
-                    // Social share button handlers
+                    // Social share button handlers (use raw values for native share text, not escaped)
                     const shareText = `Guarda il mio allenamento: ${workoutName} - ${formattedDate}`;
                     modal
                         .querySelectorAll(".share-social-btn")
@@ -3177,15 +3217,19 @@
                     copyBtn.addEventListener("click", async () => {
                         try {
                             await navigator.clipboard.writeText(shareUrl);
-                            feedback.textContent =
-                                "✅ Link copiato negli appunti!";
-                            copyBtn.textContent = "✅ Copiato!";
+                            feedback.innerHTML =
+                                lucideIcon('check', {size: 14}) + ' Link copiato negli appunti!';
+                            if (window.refreshLucideIcons) refreshLucideIcons(feedback);
+                            copyBtn.innerHTML = lucideIcon('check', {size: 14}) + ' Copiato!';
+                            if (window.refreshLucideIcons) refreshLucideIcons(copyBtn);
                             setTimeout(() => {
-                                copyBtn.textContent = "📋 Copia Link";
+                                copyBtn.innerHTML = lucideIcon('clipboard', {size: 14}) + ' Copia Link';
+                                if (window.refreshLucideIcons) refreshLucideIcons(copyBtn);
                             }, 2000);
                         } catch (error) {
-                            feedback.textContent =
-                                "📋 Seleziona e copia manualmente";
+                            feedback.innerHTML =
+                                lucideIcon('clipboard', {size: 14}) + ' Seleziona e copia manualmente';
+                            if (window.refreshLucideIcons) refreshLucideIcons(feedback);
                         }
                     });
                 }
@@ -3219,8 +3263,10 @@
                             const feedback = document.getElementById(
                                 "shareLogCopyFeedback",
                             );
-                            if (feedback)
-                                feedback.textContent = "✅ Link copiato!";
+                            if (feedback) {
+                                feedback.innerHTML = lucideIcon('check', {size: 14}) + ' Link copiato!';
+                                if (window.refreshLucideIcons) refreshLucideIcons(feedback);
+                            }
                         });
                     } else if (socialUrls[platform]) {
                         window.open(
@@ -3241,6 +3287,27 @@
                     if (logId) {
                         console.log("Shared log detected:", logId);
 
+                        // Prevent duplicate import
+                        const existingLogs = JSON.parse(
+                            localStorage.getItem("ironflow_logs") || "[]",
+                        );
+                        const alreadyImported = existingLogs.find(
+                            (l) => l.importedFrom === logId,
+                        );
+                        if (alreadyImported) {
+                            console.log("Log already imported from:", logId);
+                            window.history.replaceState(
+                                {},
+                                document.title,
+                                window.location.pathname,
+                            );
+                            showImportNotification(
+                                "Questo allenamento è già stato importato.",
+                                true,
+                            );
+                            return;
+                        }
+
                         try {
                             const logData =
                                 await firestoreService.getSharedWorkoutLog(
@@ -3248,10 +3315,10 @@
                                 );
 
                             if (logData) {
-                                // Generate new local ID and import
+                                // Spread logData first, then override critical fields
                                 const importedLog = {
-                                    id: Date.now(),
                                     ...logData,
+                                    id: Date.now(),
                                     importedFrom: logId,
                                     importedAt: new Date().toISOString(),
                                 };
@@ -3302,6 +3369,7 @@
 
                 // Show import notification
                 function showImportNotification(message, success) {
+                    const safeMsg = escapeHtml(message);
                     const notification = document.createElement("div");
                     notification.style.cssText = `
                     position: fixed;
@@ -3319,13 +3387,13 @@
 
                     notification.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 1.5rem;">${success ? "✅" : "❌"}</span>
+                        <span style="font-size: 1.5rem;">${success ? lucideIcon('check-circle', {size: 24, color: 'var(--color-primary)'}) : lucideIcon('x-circle', {size: 24, color: '#ff4444'})}</span>
                         <div>
                             <strong style="color: ${success ? "var(--color-primary)" : "#ff4444"};">
                                 ${success ? "Allenamento Importato!" : "Errore Importazione"}
                             </strong>
                             <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.25rem;">
-                                ${message}
+                                ${safeMsg}
                             </div>
                         </div>
                     </div>
@@ -3345,6 +3413,7 @@
                     }
 
                     document.body.appendChild(notification);
+                    if (window.refreshLucideIcons) refreshLucideIcons(notification);
                     setTimeout(() => notification.remove(), 4000);
                 }
 
@@ -3485,7 +3554,7 @@
             onclick="closeStatsInfoModal(event)"
         >
             <div class="stats-info-modal" onclick="event.stopPropagation()">
-                <h3 id="statsModalTitle">ℹ️ Titolo</h3>
+                <h3 id="statsModalTitle"><i data-lucide="info"></i> Titolo</h3>
                 <div id="statsModalContent"></div>
                 <button
                     class="stats-info-close-btn"
@@ -3500,70 +3569,70 @@
             // Stats Info Modal - Contenuti specifici per ogni statistica
             const statsInfoContent = {
                 sleep: {
-                    title: "😴 Qualità del Sonno",
+                    title: '<i data-lucide="moon" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> Qualit\u00e0 del Sonno',
                     sections: [
                         {
-                            heading: "📊 Cos'è?",
-                            text: "Un indicatore soggettivo (1-10) della qualità del tuo riposo notturno. Considera durata, profondità e sensazione di ristoro al risveglio.",
+                            heading: '<i data-lucide="bar-chart-3" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Cos\'\u00e8?',
+                            text: "Un indicatore soggettivo (1-10) della qualit\u00e0 del tuo riposo notturno. Considera durata, profondit\u00e0 e sensazione di ristoro al risveglio.",
                         },
                         {
-                            heading: "🧠 Perché è importante?",
-                            text: "Il sonno è il principale momento di <strong>recupero muscolare</strong> e <strong>rigenerazione del CNS</strong>. Durante il sonno profondo viene rilasciato l'ormone della crescita (GH), fondamentale per la sintesi proteica e la riparazione tissutale.",
+                            heading: '<i data-lucide="brain" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Perch\u00e9 \u00e8 importante?',
+                            text: "Il sonno \u00e8 il principale momento di <strong>recupero muscolare</strong> e <strong>rigenerazione del CNS</strong>. Durante il sonno profondo viene rilasciato l'ormone della crescita (GH), fondamentale per la sintesi proteica e la riparazione tissutale.",
                         },
                         {
-                            heading: "⚡ Come influisce sull'allenamento?",
-                            text: "Un sonno scarso (1-4) riduce la <strong>forza massimale</strong> fino al 20%, peggiora i <strong>tempi di reazione</strong> e aumenta il rischio di infortuni. L'AI ridurrà automaticamente intensità e volume se rileva pattern di sonno insufficiente.",
+                            heading: '<i data-lucide="zap" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Come influisce sull\'allenamento?',
+                            text: "Un sonno scarso (1-4) riduce la <strong>forza massimale</strong> fino al 20%, peggiora i <strong>tempi di reazione</strong> e aumenta il rischio di infortuni. L'AI ridurr\u00e0 automaticamente intensit\u00e0 e volume se rileva pattern di sonno insufficiente.",
                         },
                     ],
                 },
                 energy: {
-                    title: "🔋 Livello di Energia",
+                    title: '<i data-lucide="battery-medium" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> Livello di Energia',
                     sections: [
                         {
-                            heading: "📊 Cos'è?",
-                            text: "Una valutazione soggettiva (1-10) della tua vitalità e prontezza fisica percepita. Riflette le tue riserve energetiche disponibili per l'allenamento.",
+                            heading: '<i data-lucide="bar-chart-3" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Cos\'\u00e8?',
+                            text: "Una valutazione soggettiva (1-10) della tua vitalit\u00e0 e prontezza fisica percepita. Riflette le tue riserve energetiche disponibili per l'allenamento.",
                         },
                         {
-                            heading: "🧠 Perché è importante?",
-                            text: 'L\'energia percepita è un indicatore della tua <strong>"Readiness"</strong> (prontezza). Dipende da fattori come nutrizione, idratazione, qualità del sonno e stress accumulato. È un segnale diretto del tuo sistema nervoso autonomo.',
+                            heading: '<i data-lucide="brain" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Perch\u00e9 \u00e8 importante?',
+                            text: 'L\'energia percepita \u00e8 un indicatore della tua <strong>"Readiness"</strong> (prontezza). Dipende da fattori come nutrizione, idratazione, qualit\u00e0 del sonno e stress accumulato. \u00c8 un segnale diretto del tuo sistema nervoso autonomo.',
                         },
                         {
-                            heading: "⚡ Come influisce sull'allenamento?",
-                            text: "Con energia bassa (1-4), la <strong>capacità di reclutamento muscolare</strong> diminuisce e la fatica arriva prima. L'AI suggerirà sessioni più brevi o a intensità moderata, preservando la qualità del movimento e prevenendo il sovrallenamento.",
+                            heading: '<i data-lucide="zap" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Come influisce sull\'allenamento?',
+                            text: "Con energia bassa (1-4), la <strong>capacit\u00e0 di reclutamento muscolare</strong> diminuisce e la fatica arriva prima. L'AI suggerir\u00e0 sessioni pi\u00f9 brevi o a intensit\u00e0 moderata, preservando la qualit\u00e0 del movimento e prevenendo il sovrallenamento.",
                         },
                     ],
                 },
                 stress: {
-                    title: "🧘 Livello di Stress",
+                    title: '<i data-lucide="brain" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> Livello di Stress',
                     sections: [
                         {
-                            heading: "📊 Cos'è?",
+                            heading: '<i data-lucide="bar-chart-3" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Cos\'\u00e8?',
                             text: "Una misura soggettiva (1-10) del tuo stress psicofisico. Include stress lavorativo, emotivo, relazionale e ambientale. Valori alti indicano maggiore tensione.",
                         },
                         {
-                            heading: "🧠 Perché è importante?",
-                            text: "Lo stress cronico eleva il <strong>cortisolo</strong>, un ormone catabolico che ostacola la crescita muscolare e il recupero. Un CNS (Sistema Nervoso Centrale) stressato ha capacità ridotte di generare forza e coordinazione.",
+                            heading: '<i data-lucide="brain" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Perch\u00e9 \u00e8 importante?',
+                            text: "Lo stress cronico eleva il <strong>cortisolo</strong>, un ormone catabolico che ostacola la crescita muscolare e il recupero. Un CNS (Sistema Nervoso Centrale) stressato ha capacit\u00e0 ridotte di generare forza e coordinazione.",
                         },
                         {
-                            heading: "⚡ Come influisce sull'allenamento?",
-                            text: "Con stress alto (7-10), l'allenamento intenso può essere <strong>controproducente</strong>, aumentando ulteriormente il cortisolo. L'AI privilegerà sessioni a bassa intensità o attività di recupero attivo per favorire la rigenerazione.",
+                            heading: '<i data-lucide="zap" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Come influisce sull\'allenamento?',
+                            text: "Con stress alto (7-10), l'allenamento intenso pu\u00f2 essere <strong>controproducente</strong>, aumentando ulteriormente il cortisolo. L'AI privileger\u00e0 sessioni a bassa intensit\u00e0 o attivit\u00e0 di recupero attivo per favorire la rigenerazione.",
                         },
                     ],
                 },
                 doms: {
-                    title: "💪 DOMS (Indolenzimento Muscolare)",
+                    title: '<i data-lucide="dumbbell" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> DOMS (Indolenzimento Muscolare)',
                     sections: [
                         {
-                            heading: "📊 Cos'è?",
-                            text: "DOMS = Delayed Onset Muscle Soreness. È l'indolenzimento muscolare a insorgenza ritardata (24-72h post-allenamento). Scala 1-10 dove 10 è dolore intenso.",
+                            heading: '<i data-lucide="bar-chart-3" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Cos\'\u00e8?',
+                            text: "DOMS = Delayed Onset Muscle Soreness. \u00c8 l'indolenzimento muscolare a insorgenza ritardata (24-72h post-allenamento). Scala 1-10 dove 10 \u00e8 dolore intenso.",
                         },
                         {
-                            heading: "🧠 Perché è importante?",
+                            heading: '<i data-lucide="brain" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Perch\u00e9 \u00e8 importante?',
                             text: "I DOMS sono causati da <strong>micro-lesioni delle fibre muscolari</strong> e dalla risposta infiammatoria. Indicano che il muscolo sta riparando e adattandosi, ma DOMS eccessivi segnalano un recupero incompleto.",
                         },
                         {
-                            heading: "⚡ Come influisce sull'allenamento?",
-                            text: "Allenare muscoli con DOMS intensi (7-10) riduce il <strong>ROM</strong> (Range of Motion) e la capacità contrattile, aumentando il rischio di infortuni. L'AI eviterà di sovraccaricare i distretti ancora in fase di riparazione.",
+                            heading: '<i data-lucide="zap" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Come influisce sull\'allenamento?',
+                            text: "Allenare muscoli con DOMS intensi (7-10) riduce il <strong>ROM</strong> (Range of Motion) e la capacit\u00e0 contrattile, aumentando il rischio di infortuni. L'AI eviter\u00e0 di sovraccaricare i distretti ancora in fase di riparazione.",
                         },
                     ],
                 },
@@ -3577,7 +3646,7 @@
                 if (!modal || !statsInfoContent[type]) return;
 
                 const data = statsInfoContent[type];
-                titleEl.textContent = data.title;
+                titleEl.innerHTML = data.title;
 
                 contentEl.innerHTML = data.sections
                     .map(
@@ -3590,6 +3659,7 @@
                     )
                     .join("");
 
+                if (window.refreshLucideIcons) refreshLucideIcons(modal);
                 modal.classList.add("active");
                 document.body.style.overflow = "hidden";
             }
@@ -3605,5 +3675,18 @@
             }
         </script>
         <script type="module" src="./js/gymbro-chat.js"></script>
+
+        <!-- Footer -->
+        <footer class="section" style="border-top: 1px solid var(--color-border); padding: 2rem 0; margin-top: 4rem;">
+            <div class="container text-center">
+                <p style="font-size: 0.8rem;">&copy; 2024 GYMBRO. Built for performance.</p>
+                <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                    <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Termini di Servizio</a>
+                </p>
+            </div>
+        </footer>
+
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+        <script src="js/lucide-init.js"></script>
     </body>
 </html>

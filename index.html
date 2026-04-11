@@ -8,6 +8,21 @@
     <title>GYMBRO | Advanced Training Systems</title>
     <meta name="description"
         content="Pianifica, traccia e analizza i tuoi allenamenti con GYMBRO. Strumenti professionali per atleti e bodybuilder.">
+    <link rel="canonical" href="https://massimilianociconte.github.io/Palestra/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://massimilianociconte.github.io/Palestra/">
+    <meta property="og:title" content="GYMBRO | Advanced Training Systems">
+    <meta property="og:description" content="Pianifica, traccia e analizza i tuoi allenamenti con GYMBRO. Strumenti professionali per atleti e bodybuilder.">
+    <meta property="og:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
+    <meta property="og:locale" content="it_IT">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="GYMBRO | Advanced Training Systems">
+    <meta name="twitter:description" content="Pianifica, traccia e analizza i tuoi allenamenti con GYMBRO. Strumenti professionali per atleti e bodybuilder.">
+    <meta name="twitter:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,7 +44,28 @@
     <!-- Styles -->
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/lucide-icons.css">
     <link rel="stylesheet" href="css/gymbro-chat.css">
+    <script src="js/capacitor-bootstrap.js"></script>
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "GYMBRO",
+        "url": "https://massimilianociconte.github.io/Palestra/",
+        "description": "Pianifica, traccia e analizza i tuoi allenamenti con GYMBRO. Strumenti professionali per atleti e bodybuilder.",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web, Android",
+        "inLanguage": "it",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR"
+        }
+    }
+    </script>
 </head>
 
 <body>
@@ -40,15 +76,15 @@
             <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
 
             <nav>
-                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <div class="mobile-toggle" id="mobileToggle"><i data-lucide="menu"></i></div>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="creator.html">📝 Crea Schede</a></li>
-                    <li><a href="diary.html">📓 Diario</a></li>
-                    <li><a href="analysis.html">📈 Analisi</a></li>
+                    <li><a href="creator.html"><i data-lucide="file-pen-line"></i> Crea Schede</a></li>
+                    <li><a href="diary.html"><i data-lucide="book-open"></i> Diario</a></li>
+                    <li><a href="analysis.html"><i data-lucide="trending-up"></i> Analisi</a></li>
                     <li><a href="body.html"><i data-lucide="ruler"></i> Corpo</a></li>
-                    <li><a href="friends.html">👥 Amici</a></li>
-                    <li><a href="rooms.html">🏠 Stanze</a></li>
-                    <li><a href="user.html">👤 Profilo</a></li>
+                    <li><a href="friends.html"><i data-lucide="users"></i> Amici</a></li>
+                    <li><a href="rooms.html"><i data-lucide="home"></i> Stanze</a></li>
+                    <li><a href="user.html"><i data-lucide="user"></i> Profilo</a></li>
                 </ul>
             </nav>
         </div>
@@ -73,19 +109,19 @@
             <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
 
                 <div class="card">
-                    <div class="card-icon">⚡</div>
+                    <div class="card-icon"><i data-lucide="zap"></i></div>
                     <h3>Workout Creator</h3>
                     <p>Costruisci routine complesse in pochi secondi. Set, ripetizioni, RPE e note tecniche.</p>
                 </div>
 
                 <div class="card">
-                    <div class="card-icon">📓</div>
+                    <div class="card-icon"><i data-lucide="book-open"></i></div>
                     <h3>Diario Digitale</h3>
                     <p>Registra ogni sessione. Storico completo dei tuoi progressi e dei tuoi record personali.</p>
                 </div>
 
                 <div class="card">
-                    <div class="card-icon">📈</div>
+                    <div class="card-icon"><i data-lucide="bar-chart-3"></i></div>
                     <h3>Analisi Dati</h3>
                     <p>Visualizza il volume settimanale, l'intensità e i miglioramenti nel tempo con grafici essenziali.
                     </p>
@@ -99,14 +135,17 @@
     <footer class="section" style="border-top: 1px solid var(--color-border); padding: 2rem 0;">
         <div class="container text-center">
             <p style="font-size: 0.8rem;">&copy; 2024 GYMBRO. Built for performance.</p>
-            <p>Realizzato da <a href="https://webnovis.com">WebNovis</a> — 
-            Agenzia web a Rho, Milano</p>
-            <p>Vuoi un sito professionale? 
-            <a href="https://webnovis.com/contatti">Contattaci</a></p>
+            <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Termini di Servizio</a>
+            </p>
         </div>
     </footer>
 
+    <script src="js/sanitize.js"></script>
     <script src="js/main.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lucide-init.js"></script>
     <!-- Sync Manager - Sincronizzazione centralizzata -->
     <script type="module" src="./js/sync-manager.js"></script>
     <script type="module" src="./js/gymbro-chat.js"></script>

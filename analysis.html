@@ -5,6 +5,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Analisi | GYMBRO</title>
+    <meta name="description" content="Visualizza il volume settimanale, l'intensità e i miglioramenti nel tempo con grafici e report AI su GYMBRO.">
+    <link rel="canonical" href="https://massimilianociconte.github.io/Palestra/analysis.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://massimilianociconte.github.io/Palestra/analysis.html">
+    <meta property="og:title" content="Analisi Allenamenti | GYMBRO">
+    <meta property="og:description" content="Visualizza il volume settimanale, l'intensità e i miglioramenti nel tempo con grafici e report AI su GYMBRO.">
+    <meta property="og:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary">
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
@@ -17,12 +29,16 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="GymBro" />
-    <link rel="apple-touch-icon" href="assets/icon.svg" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/gymbro-chat.css" />
     <link rel="stylesheet" href="css/advanced-charts.css" />
+    <link rel="stylesheet" href="css/lucide-icons.css" />
+    <script src="js/capacitor-bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+    <script src="js/sanitize.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Markdown Parser Library -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -303,17 +319,17 @@
         <div class="container">
             <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
             <nav>
-                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <div class="mobile-toggle" id="mobileToggle"><i data-lucide="menu"></i></div>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="creator.html">📝 Crea Schede</a></li>
-                    <li><a href="diary.html">📓 Diario</a></li>
+                    <li><a href="creator.html"><i data-lucide="file-pen-line"></i> Crea Schede</a></li>
+                    <li><a href="diary.html"><i data-lucide="book-open"></i> Diario</a></li>
                     <li>
-                        <a href="analysis.html" class="text-primary">📈 Analisi</a>
+                        <a href="analysis.html" class="text-primary"><i data-lucide="trending-up"></i> Analisi</a>
                     </li>
                     <li><a href="body.html"><i data-lucide="ruler"></i> Corpo</a></li>
-                    <li><a href="friends.html">👥 Amici</a></li>
-                    <li><a href="rooms.html">🏠 Stanze</a></li>
-                    <li><a href="user.html">👤 Profilo</a></li>
+                    <li><a href="friends.html"><i data-lucide="users"></i> Amici</a></li>
+                    <li><a href="rooms.html"><i data-lucide="home"></i> Stanze</a></li>
+                    <li><a href="user.html"><i data-lucide="user"></i> Profilo</a></li>
                 </ul>
             </nav>
         </div>
@@ -343,7 +359,7 @@
                                 #ff8844
                             );
                         ">
-                    <span>✨</span> Chiedi al Coach AI
+                    <span class="lucide-btn-icon"><i data-lucide="sparkles"></i></span> Chiedi al Coach AI
                 </button>
                 <button id="historyBtn" class="btn btn-outline" style="
                             flex: 1;
@@ -352,7 +368,7 @@
                             justify-content: center;
                             gap: 5px;
                         ">
-                    <span>📜</span> Storico
+                    <span class="lucide-btn-icon"><i data-lucide="scroll-text"></i></span> Storico
                 </button>
             </div>
 
@@ -499,7 +515,7 @@
                                 justify-content: center;
                                 gap: 8px;
                             ">
-                        <span>📤</span> Esporta Report
+                        <span class="lucide-btn-icon"><i data-lucide="upload"></i></span> Esporta Report
                     </button>
                 </div>
             </div>
@@ -811,7 +827,7 @@
                                 display: block;
                                 margin-bottom: 0.4rem;
                             ">
-                        🏋️ Seleziona esercizio
+                        <i data-lucide="dumbbell" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Seleziona esercizio
                     </label>
 
                     <!-- Hidden select per compatibilità -->
@@ -873,7 +889,7 @@
                                     border-bottom: 1px solid
                                         rgba(255, 255, 255, 0.1);
                                 ">
-                            <input type="text" id="exerciseSearchInput" placeholder="🔍 Cerca esercizio..." style="
+                            <input type="text" id="exerciseSearchInput" placeholder="Cerca esercizio..." style="
                                         width: 100%;
                                         background: rgba(255, 255, 255, 0.05);
                                         border: 1px solid
@@ -1106,7 +1122,7 @@
                         </p>
                     </div>
                     <button id="trendSummaryHistoryBtn" class="btn btn-outline btn-compact" style="font-size: 0.75rem">
-                        📊 Storico
+                        <i data-lucide="bar-chart-3" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Storico
                     </button>
                 </div>
 
@@ -1143,7 +1159,7 @@
             <!-- PR Table - PESI REALI MASSIMI -->
             <div class="card" style="margin-bottom: var(--spacing-md)">
                 <h3 style="margin-bottom: 1rem">
-                    🏋️ Record Personali
+                    <i data-lucide="dumbbell" style="width:20px;height:20px;display:inline-block;vertical-align:middle;"></i> Record Personali
                     <span class="text-primary">(Pesi Reali)</span>
                 </h3>
                 <p style="
@@ -1235,14 +1251,14 @@
                             gap: 8px;
                             text-decoration: none;
                         ">
-                    <span>📜</span> Vedi Storico Completo
+                    <span class="lucide-btn-icon"><i data-lucide="scroll-text"></i></span> Vedi Storico Completo
                 </a>
             </div>
 
             <!-- PR Table - STIME RM SCIENTIFICHE -->
             <div class="card">
                 <h3 style="margin-bottom: 0.5rem">
-                    📊 Stime Massimali
+                    <i data-lucide="bar-chart-3" style="width:20px;height:20px;display:inline-block;vertical-align:middle;"></i> Stime Massimali
                     <span class="text-primary">(Calcolo Scientifico)</span>
                 </h3>
                 <p style="
@@ -1392,7 +1408,7 @@
                 max-width: 320px;
             ">
         <div style="display: flex; gap: 0.5rem">
-            <div style="font-size: 1.5rem">🧠</div>
+            <div style="font-size: 1.5rem"><i data-lucide="brain" style="width:24px;height:24px;"></i></div>
             <div style="flex: 1">
                 <strong style="display: block; margin-bottom: 0.25rem">Nuovo resoconto AI</strong>
                 <p style="
@@ -1496,7 +1512,7 @@
                         justify-content: center;
                         gap: 8px;
                     ">
-                <span>📤</span> Esporta Resoconto
+                <span class="lucide-btn-icon"><i data-lucide="upload"></i></span> Esporta Resoconto
             </button>
         </div>
     </div>
@@ -1658,7 +1674,7 @@
                 document.getElementById(
                     "recoveryRecommendation",
                 ).innerHTML = `
-                    <span class="icon">💡</span>
+                    <span class="icon">${lucideIcon('lightbulb', {size: 18, color: '#00f3ff'})}</span>
                     <p>${recovery.recommendation}</p>
                 `;
 
@@ -1666,7 +1682,7 @@
                 const weekly = advancedMetrics.getWeeklySummary();
                 document.getElementById("weeklySummaryGrid").innerHTML = `
                     <div class="metric-card-mini">
-                        <div class="metric-icon">🏋️</div>
+                        <div class="metric-icon">${lucideIcon('dumbbell', {size: 18})}</div>
                         <div class="metric-value-large">${weekly.sessions}</div>
                         <div class="metric-label-small">Sessioni</div>
                         <div class="metric-trend ${weekly.comparedToLastWeek.sessions >= 0 ? "up" : "down"}">
@@ -1674,7 +1690,7 @@
                         </div>
                     </div>
                     <div class="metric-card-mini">
-                        <div class="metric-icon">📊</div>
+                        <div class="metric-icon">${lucideIcon('bar-chart-3', {size: 18})}</div>
                         <div class="metric-value-large">${Math.round(weekly.totalVolume / 1000)}k</div>
                         <div class="metric-label-small">Volume</div>
                         <div class="metric-trend ${weekly.volumeChange >= 0 ? "up" : "down"}">
@@ -1682,12 +1698,12 @@
                         </div>
                     </div>
                     <div class="metric-card-mini">
-                        <div class="metric-icon">🎯</div>
+                        <div class="metric-icon">${lucideIcon('target', {size: 18})}</div>
                         <div class="metric-value-large">${weekly.uniqueExercises}</div>
                         <div class="metric-label-small">Esercizi</div>
                     </div>
                     <div class="metric-card-mini">
-                        <div class="metric-icon">⏱️</div>
+                        <div class="metric-icon">${lucideIcon('timer', {size: 18})}</div>
                         <div class="metric-value-large">${weekly.avgDuration || "-"}</div>
                         <div class="metric-label-small">Min/Sessione</div>
                     </div>
@@ -1716,7 +1732,7 @@
                                 ? ChartRenderer.translateMuscle(i.muscle)
                                 : i.muscle;
                             const icon =
-                                i.type === "undertrained" ? "⚠️" : "⚡";
+                                i.type === "undertrained" ? lucideIcon('alert-triangle', {size: 16, color: '#ff6b6b'}) : lucideIcon('zap', {size: 16, color: '#ffcc00'});
                             const color =
                                 i.type === "undertrained"
                                     ? "#ff6b6b"
@@ -1738,7 +1754,7 @@
                         `
                         <div class="insight-box" style="padding: 1rem;">
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem;">
-                                <span class="icon" style="font-size: 1.2rem;">🎯</span>
+                                <span class="icon" style="font-size: 1.2rem;">${lucideIcon('target', {size: 20, color: '#00f3ff'})}</span>
                                 <strong style="font-size: 0.9rem;">Aree da Bilanciare</strong>
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 4px;">
@@ -1751,7 +1767,7 @@
                         `
                         <div class="insight-box" style="padding: 1rem;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span class="icon" style="font-size: 1.2rem;">✅</span>
+                                <span class="icon" style="font-size: 1.2rem;">${lucideIcon('check-circle', {size: 20, color: '#00ff88'})}</span>
                                 <div>
                                     <strong style="display: block; font-size: 0.9rem;">Ottimo Bilanciamento!</strong>
                                     <span style="font-size: 0.8rem; color: var(--color-text-muted);">La distribuzione del volume è equilibrata tra i gruppi muscolari.</span>
@@ -1812,11 +1828,11 @@
                                     : `${ex.count} sessioni`;
                             const isSelected = i === 0 && !filter;
                             return `
-                            <div class="exercise-option ${isSelected ? "selected" : ""}" data-value="${ex.name}">
-                                <div class="exercise-option-name">${ex.name}</div>
+                            <div class="exercise-option ${isSelected ? "selected" : ""}" data-value="${escapeAttr(ex.name)}">
+                                <div class="exercise-option-name">${escapeHtml(ex.name)}</div>
                                 <div class="exercise-option-details">
-                                    <span class="stat-item exercise-weight"><span class="stat-icon">🏋️</span> ${ex.maxWeight}kg</span>
-                                    <span class="stat-item exercise-sessions"><span class="stat-icon">📈</span> ${sessionText}</span>
+                                    <span class="stat-item exercise-weight"><span class="stat-icon">${lucideIcon('dumbbell', {size: 12})}</span> ${escapeHtml(ex.maxWeight)}kg</span>
+                                    <span class="stat-item exercise-sessions"><span class="stat-icon">${lucideIcon('trending-up', {size: 12})}</span> ${escapeHtml(sessionText)}</span>
                                 </div>
                             </div>
                         `;
@@ -1945,10 +1961,10 @@
 
                     const trendIcon =
                         progression.trend === "up"
-                            ? "📈"
+                            ? lucideIcon('trending-up', {size: 14})
                             : progression.trend === "down"
-                                ? "📉"
-                                : "➡️";
+                                ? lucideIcon('trending-down', {size: 14})
+                                : lucideIcon('arrow-right', {size: 14});
                     const trendClass =
                         progression.trend === "up"
                             ? "up"
@@ -2025,7 +2041,7 @@
 
                     if (!correlation.isStatisticallyValid) {
                         corrColor = "#888888";
-                        corrIcon = "⚠️";
+                        corrIcon = lucideIcon('alert-triangle', {size: 16});
                         corrLabel = "Dati non sufficientemente variati";
                     } else {
                         switch (correlation.correlationStrength) {
@@ -2036,18 +2052,18 @@
                                         : "#ff6b6b";
                                 corrIcon =
                                     correlation.correlation > 0
-                                        ? "🎯"
-                                        : "⚠️";
+                                        ? lucideIcon('target', {size: 16, color: '#00ff88'})
+                                        : lucideIcon('alert-triangle', {size: 16});
                                 corrLabel = "Correlazione forte";
                                 break;
                             case "moderate":
                                 corrColor = "#ffcc00";
-                                corrIcon = "📊";
+                                corrIcon = lucideIcon('bar-chart-3', {size: 16, color: '#ffcc00'});
                                 corrLabel = "Correlazione moderata";
                                 break;
                             default:
                                 corrColor = "#888888";
-                                corrIcon = "🔍";
+                                corrIcon = lucideIcon('search', {size: 16});
                                 corrLabel = "Correlazione debole";
                         }
                     }
@@ -2063,7 +2079,7 @@
                     // Aggiungi warning se presente
                     if (correlation.varianceWarning) {
                         insightHTML += `<br><small style="color: #ffcc00; display: block; margin-top: 0.5rem;">
-                            💡 ${correlation.varianceWarning}
+                            ${lucideIcon('lightbulb', {size: 14, color: '#00f3ff'})} ${correlation.varianceWarning}
                         </small>`;
                     }
 
@@ -2090,7 +2106,7 @@
                     document.getElementById(
                         "correlationInsight",
                     ).innerHTML = `
-                        <span class="icon">💡</span>
+                        <span class="icon">${lucideIcon('lightbulb', {size: 18, color: '#00f3ff'})}</span>
                         <p>Compila il questionario wellness prima degli allenamenti per sbloccare questa analisi.</p>
                     `;
                 }
@@ -2129,7 +2145,7 @@
                     document.getElementById("rpeDistribution").innerHTML =
                         rpeHTML;
                     document.getElementById("rpeAssessment").innerHTML = `
-                        <span class="icon">${rpeData.hardPercent > 40 ? "⚠️" : rpeData.hardPercent < 15 ? "💪" : "✅"}</span>
+                        <span class="icon">${rpeData.hardPercent > 40 ? lucideIcon('alert-triangle', {size: 16, color: '#ff6b6b'}) : rpeData.hardPercent < 15 ? lucideIcon('dumbbell', {size: 16}) : lucideIcon('check-circle', {size: 16, color: '#00ff88'})}</span>
                         <p>${rpeData.assessment} (${rpeData.totalSets} set analizzati)</p>
                     `;
                 } else {
@@ -2160,10 +2176,10 @@
 
                 const trendIcon =
                     volumeTrend.trend === "increasing"
-                        ? "📈"
+                        ? lucideIcon('trending-up', {size: 14})
                         : volumeTrend.trend === "decreasing"
-                            ? "📉"
-                            : "➡️";
+                            ? lucideIcon('trending-down', {size: 14})
+                            : lucideIcon('arrow-right', {size: 14});
                 document.getElementById("volumeTrendStats").innerHTML = `
                     <div>
                         <div style="font-family: var(--font-display); font-size: 1.3rem; color: var(--color-primary);">${Math.round(volumeTrend.avgVolume / 1000)}k</div>
@@ -2204,7 +2220,7 @@
                         </div>
                     </div>
                     <div class="insight-box" style="margin-top: 0.75rem;">
-                        <span class="icon">💡</span>
+                        <span class="icon">${lucideIcon('lightbulb', {size: 18, color: '#00f3ff'})}</span>
                         <p style="font-size: 0.85rem;">${variety.insight}</p>
                     </div>
                 `;
@@ -2220,7 +2236,7 @@
                         );
                         timelineHTML += `
                             <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-left: 3px solid var(--color-primary); margin-bottom: 0.5rem; background: rgba(0,243,255,0.05); border-radius: 0 8px 8px 0;">
-                                <div style="font-size: 1.5rem;">🏆</div>
+                                <div style="font-size: 1.5rem;">${lucideIcon('trophy', {size: 24, color: '#ffd700'})}</div>
                                 <div style="flex: 1;">
                                     <div style="font-weight: 600; text-transform: capitalize;">${pr.exercise}</div>
                                     <div style="font-size: 0.8rem; color: var(--color-text-muted);">${pr.reps} reps</div>
@@ -2237,7 +2253,7 @@
                 } else {
                     document.getElementById("prTimeline").innerHTML = `
                         <p style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
-                            I tuoi nuovi PR appariranno qui man mano che migliori! 💪
+                            I tuoi nuovi PR appariranno qui man mano che migliori! ${lucideIcon('dumbbell', {size: 14})}
                         </p>
                     `;
                 }
@@ -2294,10 +2310,10 @@
 
                 const trendIcon =
                     progression.trend === "up"
-                        ? "📈"
+                        ? lucideIcon('trending-up', {size: 14})
                         : progression.trend === "down"
-                            ? "📉"
-                            : "➡️";
+                            ? lucideIcon('trending-down', {size: 14})
+                            : lucideIcon('arrow-right', {size: 14});
                 const trendClass =
                     progression.trend === "up"
                         ? "up"
@@ -2374,8 +2390,8 @@
                         <div class="exercise-option" data-value="${ex.name}">
                             <div class="exercise-option-name">${ex.name}</div>
                             <div class="exercise-option-details">
-                                <span class="stat-item exercise-weight"><span class="stat-icon">🏋️</span> ${ex.maxWeight}kg</span>
-                                <span class="stat-item exercise-sessions"><span class="stat-icon">📈</span> ${sessionText}</span>
+                                <span class="stat-item exercise-weight"><span class="stat-icon">${lucideIcon('dumbbell', {size: 12})}</span> ${ex.maxWeight}kg</span>
+                                <span class="stat-item exercise-sessions"><span class="stat-icon">${lucideIcon('trending-up', {size: 12})}</span> ${sessionText}</span>
                             </div>
                         </div>
                     `;
@@ -2401,6 +2417,7 @@
 
             // Initialize advanced metrics
             initAdvancedMetrics();
+            if (window.refreshLucideIcons) refreshLucideIcons();
 
             // Event Listeners Once
             const dropdownTrigger = document.getElementById(
@@ -2582,7 +2599,7 @@
                 openModal(aiModal);
                 aiContent.innerHTML = `
                     <div style="text-align: center; padding: 2rem;">
-                        <div style="font-size: 2rem; margin-bottom: 1rem;">🧠</div>
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">${lucideIcon('brain', {size: 32})}</div>
                         <p>Sto analizzando i tuoi dati...</p>
                         <p style="font-size: 0.8rem; color: var(--color-text-muted);">Lettura log • Calcolo 1RM • Identificazione pattern</p>
                     </div>
@@ -2611,11 +2628,13 @@
                     // Save to History (Fire & Forget)
                     firestoreService.saveAIAnalysis(result.text);
 
-                    // Use 'marked' library to convert Markdown to HTML
-                    if (window.marked) {
-                        aiContent.innerHTML = marked.parse(result.text);
+                    // Use 'marked' library to convert Markdown to HTML, sanitized with DOMPurify
+                    if (window.marked && window.DOMPurify) {
+                        aiContent.innerHTML = DOMPurify.sanitize(marked.parse(result.text));
+                    } else if (window.marked) {
+                        aiContent.innerHTML = DOMPurify ? DOMPurify.sanitize(marked.parse(result.text)) : marked.parse(result.text);
                     } else {
-                        aiContent.innerHTML = `<pre>${result.text}</pre>`; // Fallback
+                        aiContent.innerHTML = `<pre>${escapeHtml(result.text)}</pre>`; // Fallback
                     }
 
                     // Process tables for mobile responsiveness
@@ -2624,7 +2643,7 @@
                     // Sanitize content to prevent overflow
                     sanitizeAIContent(aiContent);
                 } else {
-                    aiContent.innerHTML = `<p style="color: #ff4444;">Errore AI: ${result.message}</p>`;
+                    aiContent.innerHTML = `<p style="color: #ff4444;">Errore AI: ${escapeHtml(result.message)}</p>`;
                 }
             });
 
@@ -2963,7 +2982,7 @@
                 if (validMetrics.length === 0) {
                     trendMetricsList.innerHTML = `
                         <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
-                            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📈</div>
+                            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">${lucideIcon('trending-up', {size: 40})}</div>
                             <p style="color: var(--color-text-muted); margin-bottom: 0.5rem;">
                                 Registra almeno un allenamento per vedere i trend.
                             </p>
@@ -2977,15 +2996,15 @@
 
                 // Icone per ogni metrica
                 const metricIcons = {
-                    frequency: "📅",
-                    volume: "📊",
-                    bodyWeight: "⚖️",
-                    prs: "🏆",
-                    consistency: "🎯",
-                    sleepQuality: "😴",
-                    energyLevel: "⚡",
-                    stressLevel: "🧘",
-                    sorenessLevel: "💪",
+                    frequency: lucideIcon('calendar', {size: 20}),
+                    volume: lucideIcon('bar-chart-3', {size: 20}),
+                    bodyWeight: lucideIcon('scale', {size: 20}),
+                    prs: lucideIcon('trophy', {size: 20, color: '#ffd700'}),
+                    consistency: lucideIcon('target', {size: 20}),
+                    sleepQuality: lucideIcon('moon', {size: 20, color: '#a78bfa'}),
+                    energyLevel: lucideIcon('zap', {size: 20, color: '#ffcc00'}),
+                    stressLevel: lucideIcon('brain', {size: 20}),
+                    sorenessLevel: lucideIcon('dumbbell', {size: 20}),
                 };
 
                 validMetrics.forEach((metric) => {
@@ -3008,7 +3027,7 @@
                             break;
                         case "new":
                             statusColor = "#00f3ff";
-                            statusIcon = "✨";
+                            statusIcon = lucideIcon('sparkles', {size: 14, color: '#00f3ff'});
                             statusBg = "rgba(0, 243, 255, 0.08)";
                             borderColor = "rgba(0, 243, 255, 0.3)";
                             break;
@@ -3042,7 +3061,7 @@
                             : `${metric.pct.toFixed(0)}%`
                         : "";
 
-                    const icon = metricIcons[metric.id] || "📌";
+                    const icon = metricIcons[metric.id] || lucideIcon('pin', {size: 14});
 
                     card.style.cssText = `
                         background: ${statusBg};
@@ -3064,6 +3083,7 @@
                     `;
                     trendMetricsList.appendChild(card);
                 });
+                if (window.refreshLucideIcons) refreshLucideIcons();
             };
             renderTrendMetrics();
 
@@ -3123,7 +3143,7 @@
                 if (!hotspots.length) {
                     domsHotspotList.innerHTML = `
                         <div style="text-align: center; padding: 1rem;">
-                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💪</div>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">${lucideIcon('dumbbell', {size: 32})}</div>
                             <p style="color: var(--color-text-muted); margin-bottom: 0.75rem;">
                                 Nessun dato di recupero disponibile.
                             </p>
@@ -3144,7 +3164,7 @@
                         `
                         <div style="background: rgba(255,136,68,0.1); border: 1px solid rgba(255,136,68,0.3); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem;">
                             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                <span>⚡</span>
+                                <span>${lucideIcon('zap', {size: 16, color: '#ffcc00'})}</span>
                                 <strong style="font-size: 0.85rem;">Fatica Muscolare Stimata</strong>
                             </div>
                             <p style="font-size: 0.75rem; color: var(--color-text-muted); margin: 0;">
@@ -3185,7 +3205,7 @@
                                 <div>
                                     <strong style="font-size: 0.95rem;">${h.label}</strong>
                                     <div style="font-size:0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">
-                                        📊 ${h.totalSets || h.occurrences} set totali • RPE medio ${h.avgRpe || "N/D"}
+                                        ${lucideIcon('bar-chart-3', {size: 14})} ${h.totalSets || h.occurrences} set totali • RPE medio ${h.avgRpe || "N/D"}
                                     </div>
                                 </div>
                                 <div style="text-align:right; font-size:0.8rem;">
@@ -3237,13 +3257,13 @@
                             ) {
                                 if (avgRecovery <= 1) {
                                     recoveryStatus = "Recupero rapido";
-                                    recoveryIcon = "⚡";
+                                    recoveryIcon = lucideIcon('zap', {size: 14, color: '#00f3ff'});
                                 } else if (avgRecovery <= 3) {
                                     recoveryStatus = "Recupero normale";
-                                    recoveryIcon = "✅";
+                                    recoveryIcon = lucideIcon('check-circle', {size: 14, color: '#00ff88'});
                                 } else {
                                     recoveryStatus = "Recupero lento";
-                                    recoveryIcon = "⏳";
+                                    recoveryIcon = lucideIcon('hourglass', {size: 14, color: '#ffcc00'});
                                 }
                             }
 
@@ -3253,7 +3273,7 @@
                                     <div>
                                         <strong style="font-size: 1rem;">${h.label}</strong>
                                         <div style="font-size:0.75rem; color: var(--color-text-muted); margin-top: 0.3rem;">
-                                            🔄 ${h.occurrences} segnalazion${h.occurrences === 1 ? "e" : "i"} DOMS
+                                            ${lucideIcon('refresh-cw', {size: 14})} ${h.occurrences} segnalazion${h.occurrences === 1 ? "e" : "i"} DOMS
                                         </div>
                                     </div>
                                     <div style="text-align:right;">
@@ -3270,7 +3290,7 @@
                                         <span style="opacity: 0.7;"> tempo recupero medio</span>
                                     </div>
                                     <div style="color: var(--color-text-muted);">
-                                        ${lastDays !== null ? (lastDays === 0 ? "📍 Oggi" : lastDays === 1 ? "📍 Ieri" : "📍 " + lastDays + "g fa") : ""}
+                                        ${lastDays !== null ? (lastDays === 0 ? lucideIcon('map-pin', {size: 12}) + " Oggi" : lastDays === 1 ? lucideIcon('map-pin', {size: 12}) + " Ieri" : lucideIcon('map-pin', {size: 12}) + " " + lastDays + "g fa") : ""}
                                     </div>
                                 </div>
                             </div>
@@ -3280,9 +3300,10 @@
                 }
             };
             renderDomsHotspots();
+            if (window.refreshLucideIcons) refreshLucideIcons();
 
             const openSummaryModal = (entry) => {
-                trendSummaryContent.innerHTML = entry.text;
+                trendSummaryContent.innerHTML = window.DOMPurify ? DOMPurify.sanitize(entry.text) : escapeHtml(entry.text);
                 trendSummaryMeta.textContent = new Date(
                     entry.date,
                 ).toLocaleString("it-IT", {
@@ -3508,7 +3529,7 @@
                             text-align: center;
                             border-bottom: 1px solid rgba(0, 243, 255, 0.2);
                         ">
-                            <div style="font-size: 3rem; margin-bottom: 0.5rem; animation: pulse 2s ease-in-out infinite;">📊</div>
+                            <div style="font-size: 3rem; margin-bottom: 0.5rem; animation: pulse 2s ease-in-out infinite;">${lucideIcon('bar-chart-3', {size: 48})}</div>
                             <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800; color: var(--color-primary);">
                                 Resoconto Bisettimanale
                             </h2>
@@ -3564,7 +3585,7 @@
                                 cursor: pointer;
                                 transition: all 0.2s;
                             ">
-                                📜 Storico
+                                ${lucideIcon('scroll-text', {size: 14})} Storico
                             </button>
                         </div>
 
@@ -3581,12 +3602,13 @@
                             font-weight: 600;
                             text-transform: uppercase;
                         ">
-                            ${entry.source === "ai" ? "🤖 AI" : "📈 Auto"}
+                            ${entry.source === "ai" ? lucideIcon('bot', {size: 12}) + " AI" : lucideIcon('trending-up', {size: 12}) + " Auto"}
                         </div>
                     </div>
                 `;
 
                 document.body.appendChild(popup);
+                if (window.refreshLucideIcons) refreshLucideIcons();
                 localStorage.setItem(SUMMARY_LAST_SEEN_KEY, entry.id);
 
                 // Event handlers
@@ -3951,10 +3973,10 @@
                         : [currentRealFilter];
 
                 const rangeLabels = {
-                    "1-3": "💪 Forza Massimale (1-3 reps)",
-                    "4-6": "🏋️ Forza (4-6 reps)",
-                    "7-10": "💥 Ipertrofia (7-10 reps)",
-                    "11+": "🔥 Resistenza (11+ reps)",
+                    "1-3": lucideIcon('dumbbell', {size: 16}) + " Forza Massimale (1-3 reps)",
+                    "4-6": lucideIcon('dumbbell', {size: 16}) + " Forza (4-6 reps)",
+                    "7-10": lucideIcon('zap', {size: 16, color: '#ff8844'}) + " Ipertrofia (7-10 reps)",
+                    "11+": lucideIcon('flame', {size: 16, color: '#ff8844'}) + " Resistenza (11+ reps)",
                 };
 
                 let hasData = false;
@@ -4005,6 +4027,7 @@
                     realPRsContainer.innerHTML =
                         '<p style="text-align: center; color: var(--color-text-muted); padding: 20px;">Nessun record per questo range di ripetizioni</p>';
                 }
+                if (window.refreshLucideIcons) refreshLucideIcons();
             };
 
             // Attach listeners for real PRs
@@ -4200,12 +4223,15 @@
     <!-- Footer -->
     <footer class="section" style="border-top: 1px solid var(--color-border); padding: 2rem 0; margin-top: 4rem;">
         <div class="container text-center">
-            <p>Realizzato da <a href="https://webnovis.com">WebNovis</a> — 
-            Agenzia web a Rho, Milano</p>
-            <p>Vuoi un sito professionale? 
-            <a href="https://webnovis.com/contatti">Contattaci</a></p>
+            <p style="font-size: 0.8rem;">&copy; 2024 GYMBRO. Built for performance.</p>
+            <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Termini di Servizio</a>
+            </p>
         </div>
     </footer>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lucide-init.js"></script>
 
 </body>
 
