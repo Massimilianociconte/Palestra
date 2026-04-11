@@ -6,6 +6,19 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Profilo | GYMBRO</title>
+    <script src="js/capacitor-bootstrap.js"></script>
+    <script src="js/sanitize.js"></script>
+    <meta name="description" content="Gestisci il tuo profilo atleta su GYMBRO. Impostazioni, connessioni salute e dati personali.">
+    <link rel="canonical" href="https://massimilianociconte.github.io/Palestra/user.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://massimilianociconte.github.io/Palestra/user.html">
+    <meta property="og:title" content="Profilo | GYMBRO">
+    <meta property="og:description" content="Gestisci il tuo profilo atleta su GYMBRO. Impostazioni, connessioni salute e dati personali.">
+    <meta property="og:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary">
 
     <!-- Open in App Banner for Share Links -->
     <script>
@@ -100,11 +113,12 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GymBro">
-    <link rel="apple-touch-icon" href="assets/icon.svg">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/gymbro-chat.css">
+    <link rel="stylesheet" href="css/lucide-icons.css">
     <style>
         /* =========================
            IMPORT SUCCESS BANNER
@@ -1036,14 +1050,15 @@
         <div class="container">
             <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
             <nav>
-                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <div class="mobile-toggle" id="mobileToggle"><i data-lucide="menu"></i></div>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="creator.html">📝 Crea Schede</a></li>
-                    <li><a href="diary.html">📓 Diario</a></li>
-                    <li><a href="analysis.html">📈 Analisi</a></li>
-                    <li><a href="friends.html">👥 Amici</a></li>
-                    <li><a href="rooms.html">🏠 Stanze</a></li>
-                    <li><a href="user.html" class="text-primary">👤 Profilo</a></li>
+                    <li><a href="creator.html"><i data-lucide="file-pen-line"></i> Crea Schede</a></li>
+                    <li><a href="diary.html"><i data-lucide="book-open"></i> Diario</a></li>
+                    <li><a href="analysis.html"><i data-lucide="trending-up"></i> Analisi</a></li>
+                    <li><a href="body.html"><i data-lucide="ruler"></i> Corpo</a></li>
+                    <li><a href="friends.html"><i data-lucide="users"></i> Amici</a></li>
+                    <li><a href="rooms.html"><i data-lucide="home"></i> Stanze</a></li>
+                    <li><a href="user.html" class="text-primary"><i data-lucide="user"></i> Profilo</a></li>
                 </ul>
             </nav>
         </div>
@@ -1071,7 +1086,7 @@
                         <div class="password-wrapper">
                             <input type="password" id="passwordInput" required placeholder="******"
                                 autocomplete="current-password">
-                            <button type="button" class="password-toggle" title="Mostra password">👁️</button>
+                            <button type="button" class="password-toggle" title="Mostra password"><i data-lucide="eye" style="width:16px;height:16px;"></i></button>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Entra</button>
@@ -1090,8 +1105,8 @@
                 <!-- Profile Header -->
                 <div class="profile-header">
                     <div class="avatar-container" id="avatarContainer">
-                        <div class="avatar" id="profileAvatar">👤</div>
-                        <div class="avatar-overlay">📷</div>
+                        <div class="avatar" id="profileAvatar"><i data-lucide="user" style="width:32px;height:32px;"></i></div>
+                        <div class="avatar-overlay"><i data-lucide="camera" style="width:12px;height:12px;"></i></div>
                         <input type="file" id="photoInput" accept="image/*" style="display: none;">
                     </div>
                     <div>
@@ -1110,7 +1125,7 @@
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <div
                                     style="width: 45px; height: 45px; border-radius: 12px; background: linear-gradient(135deg, var(--color-primary) 0%, #00c8d4 100%); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(0, 243, 255, 0.3);">
-                                    🤖
+                                    <i data-lucide="bot" style="width:24px;height:24px;color:#000;"></i>
                                 </div>
                                 <div style="flex: 1;">
                                     <h3 style="font-size: 1rem; margin: 0; font-weight: 600; color: white;">AI Workout
@@ -1135,7 +1150,7 @@
                     <div class="card">
                         <div style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border);"
                             id="settingsHeader">
-                            <h3 style="margin: 0;">⚙️ Impostazioni</h3>
+                            <h3 style="margin: 0;"><i data-lucide="settings" style="width:18px;height:18px;"></i> Impostazioni</h3>
                             <span id="settingsToggle" style="font-size: 1.5rem; transition: transform 0.3s;">▼</span>
                         </div>
 
@@ -1169,7 +1184,7 @@
                                     <div class="input-group-inline">
                                         <input type="password" id="aiKeyInput" placeholder="Incolla la tua API Key"
                                             autocomplete="off">
-                                        <button type="button" class="password-toggle-inline" title="Mostra">👁️</button>
+                                        <button type="button" class="password-toggle-inline" title="Mostra"><i data-lucide="eye" style="width:14px;height:14px;"></i></button>
                                         <button id="saveAiKeyBtn" type="button" class="btn-inline-save">Salva</button>
                                     </div>
                                     <p id="aiKeyStatus"
@@ -1189,7 +1204,7 @@
                                     <div class="input-group-inline">
                                         <input type="password" id="imgbbKeyInput" placeholder="Incolla la tua API Key"
                                             autocomplete="off">
-                                        <button type="button" class="password-toggle-inline" title="Mostra">👁️</button>
+                                        <button type="button" class="password-toggle-inline" title="Mostra"><i data-lucide="eye" style="width:14px;height:14px;"></i></button>
                                         <button id="saveImgbbKeyBtn" type="button"
                                             class="btn-inline-save">Salva</button>
                                     </div>
@@ -1203,13 +1218,13 @@
                             <div id="healthConnect" class="setting-item"
                                 style="flex-direction: column; align-items: stretch;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                    <span style="font-size: 1.2rem;">🏥</span>
+                                    <span style="font-size: 1.2rem;"><i data-lucide="heart-pulse" style="width:20px;height:20px;"></i></span>
                                     <span class="setting-label" style="font-size: 0.95rem;">Connessione Salute</span>
                                 </div>
 
                                 <div id="healthConnectStatus" class="health-toggle-container">
                                     <div class="health-toggle-label">
-                                        <span id="healthStatusIcon">⚪</span>
+                                        <span id="healthStatusIcon"><i data-lucide="circle" style="width:14px;height:14px;color:#888;"></i></span>
                                         <span id="healthStatusText" style="font-size: 0.85rem;">Non connesso</span>
                                     </div>
                                     <div id="healthToggleSwitch" class="toggle-switch" role="switch"
@@ -1230,11 +1245,11 @@
                                     <div style="display: flex; gap: 0.4rem;">
                                         <button id="connectGoogleFitBtn" class="btn btn-outline btn-compact"
                                             style="flex: 1; font-size: 0.75rem; padding: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                            🤖 Google Fit
+                                            <i data-lucide="smartphone" style="width:14px;height:14px;"></i> Google Fit
                                         </button>
                                         <button id="connectAppleHealthBtn" class="btn btn-outline btn-compact"
                                             style="flex: 1; font-size: 0.75rem; padding: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                            🍎 Apple Health
+                                            <i data-lucide="heart" style="width:14px;height:14px;"></i> Apple Health
                                         </button>
                                     </div>
                                 </div>
@@ -1244,7 +1259,7 @@
                                     <div style="display: flex; gap: 0.4rem;">
                                         <button id="syncHealthBtn" class="btn btn-primary btn-compact"
                                             style="flex: 1; font-size: 0.75rem; padding: 0.5rem;">
-                                            🔄 Sincronizza
+                                            <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Sincronizza
                                         </button>
                                         <button id="disconnectHealthBtn" class="btn btn-outline btn-compact"
                                             style="flex: 1; font-size: 0.75rem; padding: 0.5rem; color: #ff4444; border-color: rgba(255,68,68,0.3);">
@@ -1277,7 +1292,7 @@
 
                             <div class="setting-item"
                                 style="border-bottom: none; margin-top: 1rem; justify-content: center;">
-                                <button id="logoutBtn" class="btn-logout">🚪 Esci</button>
+                                <button id="logoutBtn" class="btn-logout"><i data-lucide="log-out" style="width:16px;height:16px;"></i> Esci</button>
                             </div>
                         </div>
                     </div>
@@ -1294,7 +1309,7 @@
             <button id="closeEditRestModal"
                 style="position: sticky; top: 0; right: 0; float: right; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; margin-bottom: -36px;">&times;</button>
             <h3 style="margin-bottom: 0.5rem; font-size: clamp(1.1rem, 4vw, 1.3rem); padding-right: 40px;">
-                ⏱️ Modifica <span class="text-primary">Recuperi</span>
+                                <i data-lucide="timer" style="width:20px;height:20px;"></i> Modifica <span class="text-primary">Recuperi</span>
             </h3>
             <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
                 Imposta i tempi di recupero personalizzati per ogni serie
@@ -1308,7 +1323,7 @@
             <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
                 <button id="cancelEditRest" class="btn btn-outline"
                     style="flex: 1; border-radius: 10px;">Annulla</button>
-                <button id="saveEditRest" class="btn btn-primary" style="flex: 2; border-radius: 10px;">💾 Salva
+                <button id="saveEditRest" class="btn btn-primary" style="flex: 2; border-radius: 10px;"><i data-lucide="save" style="width:16px;height:16px;"></i> Salva
                     Modifiche</button>
             </div>
         </div>
@@ -1318,7 +1333,7 @@
     <div id="wellnessPromptModal" class="wellness-modal" role="dialog" aria-modal="true"
         aria-labelledby="wellnessPromptTitle" style="display:none;">
         <div class="card wellness-modal-card">
-            <h3 id="wellnessPromptTitle" style="margin-bottom:0.25rem; font-size: 1.1rem;">🏋️ Pre-Allenamento</h3>
+            <h3 id="wellnessPromptTitle" style="margin-bottom:0.25rem; font-size: 1.1rem;"><i data-lucide="dumbbell" style="width:18px;height:18px;"></i> Pre-Allenamento</h3>
             <p style="color: var(--color-text-muted); font-size:0.75rem; margin-bottom:0.75rem;">Check rapido: valuta il
                 tuo stato (1-10)</p>
 
@@ -1328,7 +1343,7 @@
                     <!-- Sonno -->
                     <div class="wellness-field">
                         <div class="wellness-field-label">
-                            <span class="emoji">😴</span>
+                            <span class="emoji"><i data-lucide="moon" style="width:16px;height:16px;"></i></span>
                             <span>Sonno</span>
                         </div>
                         <div class="step-buttons-row" data-target="sleepQualityInput">
@@ -1349,7 +1364,7 @@
                     <!-- Energia -->
                     <div class="wellness-field">
                         <div class="wellness-field-label">
-                            <span class="emoji">⚡</span>
+                            <span class="emoji"><i data-lucide="zap" style="width:16px;height:16px;"></i></span>
                             <span>Energia</span>
                         </div>
                         <div class="step-buttons-row" data-target="energyLevelInput">
@@ -1370,7 +1385,7 @@
                     <!-- Stress -->
                     <div class="wellness-field">
                         <div class="wellness-field-label">
-                            <span class="emoji">🧘</span>
+                            <span class="emoji"><i data-lucide="brain" style="width:16px;height:16px;"></i></span>
                             <span>Stress</span>
                         </div>
                         <div class="step-buttons-row" data-target="stressLevelInput" data-inverted="true">
@@ -1391,7 +1406,7 @@
                     <!-- DOMS -->
                     <div class="wellness-field">
                         <div class="wellness-field-label">
-                            <span class="emoji">💪</span>
+                            <span class="emoji"><i data-lucide="dumbbell" style="width:16px;height:16px;"></i></span>
                             <span>DOMS</span>
                         </div>
                         <div class="step-buttons-row" data-target="sorenessLevelInput" data-inverted="true">
@@ -1439,7 +1454,7 @@
                 <div style="margin-top: 0.75rem;">
                     <button type="submit" class="btn btn-primary"
                         style="width: 100%; padding: 0.85rem; font-size: 0.95rem; font-weight: 600; border-radius: 10px;">
-                        🚀 INIZIA FOCUS MODE
+                                                <i data-lucide="rocket" style="width:18px;height:18px;"></i> INIZIA FOCUS MODE
                     </button>
                     <button type="button" id="cancelWellnessBtn"
                         style="width: 100%; margin-top: 0.5rem; background: none; border: none; color: var(--color-text-muted); font-size: 0.8rem; cursor: pointer; padding: 0.5rem;">
@@ -1484,7 +1499,7 @@
                 <div id="focusBilateralIndicator"
                     style="display: none; background: linear-gradient(135deg, rgba(156,39,176,0.15), rgba(103,58,183,0.1)); border: 1px solid rgba(156,39,176,0.3); border-radius: var(--radius-md); padding: 0.5rem 1rem; margin-bottom: 0.75rem; text-align: center;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                        <span style="font-size: 1rem;">🏋️</span>
+                        <span style="font-size: 1rem;"><i data-lucide="dumbbell" style="width:16px;height:16px;"></i></span>
                         <span style="color: #ce93d8; font-size: 0.8rem; font-weight: 500;">Manubri Bilaterali</span>
                         <span style="color: var(--color-text-muted); font-size: 0.7rem;">• Inserisci peso singolo
                             manubrio</span>
@@ -1508,7 +1523,7 @@
                         <div style="display: flex; flex-direction: column; gap: 0.1rem;">
                             <span
                                 style="color: #ff9800; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
-                                💪 Modalità Braccio Singolo
+                                <i data-lucide="dumbbell" style="width:14px;height:14px;"></i> Modalità Braccio Singolo
                             </span>
                             <span style="color: var(--color-text-muted); font-size: 0.7rem;">
                                 Traccia pesi diversi per DX e SX
@@ -1521,7 +1536,7 @@
                     style="display: none; background: linear-gradient(135deg, rgba(0,243,255,0.15), rgba(0,153,255,0.1)); border: 1px solid rgba(0,243,255,0.3); border-radius: var(--radius-md); padding: 0.6rem 1rem; margin-bottom: 1rem; text-align: center;">
                     <div
                         style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
-                        <span style="color: var(--color-text-muted); font-size: 0.75rem;">💡 Suggerito:</span>
+                        <span style="color: var(--color-text-muted); font-size: 0.75rem;"><i data-lucide="lightbulb" style="width:14px;height:14px;"></i> Suggerito:</span>
                         <span id="focusSuggestedValue"
                             style="color: var(--color-primary); font-weight: bold; font-size: 1.1rem;">--</span>
                         <span style="color: var(--color-text-muted); font-size: 0.7rem;"
@@ -1649,37 +1664,37 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                 <button id="shareNative"
                     style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: none; color: white; padding: 1rem; background: linear-gradient(135deg, #00f3ff, #0099ff); border-radius: 8px; cursor: pointer; font-family: inherit;">
-                    <span style="font-size: 2rem;">�</sppan>
-                        <span>Condividi</span>
+                    <span style="font-size: 2rem;"><i data-lucide="share" style="width:32px;height:32px;"></i></span>
+                    <span>Condividi</span>
                 </button>
                 <a id="shareWhatsapp" href="#" target="_blank"
                     style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #25D366; border-radius: 8px;">
-                    <span style="font-size: 2rem;">💚</span>
+                    <span style="font-size: 2rem;"><i data-lucide="message-circle" style="width:32px;height:32px;"></i></span>
                     <span>WhatsApp</span>
                 </a>
                 <a id="shareTelegram" href="#" target="_blank"
                     style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #0088cc; border-radius: 8px;">
-                    <span style="font-size: 2rem;">✈️</span>
+                    <span style="font-size: 2rem;"><i data-lucide="send" style="width:32px;height:32px;"></i></span>
                     <span>Telegram</span>
                 </a>
                 <a id="shareTwitter" href="#" target="_blank"
                     style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #1DA1F2; border-radius: 8px;">
-                    <span style="font-size: 2rem;">�</sppan>
-                        <span>X/Twitter</span>
+                    <span style="font-size: 2rem;"><i data-lucide="twitter" style="width:32px;height:32px;"></i></span>
+                    <span>X/Twitter</span>
                 </a>
                 <a id="shareFacebook" href="#" target="_blank"
                     style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #1877F2; border-radius: 8px;">
-                    <span style="font-size: 2rem;">📘</span>
+                    <span style="font-size: 2rem;"><i data-lucide="facebook" style="width:32px;height:32px;"></i></span>
                     <span>Facebook</span>
                 </a>
                 <a id="shareEmail" href="#" target="_blank"
                     style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-decoration: none; color: white; padding: 1rem; background: #666; border-radius: 8px;">
-                    <span style="font-size: 2rem;">📧</span>
+                    <span style="font-size: 2rem;"><i data-lucide="mail" style="width:32px;height:32px;"></i></span>
                     <span>Email</span>
                 </a>
                 <button id="shareCopy"
                     style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border: none; color: white; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; font-family: inherit; grid-column: span 3;">
-                    <span style="font-size: 2rem;">📋</span>
+                    <span style="font-size: 2rem;"><i data-lucide="clipboard" style="width:32px;height:32px;"></i></span>
                     <span>Copia Link</span>
                 </button>
             </div>
@@ -1694,7 +1709,7 @@
         <div
             style="background: var(--color-surface); padding: 1.5rem; border-radius: 16px; width: 90%; max-width: 380px; border: 1px solid var(--color-primary); box-shadow: 0 8px 32px rgba(0, 243, 255, 0.2);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="margin: 0; color: var(--color-primary); font-size: 1.1rem;">💪 RPE - Rate of Perceived
+                <h3 style="margin: 0; color: var(--color-primary); font-size: 1.1rem;"><i data-lucide="gauge" style="width:18px;height:18px;"></i> RPE - Rate of Perceived
                     Exertion</h3>
                 <button onclick="closeRpeInfoModal()"
                     style="background: rgba(255,255,255,0.1); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1rem;">&times;</button>
@@ -1732,7 +1747,7 @@
                 </div>
             </div>
             <p style="color: var(--color-primary); font-size: 0.8rem; font-style: italic; margin: 0;">
-                💡 Per la crescita muscolare, lavora tra RPE 7-9 sulla maggior parte delle serie.
+                                <i data-lucide="lightbulb" style="width:14px;height:14px;color:#00f3ff;"></i> Per la crescita muscolare, lavora tra RPE 7-9 sulla maggior parte delle serie.
             </p>
         </div>
     </div>
@@ -1861,7 +1876,7 @@
                     profileContent.classList.add('visible');
 
                     profileEmailDisplay.textContent = user.email;
-                    profileNameDisplay.innerHTML = user.displayName || 'Atleta <span class="text-primary">Pro</span>';
+                    profileNameDisplay.innerHTML = user.displayName ? escapeHtml(user.displayName) : 'Atleta <span class="text-primary">Pro</span>';
                     profileNameInput.value = user.displayName || '';
 
                     // Load Profile Data from LocalStorage (or trigger sync)
@@ -1932,7 +1947,7 @@
                         if (isError) {
                             banner.style.background = 'linear-gradient(135deg, #ff5252 0%, #ff1744 100%)';
                             banner.innerHTML = `
-                                <span class="banner-icon">❌</span>
+                                <span class="banner-icon">${lucideIcon('x-circle', {size: 28, color: '#ff4444'})}</span>
                                 <div class="banner-content">
                                     <div class="banner-title">Importazione fallita</div>
                                     <div class="banner-subtitle">${workoutName}</div>
@@ -1941,7 +1956,7 @@
                             `;
                         } else {
                             banner.innerHTML = `
-                                <span class="banner-icon">✅</span>
+                                <span class="banner-icon">${lucideIcon('check-circle', {size: 28, color: '#00ff88'})}</span>
                                 <div class="banner-content">
                                     <div class="banner-title">Scheda importata!</div>
                                     <div class="banner-subtitle">${workoutName}</div>
@@ -1951,6 +1966,7 @@
                         }
                         
                         document.body.appendChild(banner);
+                        refreshLucideIcons();
                         
                         // Trigger animation
                         requestAnimationFrame(() => {
@@ -2090,83 +2106,8 @@
                             sessionStorage.setItem('gymbro_last_imported_link', shareData);
                             window.history.replaceState({}, document.title, window.location.pathname);
                         }
-                    } else if (shortId || shareId) {
-                        // Handle both new short format (?s=) and legacy format (?shareId=)
-                        const linkId = shortId || shareId;
-                        const isShortLink = !!shortId;
-                        
-                        // Set lock immediately
-                        const importLockKey2 = `gymbro_importing_${linkId}`;
-                        sessionStorage.setItem(importLockKey2, 'true');
-
-                        if (confirm('È stato rilevato un link di condivisione. Vuoi importare la scheda?')) {
-                            try {
-                                console.log(`Importing shared workout: ${linkId} (short: ${isShortLink})`);
-                                
-                                // Check for duplicate import BEFORE fetching
-                                const currentWorkouts = getStoredWorkouts();
-                                const alreadyImported = currentWorkouts.some(w => w.importedFrom === linkId);
-                                
-                                if (alreadyImported) {
-                                    showImportBanner('Questa scheda è già stata importata!', true);
-                                    window.history.replaceState({}, document.title, window.location.pathname);
-                                    sessionStorage.setItem('gymbro_last_imported_link', linkId);
-                                    return;
-                                }
-                                
-                                const workoutData = await firestoreService.getSharedWorkout(linkId);
-
-                                if (!workoutData || !workoutData.name) {
-                                    throw new Error('Dati scheda non validi');
-                                }
-
-                                const newWorkout = {
-                                    ...workoutData,
-                                    id: generateWorkoutId(),
-                                    name: `${workoutData.name} (Importata)`,
-                                    fromShared: true,
-                                    importedFrom: linkId,
-                                    importedAt: new Date().toISOString()
-                                };
-
-                                // Re-fetch to ensure no race condition
-                                const freshWorkouts = getStoredWorkouts();
-                                const alreadyExists = freshWorkouts.some(w => 
-                                    w.importedFrom === linkId || 
-                                    (w.fromShared && w.name === newWorkout.name)
-                                );
-                                
-                                if (alreadyExists) {
-                                    showImportBanner('Questa scheda è già stata importata!', true);
-                                    window.history.replaceState({}, document.title, window.location.pathname);
-                                    sessionStorage.setItem('gymbro_last_imported_link', linkId);
-                                    return;
-                                }
-                                
-                                freshWorkouts.unshift(newWorkout);
-                                localStorage.setItem('ironflow_workouts', JSON.stringify(freshWorkouts));
-                                renderWorkouts();
-
-                                // Mark as imported to prevent duplicates
-                                sessionStorage.setItem('gymbro_last_imported_link', linkId);
-
-                                // Clean URL and show banner IMMEDIATELY
-                                window.history.replaceState({}, document.title, window.location.pathname);
-                                showImportBanner(newWorkout.name);
-
-                                // Sync to cloud in background (non-blocking)
-                                firestoreService.syncToCloud().catch(e => console.warn('Background sync failed:', e));
-                            } catch (e) {
-                                console.error('Error importing shared workout:', e);
-                                showImportBanner(e.message || 'Scheda non valida', true);
-                                window.history.replaceState({}, document.title, window.location.pathname);
-                            }
-                        } else {
-                            // User declined - clean URL and mark as processed
-                            sessionStorage.setItem('gymbro_last_imported_link', linkId);
-                            window.history.replaceState({}, document.title, window.location.pathname);
-                        }
                     }
+                    // shortId/shareId imports are handled by enhancements-loader.js → WorkoutSharingHandler
                     } // End of share link check
 
                 } else {
@@ -2253,7 +2194,7 @@
             // Name Update
             profileNameInput.addEventListener('change', async (e) => {
                 const newName = e.target.value;
-                profileNameDisplay.innerHTML = newName; // Immediate UI
+                profileNameDisplay.innerHTML = escapeHtml(newName); // Immediate UI
                 await firestoreService.updateProfileField('name', newName);
                 await firestoreService.syncToCloud(); // Sync all
             });
@@ -2831,9 +2772,11 @@
 
                 shareCopy.onclick = async () => {
                     await navigator.clipboard.writeText(url);
-                    shareCopy.innerHTML = '<span style="font-size: 2rem;">✅</span><span>Copiato!</span>';
+                    shareCopy.innerHTML = '<span style="font-size: 2rem;">' + lucideIcon('check-circle', {size: 32, color: '#00ff88'}) + '</span><span>Copiato!</span>';
+                    refreshLucideIcons();
                     setTimeout(() => {
-                        shareCopy.innerHTML = '<span style="font-size: 2rem;">📋</span><span>Copia Link</span>';
+                        shareCopy.innerHTML = '<span style="font-size: 2rem;">' + lucideIcon('clipboard', {size: 32}) + '</span><span>Copia Link</span>';
+                        refreshLucideIcons();
                     }, 2000);
                 };
 
@@ -2858,9 +2801,11 @@
                 } else {
                     // Fallback: copy to clipboard
                     await navigator.clipboard.writeText(currentShareUrl);
-                    shareNative.innerHTML = '<span style="font-size: 2rem;">✅</span><span>Copiato!</span>';
+                    shareNative.innerHTML = '<span style="font-size: 2rem;">' + lucideIcon('check-circle', {size: 32, color: '#00ff88'}) + '</span><span>Copiato!</span>';
+                    refreshLucideIcons();
                     setTimeout(() => {
-                        shareNative.innerHTML = '<span style="font-size: 2rem;">📤</span><span>Condividi</span>';
+                        shareNative.innerHTML = '<span style="font-size: 2rem;">' + lucideIcon('share', {size: 32}) + '</span><span>Condividi</span>';
+                        refreshLucideIcons();
                     }, 2000);
                 }
             });
@@ -3193,7 +3138,7 @@
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 0.1rem;">
                             <span style="color: #ff9800; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
-                                💪 Modalità Braccio Singolo
+                                ${lucideIcon('dumbbell', {size: 14})} Modalità Braccio Singolo
                             </span>
                             <span style="color: #ffcc80; font-size: 0.7rem;">
                                 Attivo: Pesi separati DX/SX
@@ -3206,13 +3151,13 @@
                     <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(to right, #ff9800, #ffc107);"></div>
                     
                     <div style="text-align:center; margin-bottom:1rem; color:#ff9800; font-size:0.8rem; font-weight:bold; letter-spacing:1px; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                        <span>💪 BRACCIO SINGOLO</span>
+                        <span>${lucideIcon('dumbbell', {size: 14})} BRACCIO SINGOLO</span>
                     </div>
 
                     <!-- Left Arm (Sinistro) -->
                     <div class="unilateral-block-left" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed rgba(255,255,255,0.1);">
                         <div style="font-size: 0.95rem; color: #ffc107; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <span>👈 Braccio Sinistro (SX)</span>
+                            <span>${lucideIcon('arrow-left', {size: 14})} Braccio Sinistro (SX)</span>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
                             <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px; border-left: 2px solid #ffc107;">
@@ -3233,7 +3178,7 @@
                     <!-- Right Arm (Destro) -->
                     <div class="unilateral-block-right">
                         <div style="font-size: 0.95rem; color: #ff9800; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <span>👉 Braccio Destro (DX)</span>
+                            <span>${lucideIcon('arrow-right', {size: 14})} Braccio Destro (DX)</span>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
                             <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 6px; border-left: 2px solid #ff9800;">
@@ -3252,6 +3197,7 @@
                     </div>
                 </div>
                 `;
+                refreshLucideIcons();
             }
 
             function renderNormalInputs() {
@@ -3262,7 +3208,7 @@
                 focusActiveArea.innerHTML = `
                 <div id="focusBilateralIndicator" style="display: none; background: linear-gradient(135deg, rgba(156,39,176,0.15), rgba(103,58,183,0.1)); border: 1px solid rgba(156,39,176,0.3); border-radius: var(--radius-md); padding: 0.5rem 1rem; margin-bottom: 0.75rem; text-align: center;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                        <span style="font-size: 1rem;">🏋️</span>
+                        <span style="font-size: 1rem;">${lucideIcon('dumbbell', {size: 16})}</span>
                         <span style="color: #ce93d8; font-size: 0.8rem; font-weight: 500;">Manubri Bilaterali</span>
                         <span style="color: var(--color-text-muted); font-size: 0.7rem;">• Inserisci peso singolo manubrio</span>
                     </div>
@@ -3279,7 +3225,7 @@
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 0.1rem;">
                             <span style="color: #ff9800; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
-                                💪 Modalità Braccio Singolo
+                                ${lucideIcon('dumbbell', {size: 14})} Modalità Braccio Singolo
                             </span>
                             <span style="color: var(--color-text-muted); font-size: 0.7rem;">
                                 Traccia pesi diversi per DX e SX
@@ -3289,7 +3235,7 @@
                 </div>
                 <div id="focusSuggestedWeight" style="display: none; background: linear-gradient(135deg, rgba(0,243,255,0.15), rgba(0,153,255,0.1)); border: 1px solid rgba(0,243,255,0.3); border-radius: var(--radius-md); padding: 0.6rem 1rem; margin-bottom: 1rem; text-align: center;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
-                        <span style="color: var(--color-text-muted); font-size: 0.75rem;">💡 Suggerito:</span>
+                        <span style="color: var(--color-text-muted); font-size: 0.75rem;">${lucideIcon('lightbulb', {size: 14})} Suggerito:</span>
                         <span id="focusSuggestedValue" style="color: var(--color-primary); font-weight: bold; font-size: 1.1rem;">--</span>
                         <span style="color: var(--color-text-muted); font-size: 0.7rem;" id="focusSuggestedBasis">(basato su storico)</span>
                     </div>
@@ -3309,6 +3255,7 @@
                     </div>
                 </div>
                 `;
+                refreshLucideIcons();
             }
 
             function renderSupersetInputs(exA, exB, setA, setB) {
@@ -3341,7 +3288,7 @@
                                 letter-spacing: 0.5px;
                             ">A</span>
                             <span style="font-size: 0.95rem; font-weight: 600; color: #fff; flex: 1; line-height: 1.2;">${exA.name}</span>
-                            ${suggestA ? `<span style="font-size: 0.7rem; color: rgba(0,243,255,0.7); white-space: nowrap;">💡 ${suggestA.weight}kg</span>` : ''}
+                            ${suggestA ? `<span style="font-size: 0.7rem; color: rgba(0,243,255,0.7); white-space: nowrap;">${lucideIcon('lightbulb', {size: 12})} ${suggestA.weight}kg</span>` : ''}
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 0.8fr; gap: 0.75rem;">
                             <div style="text-align: center;">
@@ -3410,7 +3357,7 @@
                                 letter-spacing: 0.5px;
                             ">B</span>
                             <span style="font-size: 0.95rem; font-weight: 600; color: #fff; flex: 1; line-height: 1.2;">${exB.name}</span>
-                            ${suggestB ? `<span style="font-size: 0.7rem; color: rgba(156,39,176,0.8); white-space: nowrap;">💡 ${suggestB.weight}kg</span>` : ''}
+                            ${suggestB ? `<span style="font-size: 0.7rem; color: rgba(156,39,176,0.8); white-space: nowrap;">${lucideIcon('lightbulb', {size: 12})} ${suggestB.weight}kg</span>` : ''}
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 0.8fr; gap: 0.75rem;">
                             <div style="text-align: center;">
@@ -3485,11 +3432,12 @@
                             letter-spacing: 1.5px;
                             text-transform: uppercase;
                             box-shadow: 0 2px 8px rgba(156,39,176,0.4);
-                        ">🔗 Superset</div>
+                        ">${lucideIcon('link', {size: 12})} Superset</div>
                         ${htmlA}
                         ${htmlB}
                     </div>
                 `;
+                refreshLucideIcons();
             }
 
             // Debounce protection for rapid clicks
@@ -3631,8 +3579,9 @@
                         const setType = activeSet?.type || 'normal';
                         const typeBadge = setTypeBadges[setType] || '';
 
-                        historyItem.innerHTML = `✅ ${typeBadge}Set ${currentSetIndex + 1}: ${weightDisplay} x ${repsDisplay}`;
+                        historyItem.innerHTML = `${lucideIcon('check-circle', {size: 14, color: '#00ff88'})} ${typeBadge}Set ${currentSetIndex + 1}: ${weightDisplay} x ${repsDisplay}`;
                         focusHistoryList.prepend(historyItem);
+                        refreshLucideIcons(focusHistoryList);
                         startRest();
 
                     } else {
@@ -3679,8 +3628,9 @@
                         const setType = activeSet?.type || 'normal';
                         const typeBadge = setTypeBadges[setType] || '';
 
-                        historyItem.innerHTML = `✅ ${typeBadge}Set ${currentSetIndex + 1}: ${weightDisplay} x ${repsDisplay}${rpeDisplay}`;
+                        historyItem.innerHTML = `${lucideIcon('check-circle', {size: 14, color: '#00ff88'})} ${typeBadge}Set ${currentSetIndex + 1}: ${weightDisplay} x ${repsDisplay}${rpeDisplay}`;
                         focusHistoryList.prepend(historyItem);
+                        refreshLucideIcons(focusHistoryList);
 
                         startRest();
                     }
@@ -3771,11 +3721,11 @@
                 // Set Type Badge
                 const setTypeLabels = {
                     normal: '',
-                    warmup: '🔥 Warm-up',
-                    backoff: '📉 Back-off',
-                    dropset: '⬇️ Drop Set',
-                    amrap: '💪 AMRAP',
-                    pause: '⏸️ Pausa'
+                    warmup: lucideIcon('flame', {size: 14}) + ' Warm-up',
+                    backoff: lucideIcon('trending-down', {size: 14}) + ' Back-off',
+                    dropset: lucideIcon('chevron-down', {size: 14}) + ' Drop Set',
+                    amrap: lucideIcon('dumbbell', {size: 14}) + ' AMRAP',
+                    pause: lucideIcon('pause', {size: 14}) + ' Pausa'
                 };
                 const setType = set?.type || 'normal';
                 const setTypeLabel = setTypeLabels[setType] || '';
@@ -3785,7 +3735,8 @@
                     counterText = `${setTypeLabel} • ${baseCounter}`;
                 }
 
-                focusSetCounter.textContent = counterText;
+                focusSetCounter.innerHTML = counterText;
+                refreshLucideIcons();
 
                 // Check if bilateral dumbbell exercise (Only relevant for Normal Mode indicator usually)
                 const isBilateral = isBilateralDumbbell(ex.name);
@@ -4469,9 +4420,9 @@
                         if (!Array.isArray(w.exercises)) {
                             w.exercises = [];
                         }
-                        // Ensure createdAt timestamp exists
+                        // Ensure createdAt timestamp exists (also migrate legacy dateCreated)
                         if (!w.createdAt) {
-                            w.createdAt = w.lastModified || new Date().toISOString();
+                            w.createdAt = w.dateCreated || w.lastModified || new Date().toISOString();
                             normalized = true;
                         }
                     });
@@ -4515,28 +4466,29 @@
                         div.innerHTML = `
                             <div class="workout-header">
                                 <button class="btn-play start-workout" data-index="${index}" ${workoutIdAttr} title="Avvia Focus Mode">
-                                    ▶
+                                    ${lucideIcon('play', {size: 16})}
                                 </button>
                                 <div class="workout-info">
                                     <div class="workout-title">
-                                        ${workoutName}
+                                        ${escapeHtml(workoutName)}
                                         ${aiBadge}
                                     </div>
                                     <div class="workout-meta">
                                         <span>${exercisesCount} Esercizi</span>
-                                        ${createdDateStr ? `<span class="workout-date">📅 ${createdDateStr}</span>` : ''}
+                                        ${createdDateStr ? `<span class="workout-date">${lucideIcon('calendar', {size: 12})} ${escapeHtml(createdDateStr)}</span>` : ''}
                                     </div>
                                 </div>
                                 <div class="workout-action-icons">
-                                    <a href="creator.html?id=${w.id}" class="btn-icon-action" title="Modifica">✏️</a>
-                                    <span class="btn-icon-action edit-rest-times" data-index="${index}" data-id="${w.id}" title="Modifica Recuperi">⏱️</span>
-                                    <span class="btn-icon-action share-workout" data-id="${w.id}" title="Condividi Scheda">🔗</span>
-                                    <span class="btn-icon-action delete delete-workout" data-id="${w.id}" title="Elimina">🗑️</span>
+                                    <a href="creator.html?id=${encodeURIComponent(w.id)}" class="btn-icon-action" title="Modifica">${lucideIcon('pencil', {size: 16})}</a>
+                                    <span class="btn-icon-action edit-rest-times" data-index="${index}" data-id="${escapeAttr(w.id)}" title="Modifica Recuperi">${lucideIcon('timer', {size: 16})}</span>
+                                    <span class="btn-icon-action share-workout" data-id="${escapeAttr(w.id)}" title="Condividi Scheda">${lucideIcon('share-2', {size: 16})}</span>
+                                    <span class="btn-icon-action delete delete-workout" data-id="${escapeAttr(w.id)}" title="Elimina">${lucideIcon('trash-2', {size: 16, color: '#ff4444'})}</span>
                                 </div>
                             </div>
                         `;
                         list.appendChild(div);
                     });
+                    refreshLucideIcons();
 
                     list.querySelectorAll('.start-workout').forEach(btn => {
                         btn.addEventListener('click', (e) => {
@@ -4574,7 +4526,8 @@
                                 return;
                             }
 
-                            e.target.textContent = '⏳';
+                            e.target.textContent = '';
+                            e.target.innerHTML = lucideIcon('loader', {size: 16});
                             try {
                                 // Try short-link via firestoreService (same as enhancements-loader)
                                 if (firestoreService && typeof firestoreService.createSharedWorkout === 'function') {
@@ -4602,7 +4555,8 @@
                                     alert('Errore condivisione: ' + (err.message || 'Riprova'));
                                 }
                             } finally {
-                                e.target.textContent = '🔗';
+                                e.target.innerHTML = lucideIcon('share-2', {size: 16});
+                                refreshLucideIcons();
                             }
                         });
                     });
@@ -4670,7 +4624,8 @@
                 const workoutNameEl = document.getElementById('editRestWorkoutName');
                 const contentEl = document.getElementById('editRestContent');
 
-                workoutNameEl.textContent = `📋 ${workout.name || 'Workout'}`;
+                workoutNameEl.textContent = '';
+                workoutNameEl.innerHTML = `${lucideIcon('clipboard-list', {size: 16})} ${escapeHtml(workout.name || 'Workout')}`;
 
                 let html = '';
                 if (workout.exercises && workout.exercises.length > 0) {
@@ -4708,6 +4663,7 @@
                 }
 
                 contentEl.innerHTML = html;
+                refreshLucideIcons();
                 modal.style.display = 'flex';
             }
 
@@ -4817,7 +4773,8 @@
 
                     statusText.textContent = providerName;
                     statusText.style.color = '#10b981';
-                    statusIcon.textContent = '🟢';
+                    statusIcon.innerHTML = lucideIcon('circle-check', {size: 16, color: '#10b981'});
+                    refreshLucideIcons();
 
                     // Update toggle state
                     toggleSwitch?.classList.add('active');
@@ -4836,7 +4793,8 @@
                     // Not connected
                     statusText.textContent = 'Non connesso';
                     statusText.style.color = 'var(--color-text-muted)';
-                    statusIcon.textContent = '⚪';
+                    statusIcon.innerHTML = lucideIcon('circle', {size: 16, color: '#888'});
+                    refreshLucideIcons();
 
                     // Update toggle state
                     toggleSwitch?.classList.remove('active');
@@ -4848,9 +4806,10 @@
                 }
             } catch (error) {
                 console.error('Error updating health status:', error);
-                statusText.textContent = '❌ Errore';
+                statusText.innerHTML = lucideIcon('x-circle', {size: 14, color: '#ef4444'}) + ' Errore';
                 statusText.style.color = '#ef4444';
-                statusIcon.textContent = '🔴';
+                statusIcon.innerHTML = lucideIcon('alert-circle', {size: 16, color: '#ef4444'});
+                refreshLucideIcons();
             }
         }
 
@@ -4865,7 +4824,7 @@
 
             try {
                 connectGoogleFitBtn.disabled = true;
-                connectGoogleFitBtn.innerHTML = '⏳ Connessione...';
+                connectGoogleFitBtn.innerHTML = lucideIcon('loader', {size: 16}) + ' Connessione...';
 
                 await healthConnectService.connect();
 
@@ -4876,7 +4835,8 @@
                 alert('❌ Errore: ' + error.message);
             } finally {
                 connectGoogleFitBtn.disabled = false;
-                connectGoogleFitBtn.innerHTML = '<span style="font-size: 1.2rem;">🤖</span> Google Fit <small style="font-size: 0.65rem; opacity: 0.7;">(Android)</small>';
+                connectGoogleFitBtn.innerHTML = '<span style="font-size: 1.2rem;">' + lucideIcon('smartphone', {size: 16}) + '</span> Google Fit <small style="font-size: 0.65rem; opacity: 0.7;">(Android)</small>';
+                refreshLucideIcons();
             }
         });
 
@@ -4907,7 +4867,7 @@
         syncBtn.addEventListener('click', async () => {
             try {
                 syncBtn.disabled = true;
-                syncBtn.innerHTML = '⏳ Sincronizzazione...';
+                syncBtn.innerHTML = lucideIcon('loader', {size: 16}) + ' Sincronizzazione...';
 
                 let result;
                 if (currentProvider === 'google_fit') {
@@ -4935,7 +4895,8 @@
                 alert('❌ Errore: ' + error.message);
             } finally {
                 syncBtn.disabled = false;
-                syncBtn.innerHTML = '<span>🔄</span> Sincronizza Ora';
+                syncBtn.innerHTML = '<span>' + lucideIcon('refresh-cw', {size: 14}) + '</span> Sincronizza Ora';
+                refreshLucideIcons();
             }
         });
 
@@ -4946,7 +4907,7 @@
 
             try {
                 disconnectBtn.disabled = true;
-                disconnectBtn.innerHTML = '⏳...';
+                disconnectBtn.innerHTML = lucideIcon('loader', {size: 14}) + '...';
 
                 if (currentProvider === 'google_fit') {
                     await healthConnectService.disconnect();
@@ -4964,7 +4925,8 @@
                 alert('❌ Errore: ' + error.message);
             } finally {
                 disconnectBtn.disabled = false;
-                disconnectBtn.innerHTML = '<span>❌</span> Disconnetti';
+                disconnectBtn.innerHTML = '<span>' + lucideIcon('x-circle', {size: 14, color: '#ff4444'}) + '</span> Disconnetti';
+                refreshLucideIcons();
             }
         });
 
@@ -5063,6 +5025,19 @@
             });
         })();
     </script>
+
+    <!-- Footer -->
+    <footer class="section" style="border-top: 1px solid var(--color-border); padding: 2rem 0; margin-top: 4rem;">
+        <div class="container text-center">
+            <p style="font-size: 0.8rem;">&copy; 2024 GYMBRO. Built for performance.</p>
+            <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Termini di Servizio</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lucide-init.js"></script>
 </body>
 
 <!-- Focus Mode Enhancements Loader -->

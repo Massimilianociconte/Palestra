@@ -6,6 +6,18 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Crea Schede | GYMBRO</title>
+    <meta name="description" content="Crea schede di allenamento personalizzate con esercizi, serie, ripetizioni e note tecniche su GYMBRO.">
+    <link rel="canonical" href="https://massimilianociconte.github.io/Palestra/creator.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://massimilianociconte.github.io/Palestra/creator.html">
+    <meta property="og:title" content="Crea Schede Allenamento | GYMBRO">
+    <meta property="og:description" content="Crea schede di allenamento personalizzate con esercizi, serie, ripetizioni e note tecniche su GYMBRO.">
+    <meta property="og:image" content="https://massimilianociconte.github.io/Palestra/assets/icon.svg">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap"
@@ -18,11 +30,16 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GymBro">
-    <link rel="apple-touch-icon" href="assets/icon.svg">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/gymbro-chat.css">
+    <link rel="stylesheet" href="css/lucide-icons.css">
+    <script src="js/capacitor-bootstrap.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lucide-init.js"></script>
+    <script src="js/sanitize.js"></script>
     <script src="js/lib/sortable.min.js"></script>
     <style>
         /* ===== GLOBAL SYMMETRY SYSTEM ===== */
@@ -1338,15 +1355,15 @@
         <div class="container">
             <a href="index.html" class="logo">GYM<span class="text-primary">BRO</span></a>
             <nav>
-                <div class="mobile-toggle" id="mobileToggle">☰</div>
+                <div class="mobile-toggle" id="mobileToggle"><i data-lucide="menu"></i></div>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="creator.html" class="text-primary">📝 Crea Schede</a></li>
-                    <li><a href="diary.html">📓 Diario</a></li>
-                    <li><a href="analysis.html">📈 Analisi</a></li>
+                    <li><a href="creator.html" class="text-primary"><i data-lucide="file-pen-line"></i> Crea Schede</a></li>
+                    <li><a href="diary.html"><i data-lucide="book-open"></i> Diario</a></li>
+                    <li><a href="analysis.html"><i data-lucide="trending-up"></i> Analisi</a></li>
                     <li><a href="body.html"><i data-lucide="ruler"></i> Corpo</a></li>
-                    <li><a href="friends.html">👥 Amici</a></li>
-                    <li><a href="rooms.html">🏠 Stanze</a></li>
-                    <li><a href="user.html">👤 Profilo</a></li>
+                    <li><a href="friends.html"><i data-lucide="users"></i> Amici</a></li>
+                    <li><a href="rooms.html"><i data-lucide="home"></i> Stanze</a></li>
+                    <li><a href="user.html"><i data-lucide="user"></i> Profilo</a></li>
                 </ul>
             </nav>
         </div>
@@ -1361,7 +1378,7 @@
             <!-- AI Workout Generator - Full Feature -->
             <div class="card ai-generator-card" style="margin-bottom: 1rem; margin-top: 0.5rem;">
                 <div class="ai-generator-header">
-                    <span style="font-size: 1.5rem;">🤖</span>
+                    <span style="font-size: 1.5rem;"><i data-lucide="bot" style="width:1.5rem;height:1.5rem;color:#00f3ff"></i></span>
                     <div>
                         <div style="font-weight: 600; font-size: 1rem;">AI Workout Generator</div>
                         <div style="font-size: 0.75rem; color: var(--color-text-muted);">Genera schede personalizzate
@@ -1372,15 +1389,15 @@
                 <div class="ai-generator-body">
                     <!-- Tabs -->
                     <div class="ai-tabs">
-                        <button class="ai-tab active" data-tab="smart">⚡ Smart</button>
-                        <button class="ai-tab" data-tab="bodyparts">💪 Parti Corpo</button>
-                        <button class="ai-tab" data-tab="custom">✏️ Personalizzato</button>
+                        <button class="ai-tab active" data-tab="smart"><i data-lucide="zap" style="width:14px;height:14px"></i> Smart</button>
+                        <button class="ai-tab" data-tab="bodyparts"><i data-lucide="biceps-flexed" style="width:14px;height:14px"></i> Parti Corpo</button>
+                        <button class="ai-tab" data-tab="custom"><i data-lucide="pencil" style="width:14px;height:14px"></i> Personalizzato</button>
                     </div>
 
                     <!-- Tab Content: Smart (Auto based on history) -->
                     <div class="ai-tab-content active" id="aiTabSmart">
                         <div style="text-align: center; padding: 0.5rem 0 1rem;">
-                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;"><i data-lucide="target" style="width:2rem;height:2rem;color:#00f3ff"></i></div>
                             <p
                                 style="font-size: 0.85rem; color: var(--color-text-muted); margin: 0; max-width: 280px; margin: 0 auto;">
                                 L'AI analizzerà il tuo storico e suggerirà l'allenamento ideale per oggi
@@ -1395,15 +1412,15 @@
                             Seleziona i gruppi muscolari da allenare:
                         </p>
                         <div class="body-parts-grid" id="bodyPartsGrid">
-                            <button class="body-part-btn" data-part="petto"><span>🫁</span>Petto</button>
-                            <button class="body-part-btn" data-part="schiena"><span>🔙</span>Schiena</button>
-                            <button class="body-part-btn" data-part="spalle"><span>🏔️</span>Spalle</button>
-                            <button class="body-part-btn" data-part="bicipiti"><span>💪</span>Bicipiti</button>
-                            <button class="body-part-btn" data-part="tricipiti"><span>🦾</span>Tricipiti</button>
-                            <button class="body-part-btn" data-part="gambe"><span>🦵</span>Gambe</button>
-                            <button class="body-part-btn" data-part="glutei"><span>🍑</span>Glutei</button>
-                            <button class="body-part-btn" data-part="core"><span>🎯</span>Core</button>
-                            <button class="body-part-btn" data-part="avambracci"><span>✊</span>Avambracci</button>
+                            <button class="body-part-btn" data-part="petto"><span><i data-lucide="heart-pulse" style="width:18px;height:18px"></i></span>Petto</button>
+                            <button class="body-part-btn" data-part="schiena"><span><i data-lucide="arrow-left" style="width:18px;height:18px"></i></span>Schiena</button>
+                            <button class="body-part-btn" data-part="spalle"><span><i data-lucide="mountain" style="width:18px;height:18px"></i></span>Spalle</button>
+                            <button class="body-part-btn" data-part="bicipiti"><span><i data-lucide="biceps-flexed" style="width:18px;height:18px"></i></span>Bicipiti</button>
+                            <button class="body-part-btn" data-part="tricipiti"><span><i data-lucide="bot" style="width:18px;height:18px"></i></span>Tricipiti</button>
+                            <button class="body-part-btn" data-part="gambe"><span><i data-lucide="footprints" style="width:18px;height:18px"></i></span>Gambe</button>
+                            <button class="body-part-btn" data-part="glutei"><span><i data-lucide="circle" style="width:18px;height:18px"></i></span>Glutei</button>
+                            <button class="body-part-btn" data-part="core"><span><i data-lucide="target" style="width:18px;height:18px"></i></span>Core</button>
+                            <button class="body-part-btn" data-part="avambracci"><span><i data-lucide="grip" style="width:18px;height:18px"></i></span>Avambracci</button>
                         </div>
                     </div>
 
@@ -1416,10 +1433,10 @@
                     <!-- Actions -->
                     <div class="ai-actions">
                         <button id="aiGenerateBtn" class="btn btn-primary">
-                            ⚡ GENERA SCHEDA
+                            <i data-lucide="zap" style="width:16px;height:16px"></i> GENERA SCHEDA
                         </button>
                         <button id="aiHistoryBtn" class="btn btn-outline">
-                            📚 Vedi Storico
+                            <i data-lucide="library" style="width:16px;height:16px"></i> Vedi Storico
                         </button>
                     </div>
 
@@ -1505,7 +1522,7 @@
             // Info Modal Content Database
             const INFO_CONTENT = {
                 rpe: {
-                    title: '💪 RPE - Rate of Perceived Exertion',
+                    title: lucideIcon('biceps-flexed', {size: 16}) + ' RPE - Rate of Perceived Exertion',
                     body: `
                     <p><strong>RPE</strong> è una scala (6-10) che misura lo sforzo percepito:</p>
                     <ul style="margin: 0.75rem 0; padding-left: 1.25rem;">
@@ -1515,11 +1532,11 @@
                         <li><strong>RPE 9:</strong> Molto duro, solo 1 ripetizione extra</li>
                         <li><strong>RPE 10:</strong> Massimale, nessuna ripetizione extra</li>
                     </ul>
-                    <p style="margin-top: 0.75rem; font-style: italic; color: var(--color-primary);">💡 Consiglio: Per la crescita muscolare, lavora tra RPE 7-9 sulla maggior parte delle serie.</p>
+                    <p style="margin-top: 0.75rem; font-style: italic; color: var(--color-primary);">${lucideIcon('lightbulb', {size: 14, color: '#00f3ff'})} Consiglio: Per la crescita muscolare, lavora tra RPE 7-9 sulla maggior parte delle serie.</p>
                 `
                 },
                 setTypes: {
-                    title: '🎯 Tipi di Serie',
+                    title: lucideIcon('target', {size: 16}) + ' Tipi di Serie',
                     body: `
                     <p>I diversi tipi di serie servono a scopi specifici:</p>
                     <ul style="margin: 0.75rem 0; padding-left: 1.25rem;">
@@ -1533,7 +1550,7 @@
                 `
                 },
                 customRest: {
-                    title: '⏱️ Recupero Personalizzato',
+                    title: lucideIcon('timer', {size: 16}) + ' Recupero Personalizzato',
                     body: `
                     <p>Imposta un tempo di recupero specifico per questa serie, che sovrascriverà il recupero generale dell'esercizio.</p>
                     <p style="margin-top: 0.75rem;"><strong>Casi d'uso:</strong></p>
@@ -1553,6 +1570,7 @@
                 document.getElementById('infoModalTitle').innerHTML = content.title;
                 document.getElementById('infoModalBody').innerHTML = content.body;
                 document.getElementById('infoModalOverlay').classList.add('active');
+                refreshLucideIcons(document.getElementById('infoModalOverlay'));
             }
 
             function closeInfoModal() {
@@ -1656,10 +1674,10 @@
 
                 let exercisesHtml = '';
                 if (hasExercises) {
-                    const exerciseIcons = ['🏋️', '💪', '🔥', '⚡', '🎯', '💥', '🦾', '🏃'];
+                    const exerciseIcons = [lucideIcon('dumbbell',{size:16}), lucideIcon('biceps-flexed',{size:16}), lucideIcon('flame',{size:16,color:'#ff8844'}), lucideIcon('zap',{size:16,color:'#ffcc00'}), lucideIcon('target',{size:16}), lucideIcon('sparkles',{size:16}), lucideIcon('bot',{size:16}), lucideIcon('person-standing',{size:16})];
                     exercisesHtml = `
                     <div class="ai-plan-section">
-                        <h5>📋 Esercizi Suggeriti</h5>
+                        <h5>${lucideIcon('clipboard-list', {size: 16})} Esercizi Suggeriti</h5>
                         <div class="ai-exercises-list">
                             ${exercises.map((ex, idx) => {
                         const name = ex.name || ex.exercise || 'Esercizio';
@@ -1698,7 +1716,7 @@
                 } else {
                     exercisesHtml = `
                     <div class="ai-plan-section">
-                        <p style="color: var(--color-text-muted);">⚠️ Formato dati non riconosciuto.</p>
+                        <p style="color: var(--color-text-muted);">${lucideIcon('alert-triangle', {size: 14, color: '#ff9800'})} Formato dati non riconosciuto.</p>
                     </div>
                 `;
                 }
@@ -1712,14 +1730,14 @@
                         // Try to highlight key terms
                         let formatted = reasoning
                             .replace(/(recupero|volume|intensità|forza|ipertrofia|cardio|muscoli|gambe|petto|schiena|spalle|braccia)/gi, '<strong>$1</strong>')
-                            .replace(/(⚠️|💡|🎯|✅|❗)/g, '$1');
+                            .replace(/(⚠️|💡|🎯|✅|❗)/g, '');
                         return `<p style="margin: 0; line-height: 1.6;">${formatted}</p>`;
                     }
                     return `<ul style="margin: 0; padding-left: 1.25rem; list-style: none;">
                     ${points.map(p => {
                         let formatted = p.trim()
                             .replace(/(recupero|volume|intensità|forza|ipertrofia|cardio|muscoli|gambe|petto|schiena|spalle|braccia)/gi, '<strong>$1</strong>');
-                        return `<li style="margin-bottom: 0.4rem; position: relative; padding-left: 0.25rem;">🔹 ${formatted}</li>`;
+                        return `<li style="margin-bottom: 0.4rem; position: relative; padding-left: 0.25rem;">${lucideIcon('chevron-right', {size: 12, color: '#00f3ff'})} ${formatted}</li>`;
                     }).join('')}
                 </ul>`;
                 };
@@ -1727,7 +1745,7 @@
                 const reasoningHtml = plan.reasoning ? `
                 <div class="ai-reasoning-section">
                     <div class="ai-reasoning-header">
-                        <span class="ai-reasoning-icon">🧠</span>
+                        <span class="ai-reasoning-icon">${lucideIcon('brain', {size: 14, color: '#00f3ff'})}</span>
                         <span class="ai-reasoning-title">Ragionamento AI</span>
                     </div>
                     <div class="ai-reasoning-content">
@@ -1749,14 +1767,15 @@
                     ${exercisesHtml}
                     ${reasoningHtml}
                     <div class="ai-result-actions">
-                        <button id="playAiPlanBtn" class="btn btn-primary">▶️ AVVIA ORA</button>
-                        <button id="fillFormBtn" class="btn btn-secondary">✏️ Compila Form</button>
-                        <button id="saveAiPlanBtn" class="btn btn-outline">💾 Salva per dopo</button>
+                        <button id="playAiPlanBtn" class="btn btn-primary">${lucideIcon('play', {size: 16})} AVVIA ORA</button>
+                        <button id="fillFormBtn" class="btn btn-secondary">${lucideIcon('pencil', {size: 16})} Compila Form</button>
+                        <button id="saveAiPlanBtn" class="btn btn-outline">${lucideIcon('save', {size: 16})} Salva per dopo</button>
                     </div>
                 </div>
             `;
 
                 resultContainer.classList.add('visible');
+                refreshLucideIcons(resultContent);
 
                 // Save button handler
                 document.getElementById('saveAiPlanBtn').addEventListener('click', async (e) => {
@@ -1764,7 +1783,7 @@
                     btn.disabled = true;
                     btn.textContent = 'Salvataggio...';
                     await handleAiPlanSave(plan);
-                    btn.textContent = '✅ Salvata!';
+                    btn.innerHTML = lucideIcon('check', {size: 14, color: '#4caf50'}) + ' Salvata!';
                 });
 
                 // Play button handler - save and redirect to user.html to start workout
@@ -1784,9 +1803,9 @@
                             throw new Error('Salvataggio fallito');
                         }
                     } catch (error) {
-                        console.error('❌ Error saving AI workout:', error);
+                        console.error('[Error] Error saving AI workout:', error);
                         btn.disabled = false;
-                        btn.textContent = '▶️ Avvia Focus Mode';
+                        btn.innerHTML = lucideIcon('play', {size: 14}) + ' Avvia Focus Mode';
                         alert('Errore nel salvataggio della scheda. Riprova.');
                     }
                 });
@@ -1800,7 +1819,7 @@
                     // Dispatch custom event to fill the form
                     window.dispatchEvent(new CustomEvent('fillFormWithAiPlan', { detail: plan }));
 
-                    btn.textContent = '✅ Form compilato!';
+                    btn.innerHTML = lucideIcon('check', {size: 14, color: '#4caf50'}) + ' Form compilato!';
 
                     // Scroll to the form
                     setTimeout(() => {
@@ -1849,7 +1868,7 @@
                         createdAt: plan.createdAt || new Date().toISOString(),
                         source: 'creator'
                     },
-                    dateCreated: new Date().toISOString()
+                    createdAt: new Date().toISOString()
                 };
 
                 workouts.push(newWorkout);
@@ -1919,7 +1938,8 @@
                 generateBtn.disabled = true;
                 generateBtn.innerHTML = '<span class="loading-dots">Generazione</span>';
                 resultContainer.classList.add('visible');
-                resultContent.innerHTML = '<p style="color: var(--color-text-muted); text-align: center;">🤖 L\'AI sta analizzando il tuo storico...</p>';
+                resultContent.innerHTML = '<p style="color: var(--color-text-muted); text-align: center;">' + lucideIcon('bot', {size: 16, color: '#00f3ff'}) + ' L\'AI sta analizzando il tuo storico...</p>';
+                refreshLucideIcons(resultContent);
 
                 try {
                     const data = await firestoreService.gatherDataForAI();
@@ -1951,14 +1971,17 @@
                         saveAiPlanHistory(plan);
                         renderAiPlan(plan);
                     } else {
-                        resultContent.innerHTML = `<p style="color: #ff4444; text-align: center;">❌ Errore: ${result.message}</p>`;
+                        resultContent.innerHTML = `<p style="color: #ff4444; text-align: center;">${lucideIcon('x-circle', {size: 16, color: '#ff4444'})} Errore: ${result.message}</p>`;
+                        refreshLucideIcons(resultContent);
                     }
                 } catch (error) {
                     console.error('AI Generation Error:', error);
-                    resultContent.innerHTML = `<p style="color: #ff4444; text-align: center;">❌ Errore: ${error.message}</p>`;
+                    resultContent.innerHTML = `<p style="color: #ff4444; text-align: center;">${lucideIcon('x-circle', {size: 16, color: '#ff4444'})} Errore: ${error.message}</p>`;
+                    refreshLucideIcons(resultContent);
                 } finally {
                     generateBtn.disabled = false;
-                    generateBtn.innerHTML = '⚡ Genera';
+                    generateBtn.innerHTML = lucideIcon('zap', {size: 14}) + ' Genera';
+                    refreshLucideIcons(generateBtn);
                 }
             };
 
@@ -2161,7 +2184,7 @@
                                         <input type="number" class="ex-rest" value="${data?.rest || 90}" placeholder="90" min="0" max="600" step="5">
                                         <span class="rest-suffix">sec</span>
                                     </div>
-                                    <span class="rest-override-notice">⚠️ Override</span>
+                                    <span class="rest-override-notice">${lucideIcon('alert-triangle', {size: 12, color: '#ff9800'})} Override</span>
                                 </div>
                             </div>
                         </div>
@@ -2205,15 +2228,15 @@
                     <!-- Superset Controls -->
                     <div class="superset-controls">
                         <button type="button" class="superset-btn create-superset-btn" title="Crea superset con l'esercizio successivo">
-                            🔗 Crea Superset
+                            ${lucideIcon('link', {size: 14})} Crea Superset
                         </button>
                         <button type="button" class="superset-btn remove-superset-btn" style="display: ${supersetId ? 'inline-block' : 'none'};" title="Rimuovi dal superset">
-                            ❌ Rimuovi Superset
+                            ${lucideIcon('x-circle', {size: 14, color: '#ff6b6b'})} Rimuovi Superset
                         </button>
                     </div>
                     
                     <div class="superset-rest-config ${supersetId && supersetRole === 'A' ? 'visible' : ''}" data-superset-id="${supersetId || ''}">
-                        <div class="superset-rest-title">⏱️ Recupero Superset</div>
+                        <div class="superset-rest-title">${lucideIcon('timer', {size: 14, color: '#00f3ff'})} Recupero Superset</div>
                         <div class="superset-rest-grid">
                             <label>Intra (A→B):</label>
                             <div class="input-with-suffix">
@@ -2238,6 +2261,7 @@
                     }
 
                     exercisesList.appendChild(div);
+                    if (window.refreshLucideIcons) window.refreshLucideIcons(div);
 
                     // Add set button handler
                     div.querySelector('.add-set-btn').addEventListener('click', () => {
@@ -2427,7 +2451,7 @@
                                 updateExerciseIndices();
                             }
                         });
-                        console.log('✅ [Sortable] Initialized/Reinitialized');
+                        console.log('[OK] [Sortable] Initialized/Reinitialized');
                     }
                 }
                 
@@ -2628,7 +2652,7 @@
                                 name: name,
                                 description: descInput ? descInput.value : '',
                                 exercises: exercises,
-                                dateCreated: new Date().toISOString()
+                                createdAt: new Date().toISOString()
                             };
                             workouts.push(workout);
                         }
@@ -2660,11 +2684,11 @@
 
                 const performAutoSync = async () => {
                     try {
-                        console.log('🔄 [Creator] Auto-sync in corso...');
+                        console.log('[Sync] [Creator] Auto-sync in corso...');
                         await firestoreService.syncToCloud();
-                        console.log('✅ [Creator] Auto-sync completato:', new Date().toLocaleTimeString());
+                        console.log('[OK] [Creator] Auto-sync completato:', new Date().toLocaleTimeString());
                     } catch (error) {
-                        console.warn('⚠️ [Creator] Auto-sync fallito:', error.message);
+                        console.warn('[Warn] [Creator] Auto-sync fallito:', error.message);
                     }
                 };
 
@@ -2674,7 +2698,7 @@
                 // Sync ogni 5 minuti
                 if (!window.autoSyncInterval) {
                     window.autoSyncInterval = setInterval(performAutoSync, AUTO_SYNC_INTERVAL);
-                    console.log('🔄 [Creator] Auto-sync attivato: ogni 5 minuti');
+                    console.log('[Sync] [Creator] Auto-sync attivato: ogni 5 minuti');
                 }
             });
         </script>
@@ -2682,13 +2706,12 @@
         <!-- Footer -->
         <footer class="section" style="border-top: 1px solid var(--color-border); padding: 2rem 0; margin-top: 4rem;">
             <div class="container text-center">
-                <p>Realizzato da <a href="https://webnovis.com">WebNovis</a> — 
-                Agenzia web a Rho, Milano</p>
-                <p>Vuoi un sito professionale? 
-                <a href="https://webnovis.com/contatti">Contattaci</a></p>
+                <p style="font-size: 0.8rem;">&copy; 2024 GYMBRO. Built for performance.</p>
+                <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                    <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Termini di Servizio</a>
+                </p>
             </div>
         </footer>
-
 </body>
 
 </html>

@@ -1,1 +1,688 @@
-export class MediaSessionManager{constructor(){this.isActive=!1,this.currentWorkoutName="Allenamento",this.currentExercise="",this.currentSet=1,this.totalSets=3,this.timerValue=0,this.timerInterval=null,this.audioElement=null,this.audioContext=null,this.oscillator=null,this.gainNode=null,this.isPlaying=!1,this.isPaused=!1,this.timerSessionCounter=0,this.activeTimerSessionId=null,this.nativePlugin=null,this.isNative=this.checkIfNative(),this.isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream}checkIfNative(){return"undefined"!=typeof window&&window.Capacitor&&window.Capacitor.isNativePlatform()}async initNativePlugin(){if(this.isNative)try{if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TimerNotification)this.nativePlugin=window.Capacitor.Plugins.TimerNotification,console.log("✅ Native Timer Plugin found via Capacitor.Plugins");else{if(!window.Capacitor||!window.Capacitor.registerPlugin)throw new Error("Capacitor not available");this.nativePlugin=window.Capacitor.registerPlugin("TimerNotification"),console.log("✅ Native Timer Plugin registered via Capacitor.registerPlugin")}this.nativePlugin.addListener&&(this.nativePlugin.addListener("timerTick",data=>{this.timerValue=data.remaining}),this.nativePlugin.addListener("timerComplete",()=>{if(null===this.activeTimerSessionId)return;this.stopTimerDisplay(),this.onTimerComplete?.()})),console.log("✅ Native Timer Plugin initialized for lockscreen")}catch(e){console.log("Native Timer Plugin not available:",e.message),this.isNative=!1,this.nativePlugin=null}}async init(){if(this.isNative)return await this.initNativePlugin(),console.log("📱 Running in native app - using ONLY foreground service for lockscreen"),void console.log("📱 MediaSession web DISABLED to avoid interfering with music apps");"mediaSession"in navigator?(console.log("Media Session API available - initializing lockscreen support (PWA mode)"),this.createPersistentAudio(),this.setupActionHandlers(),this.updateMetadata({title:"GymBro",artist:"Focus Mode",album:"Allenamento"})):console.warn("Media Session API not supported on this browser")}createPersistentAudio(){this.isNative?console.log("📱 Skipping persistent audio creation (native mode)"):(this.audioElement=document.createElement("audio"),this.generateSilentAudioBlob().then(blob=>{this.audioElement.src=URL.createObjectURL(blob),this.audioElement.loop=!0,this.audioElement.volume=.01,this.audioElement.preload="auto",this.audioElement.setAttribute("playsinline",""),this.audioElement.setAttribute("webkit-playsinline",""),document.body.appendChild(this.audioElement),console.log("Persistent audio element created for lockscreen")}))}async generateSilentAudioBlob(){return new Promise(resolve=>{const sampleRate=44100,duration=30,numChannels=2,numSamples=sampleRate*duration,buffer=new ArrayBuffer(44+numSamples*numChannels*2),view=new DataView(buffer),writeString=(offset,string)=>{for(let i=0;i<string.length;i++)view.setUint8(offset+i,string.charCodeAt(i))};writeString(0,"RIFF"),view.setUint32(4,36+numSamples*numChannels*2,!0),writeString(8,"WAVE"),writeString(12,"fmt "),view.setUint32(16,16,!0),view.setUint16(20,1,!0),view.setUint16(22,numChannels,!0),view.setUint32(24,sampleRate,!0),view.setUint32(28,sampleRate*numChannels*2,!0),view.setUint16(32,2*numChannels,!0),view.setUint16(34,16,!0),writeString(36,"data"),view.setUint32(40,numSamples*numChannels*2,!0),resolve(new Blob([buffer],{type:"audio/wav"}))})}async startAudioSession(){if(this.isNative)return console.log("📱 Skipping web audio session (native mode)"),!0;if(!this.audioElement)return console.warn("Audio element not ready"),!1;try{return await this.audioElement.play(),this.isPlaying=!0,"mediaSession"in navigator&&(navigator.mediaSession.playbackState="playing"),console.log("✅ Audio session started - lockscreen should now show controls"),!0}catch(error){return console.error("Failed to start audio session:",error),!1}}updateMetadata({title,artist,album,artwork}){if(!this.isNative&&"mediaSession"in navigator)try{navigator.mediaSession.metadata=new MediaMetadata({title:title||this.currentExercise||"Allenamento",artist:artist||`Set ${this.currentSet}/${this.totalSets}`,album:album||this.currentWorkoutName,artwork:artwork||[{src:"assets/icon.svg",sizes:"512x512",type:"image/svg+xml"}]})}catch(e){console.warn("Failed to update media metadata:",e)}}setupActionHandlers(){if(!this.isNative&&"mediaSession"in navigator){try{navigator.mediaSession.setActionHandler("previoustrack",()=>{console.log("Media Session: Previous pressed - adjusting timer"),this.onPrevious?.()}),navigator.mediaSession.setActionHandler("nexttrack",()=>{console.log("Media Session: Next pressed - skipping timer"),this.onNext?.()})}catch(e){console.log("Track handlers not supported")}navigator.mediaSession.playbackState="none",console.log("📱 MediaSession setup: Display-only mode (no play/pause capture)")}}async reinitializeAudioAfterPause(){if(console.log("🔄 Reinitializing audio after pause..."),this.audioContext&&"suspended"===this.audioContext.state)try{await this.audioContext.resume(),console.log("✅ AudioContext resumed")}catch(e){console.warn("AudioContext resume failed:",e)}this.isIOS&&this.audioElement&&(this.audioElement.error||3===this.audioElement.networkState)&&await this.recreateAudioElement()}async recreateAudioElement(){console.log("🔄 Recreating audio element..."),this.audioElement&&(this.audioElement.pause(),this.audioElement.src="",this.audioElement.remove()),await this.createPersistentAudio(),this.audioElement&&await this.audioElement.play().catch(e=>console.log("Recreated audio play failed:",e))}async startWorkout(workoutName){if(this.isActive=!0,this.currentWorkoutName=workoutName,this.isNative)return console.log("🏋️ Workout session started (native mode - no web MediaSession)"),!0;this.updateMetadata({title:workoutName,artist:"GymBro Focus Mode",album:"Allenamento in corso"});const success=await this.startAudioSession();return success?console.log("🏋️ Workout session started with lockscreen support"):console.warn("⚠️ Lockscreen support may not work - audio session failed"),success}updateExercise(exerciseName,currentSet,totalSets){this.currentExercise=exerciseName,this.currentSet=currentSet,this.totalSets=totalSets,this.updateMetadata({title:`💪 ${exerciseName}`,artist:`Set ${currentSet}/${totalSets}`,album:this.currentWorkoutName}),this.updatePositionState(currentSet,totalSets)}updatePositionState(current,total){if(!this.isNative&&"mediaSession"in navigator&&"setPositionState"in navigator.mediaSession)try{navigator.mediaSession.setPositionState({duration:60*total,playbackRate:1,position:60*current})}catch(e){}}updateTimer(seconds){if(this.timerValue=seconds,this.isNative)return;const minutes=Math.floor(seconds/60),secs=seconds%60,timerText=`${minutes}:${secs.toString().padStart(2,"0")}`;if(this.updateMetadata({title:`⏱️ Riposo: ${timerText}`,artist:`Prossimo: ${this.currentExercise||"Set successivo"}`,album:this.currentWorkoutName}),"mediaSession"in navigator&&"setPositionState"in navigator.mediaSession)try{const initialDuration=this.initialTimerDuration||seconds,elapsed=initialDuration-seconds;navigator.mediaSession.setPositionState({duration:initialDuration,playbackRate:1,position:Math.max(0,elapsed)})}catch(e){}}async startTimerDisplay(initialSeconds,onTick,onComplete){this.stopTimerDisplay(),this.initialTimerDuration=initialSeconds,this.onTimerComplete=onComplete;const timerSessionId=++this.timerSessionCounter;this.activeTimerSessionId=timerSessionId;let remainingSeconds=initialSeconds;if(this.isNative&&this.nativePlugin)try{return await this.nativePlugin.startTimer({seconds:initialSeconds,exercise:this.currentExercise||"Prossimo esercizio",workout:this.currentWorkoutName}),console.log(`⏱️ Native timer started: ${initialSeconds}s - lockscreen notification active`),void(this.timerInterval=setInterval(()=>{remainingSeconds--,remainingSeconds>=0&&onTick?.(remainingSeconds),remainingSeconds<=0&&(this.activeTimerSessionId!==timerSessionId||(this.activeTimerSessionId=null,this.stopTimerDisplay(),onComplete?.()))},1e3))}catch(e){console.log("Native timer failed, falling back to web:",e)}this.audioElement||this.isNative||(console.log("🔄 Recreating persistent audio after kill..."),this.createPersistentAudio(),this.setupActionHandlers(),await new Promise(resolve=>setTimeout(resolve,100))),this.updateTimer(remainingSeconds),this.audioElement&&this.audioElement.paused&&this.audioElement.play().catch(e=>console.log("Audio play failed:",e)),"mediaSession"in navigator&&(navigator.mediaSession.playbackState="playing"),this.timerInterval=setInterval(()=>{remainingSeconds--,remainingSeconds>=0&&(this.updateTimer(remainingSeconds),onTick?.(remainingSeconds)),remainingSeconds<=0&&(this.activeTimerSessionId!==timerSessionId||(this.activeTimerSessionId=null,this.stopTimerDisplay(),this.updateMetadata({title:"✅ Riposo completato!",artist:`Inizia: ${this.currentExercise||"Set successivo"}`,album:this.currentWorkoutName}),onComplete?.()))},1e3),console.log(`⏱️ Timer started: ${initialSeconds}s - lockscreen should update`)}stopTimerDisplay(){this.timerInterval&&(clearInterval(this.timerInterval),this.timerInterval=null),this.initialTimerDuration=null,this.activeTimerSessionId=null,this.isNative&&this.nativePlugin&&this.nativePlugin.stopTimer().catch(e=>console.log("Stop native timer error:",e))}endWorkout(){this.isActive=!1,this.stopTimerDisplay(),this.updateMetadata({title:"🎉 Allenamento Completato!",artist:"Ottimo lavoro!",album:this.currentWorkoutName}),setTimeout(()=>{this.audioElement&&this.audioElement.pause(),this.isPlaying=!1,"mediaSession"in navigator&&(navigator.mediaSession.playbackState="none")},3e3)}async killSession(){if(console.log("🔴 MediaSession KILL - Terminazione immediata..."),this.isActive=!1,this.isPlaying=!1,this.isPaused=!1,this.timerInterval&&(clearInterval(this.timerInterval),this.timerInterval=null),this.isNative&&this.nativePlugin)try{await this.nativePlugin.stopTimer(),console.log("✅ Native timer service stopped")}catch(e){console.warn("Native timer stop failed:",e)}if(this.audioElement){try{this.audioElement.pause(),this.audioElement.src="",this.audioElement.remove()}catch(e){}this.audioElement=null,console.log("✅ Audio element destroyed")}try{const allAudio=document.querySelectorAll("audio");allAudio.forEach(el=>{el.pause(),el.src="",el.remove()}),allAudio.length>0&&console.log(`✅ Destroyed ${allAudio.length} audio elements`)}catch(e){}if(this.oscillator)try{this.oscillator.stop(),this.oscillator.disconnect(),this.oscillator=null}catch(e){}if(this.audioContext&&"closed"!==this.audioContext.state)try{await this.audioContext.close(),this.audioContext=null,console.log("✅ AudioContext closed")}catch(e){}if("mediaSession"in navigator)try{navigator.mediaSession.metadata=null,navigator.mediaSession.playbackState="paused";try{navigator.mediaSession.setPositionState(null)}catch(e){}const actions=["play","pause","previoustrack","nexttrack","seekbackward","seekforward","stop"];actions.forEach(action=>{try{navigator.mediaSession.setActionHandler(action,null)}catch(e){}}),setTimeout(()=>{try{navigator.mediaSession.metadata=null,navigator.mediaSession.playbackState="none"}catch(e){}},50),console.log("✅ MediaSession cleared")}catch(e){console.warn("MediaSession clear failed:",e)}console.log("✅ MediaSession KILL completato")}pauseSession(){"mediaSession"in navigator&&(navigator.mediaSession.playbackState="paused"),this.updateMetadata({title:"⏸️ In pausa",artist:this.currentExercise||"Allenamento",album:this.currentWorkoutName})}resumeSession(){"mediaSession"in navigator&&(navigator.mediaSession.playbackState="playing"),this.audioElement&&this.audioElement.paused&&this.audioElement.play().catch(e=>console.log("Resume audio failed:",e))}onPlayPauseCallback(callback){this.onPlayPause=callback}onPreviousCallback(callback){this.onPrevious=callback}onNextCallback(callback){this.onNext=callback}onSeekBackwardCallback(callback){this.onSeekBackward=callback}onSeekForwardCallback(callback){this.onSeekForward=callback}isLockscreenSupported(){return"mediaSession"in navigator}getStatus(){return{isActive:this.isActive,isPlaying:this.isPlaying,currentExercise:this.currentExercise,currentSet:this.currentSet,totalSets:this.totalSets,timerValue:this.timerValue,lockscreenSupported:this.isLockscreenSupported()}}}export const mediaSessionManager=new MediaSessionManager;
+function detectIOSDevice() {
+    const ua = navigator.userAgent || "";
+    const platform = navigator.platform || "";
+    return /iPad|iPhone|iPod/.test(ua) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isStandalonePwa() {
+    return Boolean(
+        window.matchMedia?.("(display-mode: standalone)")?.matches ||
+        window.navigator.standalone === true
+    );
+}
+
+export class MediaSessionManager {
+    constructor() {
+        this.isActive = false;
+        this.currentWorkoutName = "Allenamento";
+        this.currentExercise = "";
+        this.currentSet = 1;
+        this.totalSets = 3;
+        this.timerValue = 0;
+        this.timerInterval = null;
+        this.audioElement = null;
+        this.audioReadyPromise = null;
+        this.audioBlobUrl = null;
+        this.audioContext = null;
+        this.oscillator = null;
+        this.gainNode = null;
+        this.isPlaying = false;
+        this.isPaused = false;
+        this.timerSessionCounter = 0;
+        this.activeTimerSessionId = null;
+        this.nativePlugin = null;
+        this.initialTimerDuration = null;
+        this.onTimerComplete = null;
+        this.isNative = this.checkIfNative();
+        this.isIOS = detectIOSDevice();
+        this.isStandalone = isStandalonePwa();
+    }
+
+    checkIfNative() {
+        return typeof window !== "undefined" && Boolean(window.Capacitor?.isNativePlatform?.());
+    }
+
+    async initNativePlugin() {
+        if (!this.isNative) {
+            return;
+        }
+
+        try {
+            const capacitor = window.Capacitor;
+            if (capacitor?.Plugins?.TimerNotification) {
+                this.nativePlugin = capacitor.Plugins.TimerNotification;
+                console.log("[MediaSessionManager] Native timer plugin found via Capacitor.Plugins");
+            } else if (typeof capacitor?.registerPlugin === "function") {
+                this.nativePlugin = capacitor.registerPlugin("TimerNotification");
+                console.log("[MediaSessionManager] Native timer plugin registered dynamically");
+            } else {
+                throw new Error("Capacitor not available");
+            }
+
+            if (this.nativePlugin.addListener) {
+                this.nativePlugin.addListener("timerTick", (data) => {
+                    this.timerValue = data.remaining;
+                });
+
+                this.nativePlugin.addListener("timerComplete", () => {
+                    if (this.activeTimerSessionId === null) {
+                        return;
+                    }
+
+                    this.stopTimerDisplay();
+                    this.onTimerComplete?.();
+                });
+            }
+
+            console.log("[MediaSessionManager] Native timer plugin initialized");
+        } catch (error) {
+            console.log("[MediaSessionManager] Native timer plugin unavailable:", error.message);
+            this.isNative = false;
+            this.nativePlugin = null;
+        }
+    }
+
+    async init() {
+        if (this.isNative) {
+            await this.initNativePlugin();
+            console.log("[MediaSessionManager] Native app mode: using foreground service only");
+            return;
+        }
+
+        if (!("mediaSession" in navigator)) {
+            console.warn("[MediaSessionManager] Media Session API unavailable");
+            return;
+        }
+
+        await this.createPersistentAudio();
+        this.setupActionHandlers();
+        this.updateMetadata({
+            title: "GymBro",
+            artist: "Focus Mode",
+            album: "Allenamento"
+        });
+        console.log(
+            `[MediaSessionManager] Web mode initialized, standalone=${this.isStandalone}, ios=${this.isIOS}`
+        );
+    }
+
+    async createPersistentAudio(forceRecreate = false) {
+        if (this.isNative) {
+            return null;
+        }
+
+        if (!forceRecreate && this.audioElement && this.audioReadyPromise) {
+            return this.audioReadyPromise;
+        }
+
+        if (forceRecreate) {
+            this.destroyAudioElement();
+        }
+
+        const audio = document.createElement("audio");
+        audio.loop = true;
+        audio.volume = 0.01;
+        audio.preload = "auto";
+        audio.setAttribute("playsinline", "");
+        audio.setAttribute("webkit-playsinline", "");
+        audio.style.display = "none";
+
+        this.audioElement = audio;
+        this.audioReadyPromise = this.generateSilentAudioBlob().then((blob) => new Promise((resolve) => {
+            let settled = false;
+
+            const finish = () => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                audio.removeEventListener("canplaythrough", finish);
+                audio.removeEventListener("loadeddata", finish);
+                audio.removeEventListener("error", handleError);
+
+                if (!audio.isConnected) {
+                    document.body.appendChild(audio);
+                }
+
+                resolve(audio);
+            };
+
+            const handleError = (error) => {
+                console.warn("[MediaSessionManager] Silent audio failed to preload:", error);
+                finish();
+            };
+
+            if (this.audioBlobUrl) {
+                URL.revokeObjectURL(this.audioBlobUrl);
+            }
+
+            this.audioBlobUrl = URL.createObjectURL(blob);
+
+            audio.addEventListener("canplaythrough", finish, { once: true });
+            audio.addEventListener("loadeddata", finish, { once: true });
+            audio.addEventListener("error", handleError, { once: true });
+            audio.src = this.audioBlobUrl;
+
+            if (!audio.isConnected) {
+                document.body.appendChild(audio);
+            }
+
+            audio.load();
+
+            // The generated audio is local and tiny; this keeps slow Safari devices deterministic.
+            setTimeout(finish, 150);
+        }));
+
+        return this.audioReadyPromise;
+    }
+
+    async generateSilentAudioBlob() {
+        return new Promise((resolve) => {
+            const sampleRate = 44100;
+            const duration = 30;
+            const numChannels = 2;
+            const numSamples = sampleRate * duration;
+            const buffer = new ArrayBuffer(44 + (numSamples * numChannels * 2));
+            const view = new DataView(buffer);
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, "RIFF");
+            view.setUint32(4, 36 + (numSamples * numChannels * 2), true);
+            writeString(8, "WAVE");
+            writeString(12, "fmt ");
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * 2, true);
+            view.setUint16(32, numChannels * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, "data");
+            view.setUint32(40, numSamples * numChannels * 2, true);
+
+            resolve(new Blob([buffer], { type: "audio/wav" }));
+        });
+    }
+
+    async startAudioSession() {
+        if (this.isNative) {
+            console.log("[MediaSessionManager] Skipping web audio session on native app");
+            return true;
+        }
+
+        await this.createPersistentAudio();
+
+        if (!this.audioElement) {
+            console.warn("[MediaSessionManager] Audio element not ready");
+            return false;
+        }
+
+        try {
+            await this.audioReadyPromise;
+            await this.audioElement.play();
+            this.isPlaying = true;
+
+            if ("mediaSession" in navigator) {
+                navigator.mediaSession.playbackState = "playing";
+            }
+
+            console.log("[MediaSessionManager] Audio session started");
+            return true;
+        } catch (error) {
+            console.error("[MediaSessionManager] Failed to start audio session:", error);
+            return false;
+        }
+    }
+
+    updateMetadata({ title, artist, album, artwork }) {
+        if (this.isNative || !("mediaSession" in navigator)) {
+            return;
+        }
+
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: title || this.currentExercise || "Allenamento",
+                artist: artist || `Set ${this.currentSet}/${this.totalSets}`,
+                album: album || this.currentWorkoutName,
+                artwork: artwork || [
+                    { src: "assets/icon-192.png", sizes: "192x192", type: "image/png" },
+                    { src: "assets/icon-512.png", sizes: "512x512", type: "image/png" }
+                ]
+            });
+        } catch (error) {
+            console.warn("[MediaSessionManager] Failed to update metadata:", error);
+        }
+    }
+
+    setupActionHandlers() {
+        if (this.isNative || !("mediaSession" in navigator)) {
+            return;
+        }
+
+        try {
+            navigator.mediaSession.setActionHandler("previoustrack", () => {
+                console.log("[MediaSessionManager] Previous track pressed");
+                this.onPrevious?.();
+            });
+
+            navigator.mediaSession.setActionHandler("nexttrack", () => {
+                console.log("[MediaSessionManager] Next track pressed");
+                this.onNext?.();
+            });
+        } catch (error) {
+            console.log("[MediaSessionManager] Track handlers not supported:", error);
+        }
+
+        navigator.mediaSession.playbackState = "none";
+        console.log("[MediaSessionManager] Display-only mode enabled");
+    }
+
+    async reinitializeAudioAfterPause() {
+        console.log("[MediaSessionManager] Reinitializing audio after pause");
+
+        if (this.audioContext?.state === "suspended") {
+            try {
+                await this.audioContext.resume();
+                console.log("[MediaSessionManager] AudioContext resumed");
+            } catch (error) {
+                console.warn("[MediaSessionManager] AudioContext resume failed:", error);
+            }
+        }
+
+        if (this.isIOS && this.audioElement && (this.audioElement.error || this.audioElement.networkState === 3)) {
+            await this.recreateAudioElement();
+        }
+    }
+
+    async recreateAudioElement() {
+        console.log("[MediaSessionManager] Recreating persistent audio element");
+        this.destroyAudioElement();
+        await this.createPersistentAudio(true);
+
+        if (this.audioElement) {
+            await this.audioElement.play().catch((error) => {
+                console.log("[MediaSessionManager] Recreated audio play failed:", error);
+            });
+        }
+    }
+
+    async startWorkout(workoutName) {
+        this.isActive = true;
+        this.currentWorkoutName = workoutName;
+
+        if (this.isNative) {
+            console.log("[MediaSessionManager] Native workout session started");
+            return true;
+        }
+
+        this.updateMetadata({
+            title: workoutName,
+            artist: "GymBro Focus Mode",
+            album: "Allenamento in corso"
+        });
+
+        const success = await this.startAudioSession();
+        if (success) {
+            console.log("[MediaSessionManager] Workout session started with lockscreen support");
+        } else {
+            console.warn("[MediaSessionManager] Lockscreen support may be degraded");
+        }
+
+        return success;
+    }
+
+    updateExercise(exerciseName, currentSet, totalSets) {
+        this.currentExercise = exerciseName;
+        this.currentSet = currentSet;
+        this.totalSets = totalSets;
+
+        this.updateMetadata({
+            title: `💪 ${exerciseName}`,
+            artist: `Set ${currentSet}/${totalSets}`,
+            album: this.currentWorkoutName
+        });
+
+        this.updatePositionState(currentSet, totalSets);
+    }
+
+    updatePositionState(current, total) {
+        if (this.isNative || !("mediaSession" in navigator) || !("setPositionState" in navigator.mediaSession)) {
+            return;
+        }
+
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: total * 60,
+                playbackRate: 1,
+                position: current * 60
+            });
+        } catch (error) {
+            console.warn("[MediaSessionManager] Position state update failed:", error);
+        }
+    }
+
+    updateTimer(seconds) {
+        this.timerValue = seconds;
+        if (this.isNative) {
+            return;
+        }
+
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        const timerText = `${minutes}:${secs.toString().padStart(2, "0")}`;
+
+        this.updateMetadata({
+            title: `⏱️ Riposo: ${timerText}`,
+            artist: `Prossimo: ${this.currentExercise || "Set successivo"}`,
+            album: this.currentWorkoutName
+        });
+
+        if ("mediaSession" in navigator && "setPositionState" in navigator.mediaSession) {
+            try {
+                const initialDuration = this.initialTimerDuration || seconds;
+                const elapsed = initialDuration - seconds;
+                navigator.mediaSession.setPositionState({
+                    duration: initialDuration,
+                    playbackRate: 1,
+                    position: Math.max(0, elapsed)
+                });
+            } catch (error) {
+                console.warn("[MediaSessionManager] Timer position update failed:", error);
+            }
+        }
+    }
+
+    async startTimerDisplay(initialSeconds, onTick, onComplete) {
+        this.stopTimerDisplay();
+        this.initialTimerDuration = initialSeconds;
+        this.onTimerComplete = onComplete;
+        const timerSessionId = ++this.timerSessionCounter;
+        this.activeTimerSessionId = timerSessionId;
+        let remainingSeconds = initialSeconds;
+
+        if (this.isNative && this.nativePlugin) {
+            try {
+                await this.nativePlugin.startTimer({
+                    seconds: initialSeconds,
+                    exercise: this.currentExercise || "Prossimo esercizio",
+                    workout: this.currentWorkoutName
+                });
+
+                console.log(`[MediaSessionManager] Native timer started: ${initialSeconds}s`);
+                this.timerInterval = setInterval(() => {
+                    remainingSeconds--;
+                    if (remainingSeconds >= 0) {
+                        onTick?.(remainingSeconds);
+                    }
+                    if (remainingSeconds <= 0) {
+                        if (this.activeTimerSessionId !== timerSessionId) {
+                            return;
+                        }
+
+                        this.activeTimerSessionId = null;
+                        this.stopTimerDisplay();
+                        onComplete?.();
+                    }
+                }, 1000);
+                return;
+            } catch (error) {
+                console.log("[MediaSessionManager] Native timer failed, falling back to web:", error);
+            }
+        }
+
+        await this.createPersistentAudio();
+        this.updateTimer(remainingSeconds);
+
+        if (this.audioElement?.paused) {
+            await this.audioElement.play().catch((error) => {
+                console.log("[MediaSessionManager] Audio play failed during timer:", error);
+            });
+        }
+
+        if ("mediaSession" in navigator) {
+            navigator.mediaSession.playbackState = "playing";
+        }
+
+        this.timerInterval = setInterval(() => {
+            remainingSeconds--;
+
+            if (remainingSeconds >= 0) {
+                this.updateTimer(remainingSeconds);
+                onTick?.(remainingSeconds);
+            }
+
+            if (remainingSeconds <= 0) {
+                if (this.activeTimerSessionId !== timerSessionId) {
+                    return;
+                }
+
+                this.activeTimerSessionId = null;
+                this.stopTimerDisplay();
+                this.updateMetadata({
+                    title: "✅ Riposo completato!",
+                    artist: `Inizia: ${this.currentExercise || "Set successivo"}`,
+                    album: this.currentWorkoutName
+                });
+                onComplete?.();
+            }
+        }, 1000);
+
+        console.log(`[MediaSessionManager] Web timer started: ${initialSeconds}s`);
+    }
+
+    stopTimerDisplay() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+
+        this.initialTimerDuration = null;
+        this.activeTimerSessionId = null;
+
+        if (this.isNative && this.nativePlugin) {
+            void this.nativePlugin.stopTimer().catch((error) => {
+                console.log("[MediaSessionManager] Native timer stop failed:", error);
+            });
+        }
+    }
+
+    endWorkout() {
+        this.isActive = false;
+        this.stopTimerDisplay();
+        this.updateMetadata({
+            title: "🎉 Allenamento Completato!",
+            artist: "Ottimo lavoro!",
+            album: this.currentWorkoutName
+        });
+
+        setTimeout(() => {
+            this.audioElement?.pause();
+            this.isPlaying = false;
+
+            if ("mediaSession" in navigator) {
+                navigator.mediaSession.playbackState = "none";
+            }
+        }, 3000);
+    }
+
+    async killSession() {
+        console.log("[MediaSessionManager] Kill session");
+
+        this.isActive = false;
+        this.isPlaying = false;
+        this.isPaused = false;
+
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+
+        if (this.isNative && this.nativePlugin) {
+            try {
+                await this.nativePlugin.stopTimer();
+                console.log("[MediaSessionManager] Native timer service stopped");
+            } catch (error) {
+                console.warn("[MediaSessionManager] Native timer stop failed:", error);
+            }
+        }
+
+        this.destroyAudioElement();
+
+        try {
+            const allAudio = document.querySelectorAll("audio");
+            allAudio.forEach((element) => {
+                element.pause();
+                element.src = "";
+                element.remove();
+            });
+
+            if (allAudio.length) {
+                console.log(`[MediaSessionManager] Destroyed ${allAudio.length} audio elements`);
+            }
+        } catch (error) {
+            console.warn("[MediaSessionManager] Failed to destroy audio elements:", error);
+        }
+
+        if (this.oscillator) {
+            try {
+                this.oscillator.stop();
+                this.oscillator.disconnect();
+            } catch (error) {
+                console.warn("[MediaSessionManager] Failed to stop oscillator:", error);
+            }
+            this.oscillator = null;
+        }
+
+        if (this.audioContext && this.audioContext.state !== "closed") {
+            try {
+                await this.audioContext.close();
+                console.log("[MediaSessionManager] AudioContext closed");
+            } catch (error) {
+                console.warn("[MediaSessionManager] AudioContext close failed:", error);
+            }
+        }
+        this.audioContext = null;
+
+        if ("mediaSession" in navigator) {
+            try {
+                navigator.mediaSession.metadata = null;
+                navigator.mediaSession.playbackState = "paused";
+
+                try {
+                    navigator.mediaSession.setPositionState(null);
+                } catch (error) {
+                    console.warn("[MediaSessionManager] Failed to clear MediaSession position state:", error);
+                }
+
+                const actions = [ "play", "pause", "previoustrack", "nexttrack", "seekbackward", "seekforward", "stop" ];
+                actions.forEach((action) => {
+                    try {
+                        navigator.mediaSession.setActionHandler(action, null);
+                    } catch (error) {
+                        console.warn(`[MediaSessionManager] Failed to clear action ${action}:`, error);
+                    }
+                });
+
+                setTimeout(() => {
+                    try {
+                        navigator.mediaSession.metadata = null;
+                        navigator.mediaSession.playbackState = "none";
+                    } catch (error) {
+                        console.warn("[MediaSessionManager] Delayed MediaSession clear failed:", error);
+                    }
+                }, 50);
+            } catch (error) {
+                console.warn("[MediaSessionManager] MediaSession clear failed:", error);
+            }
+        }
+    }
+
+    destroyAudioElement() {
+        if (!this.audioElement) {
+            return;
+        }
+
+        try {
+            this.audioElement.pause();
+            this.audioElement.src = "";
+            this.audioElement.remove();
+        } catch (error) {
+            console.warn("[MediaSessionManager] Failed to destroy audio element:", error);
+        }
+
+        if (this.audioBlobUrl) {
+            URL.revokeObjectURL(this.audioBlobUrl);
+            this.audioBlobUrl = null;
+        }
+
+        this.audioElement = null;
+        this.audioReadyPromise = null;
+    }
+
+    pauseSession() {
+        if ("mediaSession" in navigator) {
+            navigator.mediaSession.playbackState = "paused";
+        }
+
+        this.updateMetadata({
+            title: "⏸️ In pausa",
+            artist: this.currentExercise || "Allenamento",
+            album: this.currentWorkoutName
+        });
+    }
+
+    resumeSession() {
+        if ("mediaSession" in navigator) {
+            navigator.mediaSession.playbackState = "playing";
+        }
+
+        this.audioElement?.paused && void this.audioElement.play().catch((error) => {
+            console.log("[MediaSessionManager] Resume audio failed:", error);
+        });
+    }
+
+    onPlayPauseCallback(callback) {
+        this.onPlayPause = callback;
+    }
+
+    onPreviousCallback(callback) {
+        this.onPrevious = callback;
+    }
+
+    onNextCallback(callback) {
+        this.onNext = callback;
+    }
+
+    onSeekBackwardCallback(callback) {
+        this.onSeekBackward = callback;
+    }
+
+    onSeekForwardCallback(callback) {
+        this.onSeekForward = callback;
+    }
+
+    isLockscreenSupported() {
+        return this.isNative || "mediaSession" in navigator;
+    }
+
+    getStatus() {
+        return {
+            isActive: this.isActive,
+            isPlaying: this.isPlaying,
+            currentExercise: this.currentExercise,
+            currentSet: this.currentSet,
+            totalSets: this.totalSets,
+            timerValue: this.timerValue,
+            lockscreenSupported: this.isLockscreenSupported(),
+            isStandalone: this.isStandalone,
+            isIOS: this.isIOS
+        };
+    }
+}
+
+export const mediaSessionManager = new MediaSessionManager();

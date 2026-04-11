@@ -3,6 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithCredential } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
     getFirestore,
+    initializeFirestore,
     doc,
     setDoc,
     getDoc,
@@ -23,7 +24,7 @@ import {
     increment,
     addDoc,
     Timestamp,
-    enableIndexedDbPersistence
+    persistentLocalCache
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
@@ -40,21 +41,18 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 const functions = getFunctions(app);
 
-// Enable offline persistence for resilience
-try {
-    enableIndexedDbPersistence(db).catch((err) => {
-        if (err.code === 'failed-precondition') {
-            console.warn('Persistence failed: Multiple tabs open');
-        } else if (err.code === 'unimplemented') {
-            console.warn('Persistence not available in this browser');
-        }
-    });
-} catch (e) {
-    console.warn('Persistence setup error:', e);
-}
+const db = (() => {
+    try {
+        return initializeFirestore(app, {
+            localCache: persistentLocalCache()
+        });
+    } catch (error) {
+        console.warn("Persistent cache setup error:", error);
+        return getFirestore(app);
+    }
+})();
 
 export {
     auth,
