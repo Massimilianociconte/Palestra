@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  P2.26/P2.27 — Enforce TLS for all network traffic in the webview.
+  Cleartext is denied app-wide. This is also the Android 9+ default, but
+  we pin it explicitly so downgrades can't be done via overrides.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- No per-domain overrides: every host must speak HTTPS. -->
+</network-security-config>

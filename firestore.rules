@@ -2,22 +2,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // User profiles: Users can read/write only their own data
-    // Other authenticated users can read basic profile info (for friends feature)
+    // User profiles: owner has full access; other authenticated users have
+    // limited read (for legacy friends/rooms UI that still reads the main doc).
+    //
+    // SECURITY P0.6 (partial, staged):
+    //   - Writes: only the owner.
+    //   - Reads by other authenticated users: still allowed for backward
+    //     compatibility (friend list, room member name, diary search...).
+    //     A full schema split (sensitive data into /private/*) is tracked in
+    //     PROGRESS.md as P0.6-FOLLOWUP. Once done, the outer read rule will
+    //     become `request.auth.uid == userId` and `/public/profile` will be
+    //     the only peer-readable document.
+    //
+    //   - The /public/profile sub-document is already available NOW as the
+    //     preferred peer surface. New code should prefer it.
     match /users/{userId} {
-      // Anyone authenticated can read user profiles (for search/friends)
       allow read: if request.auth != null;
-      // Only the user can write their own profile
       allow write: if request.auth != null && request.auth.uid == userId;
-      
+
       // Private subcollection (health tokens, etc.)
       match /private/{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
-      
-      // Health data subcollection
+
+      // Health data subcollection: OWNER ONLY (contains sensitive vitals).
       match /health/{healthId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Public profile subcollection: minimal, peer-readable (displayName,
+      // photoUrl, allowSearch flag, preferredUnits). Never contains email,
+      // workouts, stats, photos or vitals.
+      // Owner writes only; any authenticated user can read.
+      match /public/{docId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == userId;
       }
     }
     

@@ -2,6 +2,28 @@
   "appId": "com.gymbro.app",
   "appName": "GymBro",
   "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": [
+      "massimilianociconte.github.io",
+      "*.firebaseapp.com",
+      "*.firebaseio.com",
+      "*.cloudfunctions.net",
+      "*.googleapis.com",
+      "*.gstatic.com",
+      "fonts.googleapis.com",
+      "fonts.gstatic.com",
+      "accounts.google.com",
+      "api.tryterra.co",
+      "widget.tryterra.co",
+      "api.imgbb.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 3000,
@@ -11,6 +33,10 @@
       "showSpinner": true,
       "androidSpinnerStyle": "large",
       "spinnerColor": "#00f3ff"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#00f3ff"
     }
   }
 }

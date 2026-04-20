@@ -12,35 +12,60 @@ function getCapacitor() {
     return typeof window !== "undefined" ? window.Capacitor || null : null;
 }
 
+/**
+ * SECURITY/STABILITY P1.12:
+ * The `NativeProximity` Capacitor plugin referenced by this service has no
+ * native Java implementation in android/app/src/main/java. Calling
+ * `capacitor.registerPlugin("NativeProximity")` used to return a proxy that
+ * would throw at runtime, breaking the "GymBro Nearby" feature silently.
+ *
+ * Until the Android plugin ships, we:
+ *   1. Return a stable stub that reports "unavailable" without throwing.
+ *   2. Log a single warning (not in a hot path) for observability.
+ *   3. Leave a `_isPluginAvailable` flag so callers can short-circuit.
+ *
+ * The web implementation (`proximity-web-service.js`) is unaffected.
+ */
+const NATIVE_STUB = Object.freeze({
+    available: false,
+    startAdvertising: async () => ({ success: false, error: "native_plugin_unavailable" }),
+    startDiscovery: async () => ({ success: false, error: "native_plugin_unavailable" }),
+    stopDiscovery: async () => ({ success: true, skipped: true }),
+    stopAll: async () => ({ success: true, skipped: true }),
+    getState: async () => ({
+        isAdvertising: false,
+        isDiscovering: false,
+        available: false
+    }),
+    addListener: () => ({ remove() { /* noop */ } })
+});
+
+let _nativeProximityWarned = false;
+function warnOnceNativeUnavailable(reason) {
+    if (_nativeProximityWarned) return;
+    _nativeProximityWarned = true;
+    console.warn(
+        `[ProximityNativePlugin] NativeProximity plugin unavailable (${reason}). ` +
+        "GymBro Nearby falls back to the web geolocation service."
+    );
+}
+
 function getNativeProximityPlugin() {
     const capacitor = getCapacitor();
     if (!capacitor) {
-        return {
-            startAdvertising: async () => ({ success: false, error: "Capacitor non disponibile" }),
-            startDiscovery: async () => ({ success: false, error: "Capacitor non disponibile" }),
-            stopDiscovery: async () => ({ success: true }),
-            stopAll: async () => ({ success: true }),
-            getState: async () => ({ isAdvertising: false, isDiscovering: false }),
-            addListener: () => ({ remove() {} })
-        };
+        warnOnceNativeUnavailable("capacitor_missing");
+        return NATIVE_STUB;
     }
 
-    if (capacitor.Plugins?.NativeProximity) {
-        return capacitor.Plugins.NativeProximity;
+    const plugin = capacitor.Plugins?.NativeProximity;
+    // The plugin must expose at least startAdvertising/startDiscovery to be
+    // considered "real"; otherwise we treat it as unavailable.
+    if (plugin && typeof plugin.startAdvertising === "function" && typeof plugin.startDiscovery === "function") {
+        return Object.assign({ available: true }, plugin);
     }
 
-    if (typeof capacitor.registerPlugin === "function") {
-        return capacitor.registerPlugin("NativeProximity");
-    }
-
-    return {
-        startAdvertising: async () => ({ success: false, error: "Plugin non disponibile" }),
-        startDiscovery: async () => ({ success: false, error: "Plugin non disponibile" }),
-        stopDiscovery: async () => ({ success: true }),
-        stopAll: async () => ({ success: true }),
-        getState: async () => ({ isAdvertising: false, isDiscovering: false }),
-        addListener: () => ({ remove() {} })
-    };
+    warnOnceNativeUnavailable(plugin ? "invalid_plugin_shape" : "plugin_not_registered");
+    return NATIVE_STUB;
 }
 
 export class ProximityNativePlugin {
@@ -61,7 +86,8 @@ export class ProximityNativePlugin {
     }
 
     isNativeAvailable() {
-        return this._isNative;
+        // P1.12: require both native platform AND a real plugin implementation.
+        return Boolean(this._isNative && this._nativePlugin && this._nativePlugin.available);
     }
 
     getProximityId() {

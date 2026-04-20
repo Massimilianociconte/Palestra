@@ -369,8 +369,27 @@ export class PRTracker {
             return;
         }
 
-        const encodedPRs = encodeURIComponent(JSON.stringify(this.sessionPRs));
-        window.location.href = `${PR_HUB_URL}?session_prs=${encodedPRs}`;
+        // P1.15: persist session PRs via sessionStorage instead of query string.
+        // Large sessions (many exercises × many record types) can easily exceed
+        // browser URL limits (~8KB on WebView), which caused silent failures.
+        try {
+            sessionStorage.setItem(
+                "ironflow_session_prs",
+                JSON.stringify({
+                    prs: this.sessionPRs,
+                    savedAt: Date.now()
+                })
+            );
+        } catch (err) {
+            console.warn("[PRTracker] sessionStorage write failed, falling back to URL:", err);
+            const encodedPRs = encodeURIComponent(JSON.stringify(this.sessionPRs));
+            // Keep a safety upper bound (~6 KB) to stay below WebView URL limits
+            if (encodedPRs.length < 6000) {
+                window.location.href = `${PR_HUB_URL}?session_prs=${encodedPRs}`;
+                return;
+            }
+        }
+        window.location.href = `${PR_HUB_URL}?session_prs=1`;
     }
 
     async sendAggregatedNativeNotification(title, body, count) {

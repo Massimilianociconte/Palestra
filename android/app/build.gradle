@@ -18,8 +18,15 @@ android {
     }
     buildTypes {
         release {
+            // P3.36 — enable R8 shrinking/obfuscation for release builds.
+            // proguard-rules.pro keeps Capacitor, our native timer plugin and
+            // Firebase/Google APIs reachable.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }

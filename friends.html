@@ -32,16 +32,20 @@
     <link rel="stylesheet" href="css/lucide-icons.css">
     <script src="js/capacitor-bootstrap.js"></script>
     <script src="js/sanitize.js"></script>
-    <!-- QR Code Library - local copy for reliability -->
-    <script src="js/lib/qrcode.min.js"></script>
+    <!-- P3.39: QR Code library loaded with defer; it's only used after
+         the user opens the invite modal so blocking on it at parse time
+         delays first paint for no benefit. -->
+    <script defer src="js/lib/qrcode.min.js"></script>
     <script>
-        // Verify QR library loaded
-        if (window.QRCode) {
-            console.log('✅ [QR] Library loaded from local file');
-            window._qrLibraryLoaded = true;
-        } else {
-            console.error('❌ [QR] Local library failed to load');
-        }
+        // P3.39: check after defer scripts have run, not at parse time.
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.QRCode) {
+                console.log('✅ [QR] Library loaded from local file');
+                window._qrLibraryLoaded = true;
+            } else {
+                console.error('❌ [QR] Local library failed to load');
+            }
+        });
     </script>
     <style>
         /* ====== FRIENDS PAGE — PREMIUM REDESIGN ====== */
@@ -1646,7 +1650,7 @@
 
     </script>
     <script src="js/main.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lib/lucide.min.js"></script>
     <script src="js/lucide-init.js"></script>
 
     <!-- Footer -->

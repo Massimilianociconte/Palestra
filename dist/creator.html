@@ -37,10 +37,11 @@
     <link rel="stylesheet" href="css/gymbro-chat.css">
     <link rel="stylesheet" href="css/lucide-icons.css">
     <script src="js/capacitor-bootstrap.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lib/lucide.min.js"></script>
     <script src="js/lucide-init.js"></script>
     <script src="js/sanitize.js"></script>
-    <script src="js/lib/sortable.min.js"></script>
+    <!-- P3.39: defer SortableJS (only needed after DOM ready for drag&drop) -->
+    <script defer src="js/lib/sortable.min.js"></script>
     <style>
         /* ===== GLOBAL SYMMETRY SYSTEM ===== */
         :root {

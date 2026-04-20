@@ -44,7 +44,8 @@
         <link rel="stylesheet" href="css/lucide-icons.css" />
         <script src="js/capacitor-bootstrap.js"></script>
         <script src="js/sanitize.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+        <!-- P3.39: use the local copy of SortableJS (defer, drop CDN) -->
+        <script defer src="js/lib/sortable.min.js"></script>
         <style>
             /* =========================
            LOG ENTRY CARDS - Compatte e Professionali
@@ -3686,7 +3687,7 @@
             </div>
         </footer>
 
-        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+        <script src="js/lib/lucide.min.js"></script>
         <script src="js/lucide-init.js"></script>
     </body>
 </html>

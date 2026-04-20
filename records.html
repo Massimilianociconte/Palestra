@@ -1215,19 +1215,39 @@
             const sessionList = document.getElementById('sessionPRList');
             const sessionSubtitle = document.getElementById('sessionPRSubtitle');
 
-            // Check if coming from workout with new PRs
+            // P1.15: session PRs are now passed via sessionStorage; the URL
+            // parameter (session_prs=1 or legacy JSON) is only a hint.
             const urlParams = new URLSearchParams(window.location.search);
             const sessionPRsParam = urlParams.get('session_prs');
 
             if (sessionPRsParam) {
                 try {
-                    const prs = JSON.parse(decodeURIComponent(sessionPRsParam));
-                    if (prs.length > 0) {
+                    let prs = null;
+                    // 1) Preferred: sessionStorage payload
+                    try {
+                        const raw = sessionStorage.getItem('ironflow_session_prs');
+                        if (raw) {
+                            const parsed = JSON.parse(raw);
+                            if (parsed && Array.isArray(parsed.prs)) {
+                                prs = parsed.prs;
+                            }
+                            sessionStorage.removeItem('ironflow_session_prs');
+                        }
+                    } catch (_) { /* ignore */ }
+
+                    // 2) Legacy fallback: JSON-encoded querystring
+                    if (!prs && sessionPRsParam !== '1') {
+                        try {
+                            prs = JSON.parse(decodeURIComponent(sessionPRsParam));
+                        } catch (_) { /* ignore */ }
+                    }
+
+                    if (Array.isArray(prs) && prs.length > 0) {
                         showSessionPRs(prs);
                     }
                     window.history.replaceState({}, '', window.location.pathname);
                 } catch (e) {
-                    console.warn('Failed to parse session PRs:', e);
+                    console.warn('Failed to load session PRs:', e);
                 }
             }
 
@@ -1605,7 +1625,7 @@
         </div>
     </footer>
 
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="js/lib/lucide.min.js"></script>
     <script src="js/lucide-init.js"></script>
 </body>
 

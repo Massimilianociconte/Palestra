@@ -22,10 +22,13 @@
   "homepage": "https://github.com/Atomiksnip3r04/Palestra#readme",
   "dependencies": {
     "@capacitor/android": "^7.4.4",
+    "@capacitor/app": "^7.1.2",
     "@capacitor/barcode-scanner": "^2.2.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@capacitor/filesystem": "^7.1.6",
+    "@capacitor/local-notifications": "^7.0.6",
+    "@capacitor/preferences": "^7.0.4",
     "@capacitor/share": "^7.0.3"
   },
   "devDependencies": {

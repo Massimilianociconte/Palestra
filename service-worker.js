@@ -1,4 +1,4 @@
-const CACHE_NAME = "gymbro-v6";
+const CACHE_NAME = "gymbro-v7";
 const DEFAULT_NOTIFICATION_URL = "./user.html";
 const DEFAULT_NOTIFICATION_ICON = "assets/icon-512.png";
 const DEFAULT_NOTIFICATION_BADGE = "assets/icon-192.png";
@@ -30,7 +30,11 @@ const ASSETS_TO_CACHE = [
     "./assets/icon.svg",
     "./assets/icon-192.png",
     "./assets/icon-512.png",
-    "./assets/apple-touch-icon.png"
+    "./assets/apple-touch-icon.png",
+    // P3.35: pre-rendered notification beep, used by NotificationManager
+    "./assets/audio/beep.wav",
+    // P2.22: self-hosted Lucide icons (no more unpkg CDN dependency)
+    "./js/lib/lucide.min.js"
 ];
 
 function isCacheableResponse(response) {
@@ -77,63 +81,97 @@ self.addEventListener("activate", (event) => {
     event.waitUntil(self.clients.claim());
 });
 
+// P1.18 — Improved fetch strategy.
+// - For NAVIGATIONS (request.mode === "navigate") we fall back to cached HTML
+//   or index.html, because serving nothing would show an error page.
+// - For JS/CSS we serve the cached response ONLY IF the network fails AND we
+//   have a cached copy of the same URL. We never synthesize an HTML fallback
+//   for scripts (would cause "Unexpected token '<'" at parse time).
+// - For same-origin API-ish paths (e.g. /api/...) we do not intercept at all.
+// - For third-party URLs we bypass the cache entirely.
+function isApiRequest(url) {
+    return (
+        url.pathname.startsWith("/api/") ||
+        url.hostname.endsWith("cloudfunctions.net") ||
+        url.hostname.endsWith("googleapis.com") ||
+        url.hostname.endsWith("firebaseio.com") ||
+        url.hostname.endsWith("firebaseapp.com") ||
+        url.hostname.endsWith("tryterra.co") ||
+        url.hostname === "api.imgbb.com"
+    );
+}
+
 self.addEventListener("fetch", (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
-    if (request.method !== "GET") {
+    if (request.method !== "GET") return;
+    if (!url.protocol.startsWith("http")) return;
+
+    const sameOrigin = url.origin === self.location.origin;
+    if (!sameOrigin) {
+        // Let third-party requests pass through; browser and CSP handle them.
         return;
     }
 
-    if (!url.protocol.startsWith("http")) {
-        return;
-    }
+    // Never intercept API calls — they must always reach the network.
+    if (isApiRequest(url)) return;
 
-    const isDynamicDocument =
-        request.mode === "navigate" ||
-        url.pathname.endsWith(".html") ||
-        url.pathname.endsWith(".js") ||
-        url.pathname.endsWith(".css") ||
-        url.pathname === "/" ||
-        url.pathname.endsWith("/");
+    const isNavigation = request.mode === "navigate";
+    const isHtml = url.pathname.endsWith(".html") || url.pathname === "/" || url.pathname.endsWith("/");
+    const isScript = url.pathname.endsWith(".js") || url.pathname.endsWith(".mjs");
+    const isStyle = url.pathname.endsWith(".css");
 
-    if (isDynamicDocument) {
+    if (isNavigation || isHtml) {
+        // Network-first, fallback to same-URL cache, then to index.html.
         event.respondWith(
             fetch(request)
                 .then((response) => {
                     if (isCacheableResponse(response)) {
-                        const responseClone = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(request, responseClone);
-                        });
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
                     }
-
                     return response;
                 })
                 .catch(async () => {
-                    const cachedResponse = await caches.match(request);
-                    return cachedResponse || caches.match("./index.html");
+                    const cached = await caches.match(request);
+                    return cached || (await caches.match("./index.html")) || Response.error();
                 })
         );
         return;
     }
 
+    if (isScript || isStyle) {
+        // Network-first with EXACT URL fallback only — never fall back to HTML
+        // for script/style requests (would break parsing).
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    if (isCacheableResponse(response)) {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+                    }
+                    return response;
+                })
+                .catch(async () => {
+                    const cached = await caches.match(request);
+                    return cached || Response.error();
+                })
+        );
+        return;
+    }
+
+    // Default: cache-first for static assets (images, fonts, etc.).
     event.respondWith(
         caches.match(request).then((cachedResponse) => {
-            if (cachedResponse) {
-                return cachedResponse;
-            }
-
+            if (cachedResponse) return cachedResponse;
             return fetch(request).then((response) => {
                 if (isCacheableResponse(response)) {
-                    const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(request, responseClone);
-                    });
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
                 }
-
                 return response;
-            });
+            }).catch(() => Response.error());
         })
     );
 });

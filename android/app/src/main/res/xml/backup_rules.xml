@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  P2.26 — Restrict Auto Backup for Android 6+ (API 23+).
+  We keep a minimal subset of user preferences but exclude anything that
+  contains workout/health PII (Capacitor WebView data, Preferences DB,
+  notification caches, IndexedDB, etc.).
+-->
+<full-backup-content>
+    <!-- Exclude the Capacitor WebView cache/storage which contains localStorage,
+         IndexedDB and Service Worker caches used by the webapp. -->
+    <exclude domain="database" />
+    <exclude domain="sharedpref" />
+    <exclude domain="file" path="app_webview/" />
+    <exclude domain="file" path="app_webview_test/" />
+    <exclude domain="file" path="app_CapacitorPreferences/" />
+    <exclude domain="file" path="cache/" />
+    <exclude domain="file" path="no_backup/" />
+    <exclude domain="external" />
+</full-backup-content>

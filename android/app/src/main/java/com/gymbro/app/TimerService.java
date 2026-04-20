@@ -6,6 +6,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.CountDownTimer;
@@ -16,8 +19,14 @@ import androidx.core.app.NotificationCompat;
 
 public class TimerService extends Service {
     private static final String TAG = "TimerService";
+    // P1.13: silent/ongoing channel for the ticking timer notification.
     private static final String CHANNEL_ID = "gymbro_timer_channel";
+    // P1.13: dedicated high-priority channel with sound+vibration for the
+    // rest-complete alert. Required because a channel's sound/vibration are
+    // locked at creation time on Android 8+.
+    private static final String CHANNEL_COMPLETE_ID = "gymbro_timer_complete_channel";
     private static final int NOTIFICATION_ID = 1001;
+    private static final int NOTIFICATION_COMPLETE_ID = 1002;
     
     private final IBinder binder = new TimerBinder();
     private CountDownTimer countDownTimer;
@@ -71,6 +80,7 @@ public class TimerService extends Service {
     
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Silent ticking channel
             NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 "Timer Allenamento",
@@ -82,6 +92,31 @@ public class TimerService extends Service {
             channel.setSound(null, null);
             channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             notificationManager.createNotificationChannel(channel);
+
+            // P1.13: separate high-priority channel with default sound + vibration
+            // so the user actually gets alerted when rest is over, even if the
+            // device is locked or the app is in the background.
+            NotificationChannel completeChannel = new NotificationChannel(
+                CHANNEL_COMPLETE_ID,
+                "Fine riposo",
+                NotificationManager.IMPORTANCE_HIGH
+            );
+            completeChannel.setDescription("Avviso sonoro al termine del timer di riposo");
+            completeChannel.setShowBadge(true);
+            completeChannel.enableVibration(true);
+            completeChannel.setVibrationPattern(new long[] { 0, 200, 120, 200, 120, 320 });
+            completeChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            try {
+                Uri sound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                AudioAttributes attrs = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+                completeChannel.setSound(sound, attrs);
+            } catch (Exception e) {
+                Log.w(TAG, "Could not attach default sound to complete channel", e);
+            }
+            notificationManager.createNotificationChannel(completeChannel);
         }
     }
 
@@ -282,18 +317,21 @@ public class TimerService extends Service {
     }
     
     private void updateNotificationComplete() {
+        // P1.13: update the ongoing notification silently so the shade stays
+        // consistent, and also fire a ONE-SHOT alert on the dedicated
+        // "complete" channel so the user hears/feels the end-of-rest signal.
         if (notificationBuilder != null) {
             RemoteViews expandedView = new RemoteViews(getPackageName(), R.layout.notification_timer_expanded);
             expandedView.setTextViewText(R.id.timer_text, "✓");
             expandedView.setTextViewText(R.id.label_text, "FATTO!");
             expandedView.setTextViewText(R.id.workout_text, workoutName);
             expandedView.setTextViewText(R.id.exercise_text, "Inizia: " + exerciseName);
-            
+
             NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle()
                 .setBigContentTitle("✅ FATTO!")
                 .bigText(workoutName + "\nInizia: " + exerciseName)
                 .setSummaryText("GymBro Timer");
-            
+
             notificationBuilder
                 .setContentTitle("✅ FATTO!")
                 .setContentText(workoutName + " • Inizia: " + exerciseName)
@@ -301,6 +339,30 @@ public class TimerService extends Service {
                 .setCustomBigContentView(expandedView)
                 .setOngoing(false);
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+        }
+
+        try {
+            Intent openIntent = new Intent(this, MainActivity.class);
+            openIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            PendingIntent pendingOpen = PendingIntent.getActivity(
+                this, 1, openIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
+            NotificationCompat.Builder completeBuilder =
+                new NotificationCompat.Builder(this, CHANNEL_COMPLETE_ID)
+                    .setSmallIcon(android.R.drawable.ic_media_play)
+                    .setContentTitle("✅ Fine riposo")
+                    .setContentText(workoutName + " • Inizia: " + exerciseName)
+                    .setAutoCancel(true)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
+                    .setContentIntent(pendingOpen);
+            notificationManager.notify(NOTIFICATION_COMPLETE_ID, completeBuilder.build());
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to fire timer-complete alert notification", e);
         }
     }
     

@@ -71,12 +71,25 @@ export class NotificationManager {
         this.notificationSound.preload = "auto";
         this.notificationSound.setAttribute("playsinline", "");
         this.notificationSound.setAttribute("webkit-playsinline", "");
+        this.notificationSound.volume = 1;
 
-        void this.generateBeepDataURI().then((dataURI) => {
-            this.notificationSound.src = dataURI;
-            this.notificationSound.volume = 1;
-            this.notificationSound.load();
-        });
+        // P3.35: prefer the pre-rendered static asset. This avoids the
+        // Web Audio / FileReader round-trip on every page load, works even
+        // when AudioContext is blocked (iOS pre-gesture), and is cacheable.
+        const STATIC_BEEP_URL = "assets/audio/beep.wav";
+        this.notificationSound.src = STATIC_BEEP_URL;
+        this.notificationSound.load();
+
+        // Fallback: if the static file can't be loaded (offline before the
+        // service worker cached it, custom deploy path, etc.) regenerate it
+        // on the fly from Web Audio — identical sound, just costlier.
+        this.notificationSound.addEventListener("error", () => {
+            console.warn("[NotificationManager] static beep.wav unavailable, falling back to generated data URI");
+            void this.generateBeepDataURI().then((dataURI) => {
+                this.notificationSound.src = dataURI;
+                this.notificationSound.load();
+            });
+        }, { once: true });
     }
 
     async generateBeepDataURI() {

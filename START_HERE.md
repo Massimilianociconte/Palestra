@@ -13,7 +13,7 @@ Ho risolto i problemi con la connessione Google Fit:
 
 ### Opzione 1: Test Rapido (5 minuti)
 
-1. Vai su: https://atomiksnip3r04.github.io/Palestra/user.html
+1. Vai su: https://massimilianociconte.github.io/Palestra/user.html
 2. Effettua il login
 3. Scorri fino a "Connessione Salute"
 4. Clicca "Connetti Google Fit"
@@ -25,7 +25,7 @@ Ho risolto i problemi con la connessione Google Fit:
 
 ### Opzione 2: Test Completo (10 minuti)
 
-1. Apri: https://atomiksnip3r04.github.io/Palestra/test-oauth-config.html
+1. Apri: https://massimilianociconte.github.io/Palestra/test-oauth-config.html
 2. Segui i 4 test nell'ordine
 3. Verifica che tutti passino ✅
 
