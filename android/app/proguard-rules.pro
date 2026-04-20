@@ -41,7 +41,21 @@
 -keepnames class * extends android.app.Service
 -keepnames class * extends android.app.Application
 
-# Reflection-based JSON parsing used by Capacitor plugins
+# Reflection-based JSON parsing used by Capacitor plugins.
+# The Capacitor barcode scanner references Gson @SerializedName annotations
+# via reflection but Gson itself is NOT bundled (the plugin only uses the
+# annotations symbolically). Suppress R8 "missing class" errors for these
+# symbols; they are safe to drop at runtime because no code path actually
+# dereferences them.
+-dontwarn com.google.gson.**
+-dontwarn com.google.gson.annotations.**
+-keep class com.google.gson.annotations.** { *; }
 -keepclassmembers,allowobfuscation class * {
     @com.google.gson.annotations.SerializedName <fields>;
 }
+
+# P3.36 extra — other plugins bring transitive Kotlin metadata and
+# reflective utility classes; ignore missing references so R8 does not abort
+# when they aren't actually reachable at runtime.
+-dontwarn kotlin.reflect.jvm.internal.**
+-dontwarn org.jetbrains.annotations.**
