@@ -10,10 +10,12 @@ functions/.env
 functions/.env.local
 .runtimeconfig.json
 
-# Secrets
+# Secrets & keystores
 *.secret
 .env
 .env.local
+*.keystore
+*.jks
 
 # Firebase Config — NOT gitignored for web (needed by GitHub Pages)
 # Firebase web API keys are public by design; security is enforced via Firestore Security Rules.
